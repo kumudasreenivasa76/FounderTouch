@@ -39,6 +39,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ hand
     const art = parseAvatar(p.avatar);
     if (art) avatarSrc = "data:image/svg+xml;base64," + Buffer.from(svgToString(AvatarArt({ cfg: art, size: 200 }))).toString("base64");
   }
+  let logoSrc = "";
+  if (p.logo) {
+    try {
+      const lb = await readFile(path.join(process.cwd(), "uploads", path.basename(p.logo)));
+      logoSrc = `data:${MIME[path.extname(p.logo)] ?? "image/png"};base64,${lb.toString("base64")}`;
+    } catch { /* no logo */ }
+  }
   const initials = p.name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("");
   const lines = [p.phone, p.email, p.website.replace(/^https?:\/\//, "")].filter(Boolean);
   const sub = byline(p.headline, p.company);
@@ -52,6 +59,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ hand
               // eslint-disable-next-line @next/next/no-img-element
               ? <img src={avatarSrc} width={150} height={150} style={{ borderRadius: 75, border: "6px solid rgba(255,255,255,.85)", objectFit: "cover" }} alt="" />
               : <div style={{ display: "flex", width: 150, height: 150, borderRadius: 75, background: "rgba(255,255,255,.25)", alignItems: "center", justifyContent: "center", fontSize: 58, fontWeight: 700 }}>{initials}</div>}
+            <div style={{ display: "flex", flex: 1, justifyContent: "flex-end" }}>
+              {logoSrc && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoSrc} height={78} style={{ maxWidth: 220, objectFit: "contain", background: "#fff", borderRadius: 16, padding: 8 }} alt="" />
+              )}
+            </div>
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", fontSize: 60, fontWeight: 700, lineHeight: 1.1 }}>{p.name}</div>

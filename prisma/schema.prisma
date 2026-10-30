@@ -31,7 +31,8 @@ model Profile {
   company  String       @default("")
   product  String       @default("")
   photo    String       @default("")
-  theme    String       @default("indigo")
+  theme    String       @default("indigo") // a preset key, or custom:#from:#to for company colours
+  logo     String       @default("")       // company logo file in uploads/
   socials  String       @default("{}")
   avatar   String       @default("")
   website  String       @default("")

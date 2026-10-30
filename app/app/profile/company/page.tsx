@@ -2,13 +2,16 @@ import { db } from "@/lib/db";
 import { requireOwner } from "@/lib/auth";
 import Avatar from "@/components/avatar";
 import PageHead from "@/components/page-head";
-import { addMember, delMember, saveCompany } from "../actions";
+import { addMember, delMember, saveBrand, saveCompany } from "../actions";
+import BrandForm from "@/components/brand-form";
+import { themeOf } from "@/lib/look";
 export const dynamic = "force-dynamic";
 
 const ERR: Record<string, string> = {
   nouser: "No FounderTouch user has that username.",
   self: "That is your own username.",
   member: "Enter a name, or a FounderTouch username.",
+  logo: "The logo must be a PNG, JPG or WebP under 2 MB.",
 };
 
 export default async function Company({ searchParams }: { searchParams: Promise<{ err?: string; saved?: string }> }) {
@@ -25,6 +28,8 @@ export default async function Company({ searchParams }: { searchParams: Promise<
         <input name="company" defaultValue={profile.company} placeholder="e.g. Lumen Labs" autoComplete="organization" />
         <button>Save company</button>
       </form>
+
+      <BrandForm action={saveBrand} company={profile.company} logoSrc={profile.logo ? `/logo/${profile.handle}?v=${encodeURIComponent(profile.logo)}` : ""} color1={themeOf(profile.theme).from} color2={themeOf(profile.theme).to} />
 
       <h2>Team ({team.length})</h2>
       {team.length === 0 && <div className="card muted">No team members yet. Add people below. They appear on your page for every mode except Customer.</div>}

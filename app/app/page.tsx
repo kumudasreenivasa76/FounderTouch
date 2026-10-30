@@ -134,7 +134,7 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
                 key={mode + profile.theme}
                 background={gradient(profile.theme)} back={`linear-gradient(135deg, ${t.to}, ${t.from})`}
                 avatar={avatarNode} name={profile.name} sub={byline(profile.headline, profile.company)}
-                qr={qrs[i]} lines={cardLines} social={socialIcons}
+                qr={qrs[i]} logo={profile.logo ? `/logo/${profile.handle}?v=${encodeURIComponent(profile.logo)}` : undefined} lines={cardLines} social={socialIcons}
               />
               <div className="row" style={{ marginTop: 8 }}>
                 <a className="btn ghost" href={`/card/${profile.handle}/image?mode=${mode}`} download={`${profile.handle}-card.png`}>⬇ Card image</a>
@@ -163,7 +163,7 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
               </div>
 
               <form action={setTheme} className="card">
-                <b>Card colour</b>
+                <b>Card colour</b> <a href="/app/profile/company" style={{ float: "right" }}>🎨 Company logo &amp; colours →</a>
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 8 }}>
                   {Object.entries(THEMES).map(([k, th]) => (
                     <button key={k} name="theme" value={k} aria-label={th.name} title={th.name}

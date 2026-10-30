@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import { endSession, requireOwner } from "@/lib/auth";
 import { KINDS, MAX_UPLOAD } from "@/lib/kinds";
 import { MODES, MODE_INFO, Mode } from "@/lib/modes";
+import { customTheme } from "@/lib/look";
 import { cleanTags } from "@/lib/tags";
 import { socialsFromForm, socialUrl } from "@/lib/socials";
 
@@ -178,3 +179,29 @@ export async function logout() {
   redirect("/login");
 }
 
+
+/** Company logo and brand colours. Colours become the theme for the card, the page and the card image. */
+export async function saveBrand(fd: FormData) {
+  const { profile } = await requireOwner();
+  const hex = (v: FormDataEntryValue | null) => (/^#[0-9a-f]{6}$/i.test(String(v ?? "").trim()) ? String(v).trim().toLowerCase() : "");
+  const c1 = hex(fd.get("color1")), c2 = hex(fd.get("color2")) || c1;
+  let logo = profile.logo;
+  if (fd.get("rm_logo") === "on") {
+    if (logo) await unlink(path.join(UPLOADS(), path.basename(logo))).catch(() => {});
+    logo = "";
+  }
+  const f = fd.get("logo") as File | null;
+  if (f && f.size > 0) {
+    const ext = path.extname(f.name).toLowerCase();
+    if (![".png", ".jpg", ".jpeg", ".webp"].includes(ext) || f.size > 2 * 1024 * 1024) redirect("/app/profile/company?err=logo");
+    const name = "logo-" + randomBytes(8).toString("hex") + ext;
+    await mkdir(UPLOADS(), { recursive: true });
+    await writeFile(path.join(UPLOADS(), name), Buffer.from(await f.arrayBuffer()));
+    if (logo) await unlink(path.join(UPLOADS(), path.basename(logo))).catch(() => {});
+    logo = name;
+  }
+  const theme = fd.get("reset") === "on" ? "sunset" : c1 ? customTheme(c1, c2) : profile.theme;
+  await db.profile.update({ where: { id: profile.id }, data: { logo, theme } });
+  done();
+  redirect("/app/profile/company?saved=1");
+}

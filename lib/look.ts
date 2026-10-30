@@ -6,7 +6,14 @@ export const THEMES: Record<string, { name: string; from: string; to: string }> 
   rose: { name: "Rose", from: "#d6336c", to: "#9c36b5" },
   midnight: { name: "Midnight", from: "#212529", to: "#495057" },
 };
-export const themeOf = (k: string) => THEMES[k] ?? THEMES.indigo;
+const CUSTOM = /^custom:(#[0-9a-f]{6}):(#[0-9a-f]{6})$/i;
+export const isCustomTheme = (k: string) => CUSTOM.test(k);
+export const customTheme = (from: string, to: string) => `custom:${from.toLowerCase()}:${to.toLowerCase()}`;
+/** A preset by key, or the company's own two colours. Only validated hex ever reaches the CSS. */
+export const themeOf = (k: string) => {
+  const m = CUSTOM.exec(k);
+  return m ? { name: "Company", from: m[1], to: m[2] } : THEMES[k] ?? THEMES.indigo;
+};
 export const gradient = (k: string) => `linear-gradient(135deg, ${themeOf(k).from}, ${themeOf(k).to})`;
 
 /** Lighten (amt > 0) or darken (amt < 0) a #rrggbb colour. */

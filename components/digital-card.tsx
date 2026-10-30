@@ -8,9 +8,9 @@ export type CardLine = { icon: string; text: string; href: string };
  * The avatar is passed in already rendered; everything else is plain data.
  */
 export default function DigitalCard({
-  background, back, avatar, name, sub, qr, lines, social,
+  background, back, avatar, name, sub, qr, logo, lines, social,
 }: {
-  background: string; back: string; avatar: React.ReactNode; name: string; sub: string; qr: string;
+  background: string; back: string; avatar: React.ReactNode; name: string; sub: string; qr: string; logo?: string;
   lines: CardLine[]; social: React.ReactNode;
 }) {
   const [flipped, setFlipped] = useState(false);
@@ -21,7 +21,7 @@ export default function DigitalCard({
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setFlipped((f) => !f); } }}>
         <div className="flip-in">
           <div className="face front" style={{ background }}>
-            <div className="face-top">{avatar}</div>
+            <div className="face-top">{avatar}{logo && <img className="face-logo" src={logo} alt="" />}</div>
             <div className="face-name">{name}</div>
             {sub && <div className="face-sub">{sub}</div>}
             <div className="face-qr"><img src={qr} alt="QR code to open this card" /></div>

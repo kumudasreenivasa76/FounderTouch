@@ -110,7 +110,8 @@ export default async function Public({ params, searchParams }: { params: Promise
     const info = MODE_INFO[mode as Mode];
     return (
       <div className="screen">
-        <div className="card hero hero-themed" style={{ background: gradient(p.theme), border: 0 }}>
+        <div className="card hero hero-themed" style={{ background: gradient(p.theme), border: 0, position: "relative" }}>
+        {p.logo && <img className="brand-logo" src={`/logo/${p.handle}?v=${encodeURIComponent(p.logo)}`} alt={p.company ? `${p.company} logo` : ""} />}
           <Avatar name={p.name} handle={p.handle} hasPhoto={!!p.photo} avatar={p.avatar} size={88} flip center />
           <h1>{p.name}</h1>
           <div>{byline(p.headline, p.company)}</div>
@@ -199,7 +200,8 @@ export default async function Public({ params, searchParams }: { params: Promise
 
   const meP = (
     <>
-      <div className="card hero hero-themed" style={{ background: gradient(p.theme), border: 0 }}>
+      <div className="card hero hero-themed" style={{ background: gradient(p.theme), border: 0, position: "relative" }}>
+        {p.logo && <img className="brand-logo" src={`/logo/${p.handle}?v=${encodeURIComponent(p.logo)}`} alt={p.company ? `${p.company} logo` : ""} />}
         <Avatar name={p.name} handle={p.handle} hasPhoto={!!p.photo} avatar={p.avatar} size={88} flip center />
         <h1>{p.name}</h1>
         <div>{byline(p.headline, p.company)}</div>
@@ -429,7 +431,7 @@ export default async function Public({ params, searchParams }: { params: Promise
     return (
       <div className="screen li-page">
         <div className="li" style={{ padding: 0 }}>
-          <div style={{ height: 120, background: gradient(p.theme) }} />
+          <div style={{ height: 120, background: gradient(p.theme), position: "relative" }}>{p.logo && <img className="brand-logo" src={`/logo/${p.handle}?v=${encodeURIComponent(p.logo)}`} alt={p.company ? `${p.company} logo` : ""} />}</div>
           <div style={{ padding: "0 16px 16px" }}>
             <div style={{ marginTop: -52, marginBottom: 8, display: "inline-block", borderRadius: "50%", padding: 4, background: openToWork ? "#0ca678" : "#fff" }}>
               <div style={{ borderRadius: "50%", background: "#fff", padding: 3 }}>
