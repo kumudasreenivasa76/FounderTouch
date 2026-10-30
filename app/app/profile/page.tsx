@@ -43,8 +43,7 @@ export default async function ProfileHub() {
     { href: "/app/profile/company", icon: "🏢", title: "Company", sub: `${profile.company || "No company name"} · ${team} team member${team === 1 ? "" : "s"}` },
     { href: "/app/profile/work", icon: "💼", title: "Hire me", sub: `Resume, portfolio, experience, education` },
     { href: "/app/profile/kit", icon: "🚀", title: "Kits", sub: `Founder, Investor, Seller… · ${resources.length} item${resources.length === 1 ? "" : "s"}` },
-    { href: "/app/profile/projects", icon: "💡", title: "My projects", sub: `${projectCount} project${projectCount === 1 ? "" : "s"} with demos` },
-    { href: "/app/profile/sections", icon: "🧩", title: "Page sections", sub: `${sections} text block${sections === 1 ? "" : "s"}` },
+    { href: "/app/profile/sections", icon: "🧩", title: "Sections & projects", sub: `${sections} section${sections === 1 ? "" : "s"} · ${projectCount} project${projectCount === 1 ? "" : "s"}` },
   ];
 
   return (
