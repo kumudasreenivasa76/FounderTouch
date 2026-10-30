@@ -48,8 +48,7 @@ function vProfile() {
     menuRow("kit", 'data-mode="' + ui.kitMode + '"', "🚀", "Kits", S.resources.length + " item" + (S.resources.length === 1 ? "" : "s") + " across your modes") +
     menuRow("jobs", "", "🎯", "Open roles", S.jobs.filter(function (j) { return j.open; }).length + " open · " + S.apps.length + " applicants") +
     menuRow("projects", "", "💡", "My projects", S.projects.filter(function (x) { return !x.eventId; }).length + " with demos") +
-    menuRow("avatar", "", "🎨", "Avatar", "Design your 3D avatar") +
-    '<h2>This in-browser version</h2><div class="note">Everything you add is saved to your own account in this artifact. Use these to try the app with a full account, or start over.</div><div class="row"><button class="ghost" data-act="sample">Load sample data</button><button class="ghost" data-act="reset">Start over</button></div>';
+        '<h2>This in-browser version</h2><div class="note">Everything you add is saved to your own account in this artifact. Use these to try the app with a full account, or start over.</div><div class="row"><button class="ghost" data-act="sample">Load sample data</button><button class="ghost" data-act="reset">Start over</button></div>';
   return shell("", o);
 }
 function pDetails() {
