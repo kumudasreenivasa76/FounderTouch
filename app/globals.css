@@ -145,3 +145,26 @@ summary{list-style:none}summary::-webkit-details-marker{display:none}
 /* company logo on the card and page */
 .face-logo{height:38px;max-width:104px;object-fit:contain;background:#fff;border-radius:10px;padding:4px;position:relative;z-index:1}
 .brand-logo{position:absolute;top:12px;right:12px;height:38px;max-width:110px;object-fit:contain;background:#fff;border-radius:10px;padding:4px;z-index:1}
+
+/* Tap to share: a radar that searches for people nearby */
+.radar{position:relative;width:240px;height:240px;margin:8px auto 6px;display:grid;place-items:center}
+.radar .ring{position:absolute;inset:0;border-radius:50%;border:2px solid #3b5bdb;opacity:.12;transform:scale(.6)}
+.radar.live .ring{opacity:0;animation:ripple 2.6s ease-out infinite}
+.radar.live .ring:nth-child(2){animation-delay:.87s}.radar.live .ring:nth-child(3){animation-delay:1.74s}
+@keyframes ripple{0%{transform:scale(.38);opacity:.65}100%{transform:scale(1.08);opacity:0}}
+.radar-core{position:relative;z-index:2;width:112px;height:112px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,#eef1ff,#dbe4ff);box-shadow:0 0 0 10px rgba(59,91,219,.08),0 0 28px rgba(59,91,219,.25)}
+.radar.live .radar-core{animation:breathe 1.6s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+.radar.done .radar-core{box-shadow:0 0 0 10px rgba(12,166,120,.16),0 0 30px rgba(12,166,120,.4)}
+.burst{position:absolute;left:50%;top:50%;z-index:3;pointer-events:none}
+.burst i{position:absolute;left:-5px;top:-5px;width:10px;height:10px;border-radius:50%;background:hsl(var(--h) 90% 55%);animation:pop .95s ease-out forwards}
+@keyframes pop{0%{transform:rotate(var(--a)) translateY(0) scale(1);opacity:1}100%{transform:rotate(var(--a)) translateY(-104px) scale(.3);opacity:0}}
+button.pulse{animation:pulseBtn 2s ease-in-out infinite}
+@keyframes pulseBtn{0%,100%{box-shadow:0 0 0 0 rgba(59,91,219,.45)}50%{box-shadow:0 0 0 10px rgba(59,91,219,0)}}
+.found-card{display:flex;align-items:center;gap:12px;border-color:#b2f2bb;background:#f3fcf5;animation:rise .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes rise{from{transform:translateY(14px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+.found-ini{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#0ca678,#1098ad);color:#fff;display:grid;place-items:center;font-weight:700;font-size:19px;flex-shrink:0}
+@media (prefers-reduced-motion:reduce){.radar.live .ring,.radar.live .radar-core,button.pulse,.burst i,.found-card{animation:none}.radar.live .ring{opacity:.3}}
+/* pill-shaped buttons: only the selected one is filled */
+button.pill:not(.on):not(.sm){background:#eef1f7;color:#1c2330}
+button.pill.on:not(.sm){background:var(--accent,#3b5bdb);color:#fff}

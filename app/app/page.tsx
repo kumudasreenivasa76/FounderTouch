@@ -12,7 +12,8 @@ import { SOCIALS, parseSocials } from "@/lib/socials";
 import { THEMES, byline, gradient, themeOf } from "@/lib/look";
 import Avatar from "@/components/avatar";
 import ShareButtons from "@/components/share-buttons";
-import NfcTap from "@/components/nfc-tap";
+import TapShare from "@/components/tap-share";
+import { peekTap, saveTapCard } from "./tap-actions";
 import Swiper from "@/components/swiper";
 import PhotoUpload from "@/components/photo-upload";
 import DigitalCard, { CardLine } from "@/components/digital-card";
@@ -55,7 +56,7 @@ async function unsaveCard(fd: FormData) {
 
 const label = (m: string) => `${MODE_INFO[m as Mode].icon} ${MODE_INFO[m as Mode].label}`;
 
-export default async function Share({ searchParams }: { searchParams: Promise<{ mode?: string; pane?: string }> }) {
+export default async function Share({ searchParams }: { searchParams: Promise<{ mode?: string; pane?: string; via?: string }> }) {
   const { user, profile } = await requireOwner();
   const sp = await searchParams;
   const [cfgs, links, contactCount, resources, teamCount, projectRows, eventCount, saved, jobCount, careerN] = await Promise.all([
@@ -104,9 +105,10 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
   const avatarNode = <PhotoUpload action={uploadPhoto} size={56}><Avatar name={profile.name} handle={profile.handle} hasPhoto={!!profile.photo} avatar={profile.avatar} size={56} /></PhotoUpload>;
 
   // Dropdown: the modes you have, then Add a mode, Tap and Wallet.
-  const labels = [...visible.map(label), "＋ Add a mode", "📲 Tap (NFC)", "👛 Wallet"];
-  const addIdx = visible.length, tapIdx = visible.length + 1, walletIdx = visible.length + 2;
-  const start = sp.pane === "tap" ? tapIdx : sp.pane === "wallet" ? walletIdx : sp.pane === "add" ? addIdx
+  const via = sp.via === "tap" || sp.pane === "tap" ? "tap" : "qr";
+  const labels = [...visible.map(label), "＋ Add a mode", "👛 Wallet"];
+  const addIdx = visible.length, walletIdx = visible.length + 1;
+  const start = sp.pane === "wallet" ? walletIdx : sp.pane === "add" ? addIdx
     : visible.includes(sp.mode as Mode) ? visible.indexOf(sp.mode as Mode) : toAdd.includes(sp.mode as Mode) ? addIdx : 0;
 
   return (
@@ -119,6 +121,20 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
         </div>
       </div>
 
+      <div className="chips" style={{ padding: "0 18px 10px", margin: 0, flexShrink: 0 }}>
+        <Link href="/app" className={"pill" + (via === "qr" ? " on" : "")} style={{ padding: "7px 16px" }}>▦ QR code</Link>
+        <Link href="/app?via=tap" className={"pill" + (via === "tap" ? " on" : "")} style={{ padding: "7px 16px" }}>📲 Tap</Link>
+      </div>
+
+      {via === "tap" ? (
+        <div style={{ flex: 1, overflowY: "auto", padding: "4px 18px 18px", minHeight: 0 }}>
+          <TapShare
+            pages={modeData.map((x) => ({ mode: x.mode, label: MODE_INFO[x.mode].label, icon: MODE_INFO[x.mode].icon, tapUrl: `${origin}/t/${x.link.token}` }))}
+            avatar={<Avatar name={profile.name} handle={profile.handle} hasPhoto={!!profile.photo} avatar={profile.avatar} size={96} />}
+            peek={peekTap} save={saveTapCard}
+          />
+        </div>
+      ) : (
       <Swiper labels={labels} initial={start} select>
         {modeData.map(({ mode, link, cfg }, i) => {
           const info = MODE_INFO[mode];
@@ -204,7 +220,6 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
           ))}
         </div>
 
-        <NfcTap key="tap" links={modeData.map((x) => ({ mode: x.mode, label: MODE_INFO[x.mode].label, url: `${origin}/t/${x.link.token}` }))} />
 
         <div key="wallet">
           <h2 style={{ marginTop: 0 }}>Wallet</h2>
@@ -229,6 +244,7 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
           ))}
         </div>
       </Swiper>
+      )}
     </>
   );
 }
