@@ -1,0 +1,15 @@
+node_modules
+.next
+*.db
+*.db-journal
+.env
+uploads
+
+# local
+dev.log
+*.log
+*.tsbuildinfo
+*.tmp.ts
+*.tmp.png
+.env.local
+.DS_Store
