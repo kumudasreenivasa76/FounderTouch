@@ -53,6 +53,15 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
     <>
       <PageHead title="Hire me" sub="Your career in one place: openness to work, skills, experience, education and resume. Your portfolio and website are in Contact & socials." saved={!!sp.saved} error={sp.err ? ERR[sp.err] ?? "Something went wrong." : undefined} />
 
+      <div className="card" style={{ background: "#f0f4ff", borderColor: "#d7defb" }}>
+        <b>🙋 Your Hire me page</b>
+        <p className="muted" style={{ margin: "4px 0 10px" }}>This is what people see when you share your Hire me mode: a profile-style page built from everything below.</p>
+        <div className="row">
+          <a className="btn ghost" href={`/${profile.handle}?mode=HIRE`} target="_blank">Preview ↗</a>
+          <a className="btn" href="/app?mode=HIRE">Share it →</a>
+        </div>
+      </div>
+
       <form action={saveHire} className="card">
         <h3>Status &amp; skills</h3>
         <label className="f">I am</label>

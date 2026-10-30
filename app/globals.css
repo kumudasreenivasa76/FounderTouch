@@ -126,3 +126,9 @@ summary{list-style:none}summary::-webkit-details-marker{display:none}
 /* only the selected tab takes the accent colour (this must win over the generic button rule above) */
 .swiper-tabs button:not(.on):not(.sm){background:#eef1f7;color:#1c2330}
 .swiper-tabs button.on:not(.sm){background:var(--accent,#3b5bdb);color:#fff}
+
+/* Hire me mode: a profile-style page on a light grey canvas */
+.li-page{background:#f3f2ef;padding:0}
+.li{background:#fff;padding:14px 16px;margin-bottom:8px}
+.li h3{font-size:18px;margin:0 0 10px}
+.li-page .pill{background:#eef3f8}

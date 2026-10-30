@@ -2,7 +2,7 @@
  * The modes (who you are when you share). Each mode asks for only what it needs:
  * its own fields and only the kinds of files that make sense for it.
  */
-export const MODES = ["FOUNDER", "INVESTOR", "SELLER", "SERVICES", "RECRUITER", "HACKATHON", "BUSINESS", "OTHER", "ALL"] as const;
+export const MODES = ["FOUNDER", "INVESTOR", "SELLER", "SERVICES", "HIRE", "RECRUITER", "HACKATHON", "BUSINESS", "OTHER", "ALL"] as const;
 export type Mode = (typeof MODES)[number];
 
 export type Kind = "DECK" | "DEMO" | "RESUME" | "PORTFOLIO" | "DOC" | "SUPPORT";
@@ -69,6 +69,12 @@ export const MODE_INFO: Record<Mode, Info> = {
       { key: "portfolioUrl", label: "Portfolio link", type: "url", hint: "Your work, case studies or Behance/Dribbble" },
       { key: "clients", label: "Selected clients", type: "list" },
     ],
+  },
+  HIRE: {
+    label: "Hire me", icon: "🙋", blurb: "I am looking for work", cta: "Contact me",
+    kit: "Hire me page", about: "About", aboutHint: "A short summary of who you are and what you are good at", pane: "Profile",
+    kinds: { RESUME: "Resume / CV", PORTFOLIO: "Portfolio files", SUPPORT: "Certificates & documents" },
+    fields: [],
   },
   RECRUITER: {
     label: "Recruiter", icon: "🎯", blurb: "I hire talent", cta: "See open roles",

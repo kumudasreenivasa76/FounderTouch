@@ -105,7 +105,7 @@ export default async function Public({ params, searchParams }: { params: Promise
   if (!cfg || !cfg.isEnabled) notFound();
   const me = await currentUser();
   const isOwner = me?.profile?.id === p.id;
-  if (!isOwner && !modeHasContent(mode, cfg, p.resources, { projects: p.projects.length, events: p.events.length, jobs: p.jobs.length })) notFound();
+  if (!isOwner && !modeHasContent(mode, cfg, p.resources, { projects: p.projects.length, events: p.events.length, jobs: p.jobs.length, career: p.career.length + (p.skills.trim() || p.openTo ? 1 : 0) })) notFound();
   if (!(await canView(p, mode, cfg.requireApproval))) {
     const info = MODE_INFO[mode as Mode];
     return (
@@ -136,7 +136,7 @@ export default async function Public({ params, searchParams }: { params: Promise
   }
   const ids: string[] = JSON.parse(cfg.sectionIds);
   const sections = p.sections.filter((s) => ids.includes(s.id)).sort((a, b) => a.order - b.order);
-  const enabled = MODES.filter((k) => k !== "ALL").map((k) => p.modes.find((m) => m.mode === k)).filter((m): m is NonNullable<typeof m> => !!m && m.isEnabled && modeHasContent(m.mode, m, p.resources, { projects: p.projects.length, events: p.events.length, jobs: p.jobs.length }));
+  const enabled = MODES.filter((k) => k !== "ALL").map((k) => p.modes.find((m) => m.mode === k)).filter((m): m is NonNullable<typeof m> => !!m && m.isEnabled && modeHasContent(m.mode, m, p.resources, { projects: p.projects.length, events: p.events.length, jobs: p.jobs.length, career: p.career.length + (p.skills.trim() || p.openTo ? 1 : 0) }));
   const myJobs = me?.profile && !isOwner ? await db.job.findMany({ where: { profileId: me.profile.id, open: true }, orderBy: { createdAt: "desc" } }) : [];
   const invitedJobs = myJobs.length ? new Set((await db.invite.findMany({ where: { candidateProfileId: p.id, jobId: { in: myJobs.map((j) => j.id) } } })).map((i) => i.jobId)) : new Set<string>();
   const alreadySaved = me && !isOwner ? await db.savedCard.findUnique({ where: { userId_profileId: { userId: me.id, profileId: p.id } } }) : null;
@@ -304,7 +304,7 @@ export default async function Public({ params, searchParams }: { params: Promise
     </>
   );
   // Hire me: status, skills, experience, education, resume and portfolio together.
-  const showCareer = mode === "ALL" || p.hireModes.split(",").includes(mode);
+  const showCareer = mode === "ALL" || mode === "HIRE" || p.hireModes.split(",").includes(mode);
   const jobs = showCareer ? p.career.filter((c) => c.type === "EXPERIENCE").sort(byStartDesc) : [];
   const schools = showCareer ? p.career.filter((c) => c.type === "EDUCATION").sort(byStartDesc) : [];
   const skillList = showCareer ? listItems(p.skills) : [];
@@ -408,6 +408,93 @@ export default async function Public({ params, searchParams }: { params: Promise
   );
 
   // Only the pages that have something to show, in a sensible order.
+  // Hire me mode: one profile-style page (banner, photo, About, Experience, Education, Skills), nothing else.
+  if (mode === "HIRE") {
+    const initials = (t: string) => t.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
+    const resumes = p.resources.filter((r) => r.kind === "RESUME");
+    const portfolios = p.resources.filter((r) => r.kind === "PORTFOLIO");
+    const openToWork = openTo.startsWith("Open to");
+    const firstResume = resumes.find((r) => !r.gated);
+    const contactHref = p.email ? `mailto:${p.email}` : p.phone ? `tel:${p.phone.replace(/\s+/g, "")}` : "";
+    const li = (title: string, body: React.ReactNode) => (<div className="li"><h3>{title}</h3>{body}</div>);
+    const entry = (c: (typeof p.career)[number]) => (
+      <div key={c.id} style={{ display: "flex", gap: 12, marginBottom: 14 }}>
+        <div style={{ width: 46, height: 46, borderRadius: 6, background: "#eef1ff", color: "#3b5bdb", display: "grid", placeItems: "center", fontWeight: 700, flexShrink: 0 }}>{initials(c.org) || "•"}</div>
+        <div style={{ minWidth: 0 }}>
+          <b>{c.title}</b>
+          <div>{c.org}{c.location ? ` · ${c.location}` : ""}</div>
+          {fmtRange(c.start, c.end) && <div className="muted">{fmtRange(c.start, c.end)}</div>}
+          {c.description && <div style={{ whiteSpace: "pre-wrap", marginTop: 4 }}>{c.description}</div>}
+        </div>
+      </div>
+    );
+    return (
+      <div className="screen li-page">
+        <div className="li" style={{ padding: 0 }}>
+          <div style={{ height: 120, background: gradient(p.theme) }} />
+          <div style={{ padding: "0 16px 16px" }}>
+            <div style={{ marginTop: -52, marginBottom: 8, display: "inline-block", borderRadius: "50%", padding: 4, background: openToWork ? "#0ca678" : "#fff" }}>
+              <div style={{ borderRadius: "50%", background: "#fff", padding: 3 }}>
+                <Avatar name={p.name} handle={p.handle} hasPhoto={!!p.photo} avatar={p.avatar} size={96} flip />
+              </div>
+            </div>
+            <h1 style={{ margin: 0, fontSize: 24 }}>{p.name}</h1>
+            <div style={{ fontSize: 16 }}>{p.headline || byline(p.headline, p.company)}</div>
+            <div className="muted">{[p.company, p.website && p.website.replace(/^https?:\/\//, "")].filter(Boolean).join(" · ")}</div>
+            {cfg.intro && <div className="muted" style={{ marginTop: 6 }}>👋 {cfg.intro}</div>}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
+              {contactHref && <a className="btn" style={{ width: "auto", padding: "8px 18px", borderRadius: 99 }} href={contactHref}>{cfg.ctaLabel || "Contact me"}</a>}
+              {socials.linkedin && <a className="btn ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }} href={socials.linkedin} target="_blank" rel="noopener noreferrer">in Connect</a>}
+              <a className="btn ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }} href={`/${handle}/vcard?mode=HIRE`}>Save contact</a>
+              {firstResume && <a className="btn ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }} href={href(firstResume)} target="_blank" rel="noopener noreferrer">📄 Resume</a>}
+              {!isOwner && (alreadySaved || sp.saved
+                ? <span className="pill" style={{ margin: 0, alignSelf: "center" }}>✓ Saved</span>
+                : <form action={saveCard}><input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value="HIRE" /><button className="ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }}>💾 Save card</button></form>)}
+            </div>
+          </div>
+        </div>
+
+        {openTo && (
+          <div className="li" style={{ background: openToWork ? "#f0fbf5" : "#fff", borderLeft: `4px solid ${openToWork ? "#0ca678" : "#cfd4dd"}` }}>
+            <b>{openToWork ? "🟢 " : "⚪ "}{openTo}</b>
+            {skillList.length > 0 && <div className="muted">{skillList.slice(0, 3).join(" · ")}</div>}
+          </div>
+        )}
+
+        {p.bio && li("About", <div style={{ whiteSpace: "pre-wrap" }}>{p.bio}</div>)}
+        {jobs.length > 0 && li("Experience", <>{jobs.map(entry)}</>)}
+        {schools.length > 0 && li("Education", <>{schools.map(entry)}</>)}
+        {skillList.length > 0 && li("Skills", <div>{skillList.map((x) => <span key={x} className="pill">{x}</span>)}</div>)}
+        {p.projects.length > 0 && li("Projects", <>{p.projects.map((x) => (
+          <div key={x.id} style={{ marginBottom: 10 }}><b>{x.name}</b>{x.tagline && <div>{x.tagline}</div>}{x.demoUrl && <a href={x.demoUrl} target="_blank" rel="noopener noreferrer">Open demo ↗</a>}</div>
+        ))}</>)}
+        {(resumes.length > 0 || portfolios.length > 0 || portfolioLink) && li("Resume & portfolio", <>
+          {resumes.map((r) => r.gated ? locked(r) : viewer(r))}
+          {portfolioLink && <a className="btn ghost" style={{ marginBottom: 8 }} href={portfolioLink} target="_blank" rel="noopener noreferrer">🗂️ Open my portfolio ↗</a>}
+          {portfolios.map((r) => r.gated ? locked(r) : viewer(r))}
+        </>)}
+        {hasContact && li("Contact info", <>
+          {p.phone && <div>📞 <a href={`tel:${p.phone.replace(/\s+/g, "")}`}>{p.phone}</a></div>}
+          {p.email && <div>✉ <a href={`mailto:${p.email}`}>{p.email}</a></div>}
+          {p.website && <div>🌐 <a href={p.website} target="_blank" rel="noopener noreferrer">{p.website.replace(/^https?:\/\//, "")}</a></div>}
+          {Object.keys(socials).length > 0 && <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 10 }}>{SOCIALS.filter((x) => socials[x.key]).map((x) => (
+            <a key={x.key} href={socials[x.key]} target="_blank" rel="noopener noreferrer" aria-label={x.label} title={x.label}><SocialBadge k={x.key} size={40} /></a>
+          ))}</div>}
+        </>)}
+        {li("Get in touch", (
+          <form action={exchange}>
+            <input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value="HIRE" />
+            <div className="row"><input name="firstName" placeholder="First name" required /><input name="lastName" placeholder="Last name" required /></div>
+            <input name="email" type="email" placeholder="Email" required />
+            <input name="company" placeholder="Company" />
+            <button>Send my details</button>
+            <p className="muted" style={{ marginBottom: 0 }}>By sending, you agree {p.name} may contact you.</p>
+          </form>
+        ))}
+      </div>
+    );
+  }
+
   const pages: { key: string; label: string; node: React.ReactNode }[] = [{ key: "me", label: "Me", node: meP }];
   if (mode === "RECRUITER" && p.jobs.length > 0) pages.push({ key: "roles", label: `Open roles (${p.jobs.length})`, node: rolesP });
   if (kitText || fieldDefs.length > 0 || group("DECK").length > 0) pages.push({ key: "product", label: MODE_INFO[mode as Mode].pane, node: productP });

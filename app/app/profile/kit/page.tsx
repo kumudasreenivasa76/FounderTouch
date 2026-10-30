@@ -21,7 +21,7 @@ const HINT: Record<string, string> = {
 };
 // Resume and Portfolio live under "Hire me", so they are not repeated here.
 const KIT_KINDS = ["DECK", "DEMO", "DOC", "SUPPORT"] as const;
-const PAGES = MODES.filter((m) => m !== "ALL");
+const PAGES = MODES.filter((m) => m !== "ALL" && m !== "HIRE");
 
 export default async function Kits({ searchParams }: { searchParams: Promise<{ err?: string; saved?: string; kind?: string; mode?: string }> }) {
   const sp = await searchParams;

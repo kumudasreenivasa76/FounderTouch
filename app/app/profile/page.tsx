@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ProfileHub() {
   const { user, profile } = await requireOwner();
-  const [resources, team, sections, projectCount, cfgs, eventCount, jobCount] = await Promise.all([
+  const [resources, team, sections, projectCount, cfgs, eventCount, jobCount, careerN] = await Promise.all([
     db.resource.findMany({ where: { profileId: profile.id }, select: { kind: true, modes: true } }),
     db.teamMember.count({ where: { profileId: profile.id } }),
     db.section.count({ where: { profileId: profile.id } }),
@@ -20,8 +20,9 @@ export default async function ProfileHub() {
     db.modeConfig.findMany({ where: { profileId: profile.id } }),
     db.event.count({ where: { profileId: profile.id } }),
     db.job.count({ where: { profileId: profile.id, open: true } }),
+    db.careerItem.count({ where: { profileId: profile.id } }),
   ]);
-  const visible = MODES.filter((m) => cfgs.find((c) => c.mode === m)?.isEnabled && modeHasContent(m, cfgs.find((c) => c.mode === m), resources, { projects: projectCount, events: eventCount, jobs: jobCount }));
+  const visible = MODES.filter((m) => cfgs.find((c) => c.mode === m)?.isEnabled && modeHasContent(m, cfgs.find((c) => c.mode === m), resources, { projects: projectCount, events: eventCount, jobs: jobCount, career: careerN + (profile.skills.trim() || profile.openTo ? 1 : 0) }));
   const n = (k: string) => resources.filter((r) => r.kind === k).length;
   const socials = Object.values(parseSocials(profile.socials)).filter(Boolean).length;
   const hasLook = !!profile.photo || !!profile.avatar;

@@ -5,7 +5,7 @@ export type Need = { ok: boolean; label: string; href: string };
 export type NeedData = {
   headline: string; bio: string; about: string; company: string; website: string; phone: string; email: string;
   socials: number; team: number; decks: number; demos: number; docs: number; projects: number; events: number;
-  booking: boolean; hasPortfolio: boolean; jobs: number;
+  booking: boolean; hasPortfolio: boolean; jobs: number; career: number; skills: boolean; resume: boolean;
   f: Record<string, string>; // this mode's extra fields
 };
 
@@ -30,6 +30,8 @@ export function modeNeeds(mode: Mode, d: NeedData): Need[] {
       return [{ ok: d.projects > 0, label: "Add a project and demo", href: `${P}/sections?tab=projects` }, { ok: has("skills"), label: "Add your skills and stack", href: kit() }, { ok: d.events > 0, label: "Create or add an event", href: `/app/events` }];
     case "BUSINESS":
       return [about("Describe what your company offers"), { ok: !!d.company, label: "Add your company name", href: `${P}/company` }, { ok: !!d.website, label: "Add your website", href: `${P}/contact` }, book];
+    case "HIRE":
+      return [{ ok: !!d.headline, label: "Write a headline", href: `${P}/details` }, { ok: d.career > 0, label: "Add your experience or education", href: `${P}/work` }, { ok: d.skills, label: "Add your skills", href: `${P}/work` }, { ok: d.resume, label: "Add your resume", href: `${P}/work` }];
     case "RECRUITER":
       return [about("Say why people should join you"), { ok: d.jobs > 0, label: "Post an open role", href: `${P}/jobs` }, { ok: has("perks") || has("process"), label: "Add perks or your hiring process", href: kit() }, { ok: !!d.company, label: "Add your company name", href: `${P}/company` }];
     case "OTHER":
@@ -43,7 +45,7 @@ export function modeNeeds(mode: Mode, d: NeedData): Need[] {
 export function buildNeedData(a: {
   profile: { headline: string; bio: string; product: string; company: string; website: string; phone: string; email: string; socials: string };
   cfg: { kitText: string; fields: string; bookingUrl: string };
-  mode: string; resources: { kind: string; modes: string }[]; team: number; projects: number; events: number; jobs?: number;
+  mode: string; resources: { kind: string; modes: string }[]; team: number; projects: number; events: number; jobs?: number; career?: number; skills?: boolean;
 }): NeedData {
   const { profile, cfg, mode, resources } = a;
   const soc = parseSocials(profile.socials);
@@ -52,6 +54,6 @@ export function buildNeedData(a: {
     headline: profile.headline, bio: profile.bio, about: cfg.kitText || (mode === "FOUNDER" ? profile.product : ""), company: profile.company, website: profile.website,
     phone: profile.phone, email: profile.email, socials: Object.values(soc).filter(Boolean).length, team: a.team,
     decks: n("DECK"), demos: n("DEMO"), docs: n("DOC") + n("SUPPORT"), projects: a.projects, events: a.events,
-    booking: !!cfg.bookingUrl, hasPortfolio: !!soc.portfolio, jobs: a.jobs ?? 0, f: parseFields(cfg.fields),
+    booking: !!cfg.bookingUrl, hasPortfolio: !!soc.portfolio, jobs: a.jobs ?? 0, career: a.career ?? 0, skills: !!a.skills, resume: resources.some((r) => r.kind === "RESUME"), f: parseFields(cfg.fields),
   };
 }

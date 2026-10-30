@@ -59,7 +59,7 @@ const label = (m: string) => `${MODE_INFO[m as Mode].icon} ${MODE_INFO[m as Mode
 export default async function Share({ searchParams }: { searchParams: Promise<{ mode?: string; pane?: string }> }) {
   const { user, profile } = await requireOwner();
   const sp = await searchParams;
-  const [cfgs, links, sections, contactCount, resources, teamCount, projectCount, eventCount, saved, jobCount] = await Promise.all([
+  const [cfgs, links, sections, contactCount, resources, teamCount, projectCount, eventCount, saved, jobCount, careerN] = await Promise.all([
     db.modeConfig.findMany({ where: { profileId: profile.id } }),
     db.shareLink.findMany({ where: { profileId: profile.id }, include: { _count: { select: { scans: true } } } }),
     db.section.findMany({ where: { profileId: profile.id }, orderBy: { order: "asc" } }),
@@ -70,13 +70,15 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
     db.event.count({ where: { profileId: profile.id } }),
     db.savedCard.findMany({ where: { userId: user.id }, include: { profile: true }, orderBy: { createdAt: "desc" } }),
     db.job.count({ where: { profileId: profile.id, open: true } }),
+    db.careerItem.count({ where: { profileId: profile.id } }),
   ]);
   const h = await headers();
   const host = h.get("host") ?? "";
   const origin = `${h.get("x-forwarded-proto") ?? "http"}://${host}`;
 
   // Only modes with something in them are shown. The rest are offered under "Add a mode".
-  const extra = { projects: projectCount, events: eventCount, jobs: jobCount };
+  const hireBits = careerN + (profile.skills.trim() || profile.openTo ? 1 : 0);
+  const extra = { projects: projectCount, events: eventCount, jobs: jobCount, career: hireBits };
   const visible = MODES.filter((m) => cfgs.find((c) => c.mode === m)?.isEnabled && modeHasContent(m, cfgs.find((c) => c.mode === m), resources, extra));
   const toAdd = MODES.filter((m) => !visible.includes(m));
 
@@ -124,7 +126,7 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
           const mine = recent.filter((r) => r.shareLinkId === link.id);
           const counts = days.map((d) => mine.filter((r) => r.createdAt.toDateString() === d.toDateString()).length);
           const max = Math.max(1, ...counts);
-          const needs = modeNeeds(mode, buildNeedData({ profile, cfg, mode, resources, team: teamCount, projects: projectCount, events: eventCount, jobs: jobCount }));
+          const needs = modeNeeds(mode, buildNeedData({ profile, cfg, mode, resources, team: teamCount, projects: projectCount, events: eventCount, jobs: jobCount, career: careerN, skills: !!profile.skills.trim() }));
           const todo = needs.filter((n) => !n.ok);
           const book = bookingInfo(cfg.bookingUrl, host);
           return (
@@ -198,7 +200,7 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
           <p className="muted" style={{ marginTop: 0 }}>A mode shows up for visitors once you add something to it. Pick the ones that describe you.</p>
           {toAdd.filter((m) => m !== "ALL").length === 0 && <div className="card muted">You have added every mode.</div>}
           {toAdd.filter((m) => m !== "ALL").map((m) => (
-            <Link key={m} href={`/app/profile/kit?mode=${m}`} className="menu-row">
+            <Link key={m} href={m === "HIRE" ? "/app/profile/work" : `/app/profile/kit?mode=${m}`} className="menu-row">
               <span className="menu-ico">{MODE_INFO[m].icon}</span>
               <span style={{ flex: 1, minWidth: 0 }}><b>{MODE_INFO[m].label}</b><span className="muted" style={{ display: "block" }}>{MODE_INFO[m].blurb}</span></span>
               <span className="muted">＋</span>
