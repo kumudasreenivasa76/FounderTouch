@@ -45,7 +45,6 @@ export default async function ProfileHub() {
     { href: "/app/profile/kit", icon: "🚀", title: "Kits", sub: `Founder, Investor, Seller… · ${resources.length} item${resources.length === 1 ? "" : "s"}` },
     { href: "/app/profile/projects", icon: "💡", title: "My projects", sub: `${projectCount} project${projectCount === 1 ? "" : "s"} with demos` },
     { href: "/app/profile/avatar", icon: "🎨", title: "Avatar", sub: profile.photo ? "Photo is shown first" : profile.avatar ? "Custom avatar" : "Design your avatar" },
-    { href: "/app/card", icon: "▣", title: "Card colour & style", sub: "Pick a theme for your digital card" },
     { href: "/app/profile/sections", icon: "🧩", title: "Page sections", sub: `${sections} text block${sections === 1 ? "" : "s"}` },
   ];
 

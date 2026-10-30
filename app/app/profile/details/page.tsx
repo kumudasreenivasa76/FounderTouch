@@ -21,6 +21,17 @@ export default async function Details({ searchParams }: { searchParams: Promise<
         {profile.photo && <form action={removePhoto} style={{ marginTop: 10 }}><button className="ghost">Remove photo</button></form>}
       </div>
 
+      <div className="card">
+        <h3>Avatar</h3>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <Avatar name={profile.name} handle={profile.handle} hasPhoto={false} avatar={profile.avatar} size={64} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="muted" style={{ marginBottom: 8 }}>{profile.photo ? "Shown when you have no photo." : "Shown on your card and page."}</div>
+            <a className="btn ghost" href="/app/profile/avatar">🎨 Design avatar</a>
+          </div>
+        </div>
+      </div>
+
       <form action={saveDetails} className="card">
         <div className="row">
           <div><label className="f">First name</label><input name="firstName" defaultValue={profile.firstName} required autoComplete="given-name" /></div>

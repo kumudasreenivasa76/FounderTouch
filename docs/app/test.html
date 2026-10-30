@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>selftest</title><link rel="stylesheet" href="style.css"></head>
+<body><div class="phone" id="phone"></div><pre id="out" style="position:fixed;left:0;top:0;background:#fff;color:#000;z-index:99;width:100%;max-height:100%;overflow:auto;font:12px monospace"></pre>
+<script>window.__errs=[];window.onerror=function(m,s,l,c){window.__errs.push("ERR "+m+" @"+(s||"").split("/").pop()+":"+l)};</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="data.js"></script><script src="avatar.js"></script><script src="store.js"></script><script src="views.js"></script><script src="views2.js"></script><script src="views3.js"></script><script src="app.js"></script>
+<script>
+(function(){
+  var R=[]; function ok(n,c,x){R.push((c?"PASS ":"FAIL ")+n+(c?"":"  <<< "+(x||"")))}
+  function fd(o){var f=new FormData();for(var k in o)f.append(k,o[k]);return f}
+  function html(){return $("#phone").innerHTML}
+  function clean(n){var h=html();ok("renders "+n,h.length>200&&h.indexOf("Something went wrong")<0,h.slice(0,160))}
+  try{
+    ok("qrcode lib loaded", typeof qrcode==="function");
+    // onboarding
+    localStorage.clear(); S=blank(); render(); ok("onboarding shows", html().indexOf("Tell us about you")>=0);
+    ui.wizard=2; forms.wizard(fd({first:"Test",last:"User",headline:"Founder",company:"Acme",phone:"123",handle:"",bio:"hi",mode_FOUNDER:"on",mode_INVESTOR:"on"}));
+    ok("wizard saves profile", S.setup&&S.me.handle==="test-user"&&S.me.first==="Test");
+    ok("lands on kit screen", ui.page&&ui.page.name==="kit"); clean("kit after onboarding");
+    ok("empty mode hidden", visibleModes().join()==="ALL");
+    // fill a mode
+    forms.kitText(fd({kitText:"We build things",f_stage:"Seed",f_traction:"Good"}),{mode:"FOUNDER"});
+    ok("mode appears after content", visibleModes().indexOf("FOUNDER")>=0);
+    forms.addRes(fd({kind:"DECK",title:"Deck",url:"drive.google.com/x",on_FOUNDER:"on",gated:"on"}),{mode:"FOUNDER"});
+    ok("resource added + https", S.resources.length===1&&S.resources[0].url.indexOf("https://")===0&&S.resources[0].gated);
+    // sample account: every screen
+    S=sampleState(); ui.tab="share"; ui.page=null;
+    ["share","events","contacts","profile"].forEach(function(t){go(t);clean("tab "+t)});
+    vis=visibleModes(); ok("sample shows several modes", visibleModes().length>=5, visibleModes().join());
+    visibleModes().concat(["_add","_tap","_wallet"]).forEach(function(m){ui.shareSel=m;go("share");clean("share "+m)});
+    ui.shareSel="FOUNDER"; go("share"); ok("card has QR svg", html().indexOf("<svg")>=0 && html().indexOf("Flip card")>=0);
+    ok("checklist present", html().indexOf("page is ready")>=0 || html().indexOf("Finish your")>=0);
+    ["details","contact","company","hire","jobs","projects","avatar","kit"].forEach(function(p){go("profile",{name:p});clean("profile/"+p)});
+    MODES.filter(function(m){return m!=="ALL"}).forEach(function(m){ui.kitMode=m;go("profile",{name:"kit"});clean("kit "+m)});
+    AV_TABS.forEach(function(t){ui.avTab=t;go("profile",{name:"avatar"});clean("avatar tab "+t)});
+    go("profile",{name:"job",id:S.jobs[0].id}); clean("job detail");
+    go("events",{name:"event",id:S.events[0].id}); clean("event detail");
+    ok("event shows attendees & roles", html().indexOf("Asha Rao")>=0&&html().indexOf("Roles hiring here (1)")>=0);
+    // scan
+    var ev=S.events[0],att=S.attendees.filter(function(a){return !a.checkedInAt})[0];
+    forms.scanCode(fd({code:att.code.toLowerCase()}),{id:ev.id}); ok("scan checks in", !!att.checkedInAt&&ui.scanOk);
+    forms.scanCode(fd({code:att.code}),{id:ev.id}); ok("scan again says already", !ui.scanOk&&ui.scanMsg.indexOf("already")>=0);
+    forms.scanCode(fd({code:"nope"}),{id:ev.id}); ok("bad code rejected", !ui.scanOk);
+    // visitor views for every mode
+    MODES.forEach(function(m){ acts.visit({mode:m}); var h=html(); ok("visitor "+m, h.indexOf("Something went wrong")<0&&h.length>300,h.slice(0,120)); });
+    acts.visit({mode:"RECRUITER"}); ok("recruiter badge", html().indexOf("Hiring · 2 open roles")>=0);
+    acts.vpane({p:"roles"}); ok("roles listed", html().indexOf("Senior Product Designer")>=0&&html().indexOf("Apply")>=0);
+    acts.applyTo({id:S.jobs[0].id}); ok("apply form", html().indexOf("Send application")>=0);
+    var n0=S.apps.length, c0=S.contacts.length;
+    forms.vApply(fd({first:"Neo",last:"Cand",email:"neo@x.example",note:"hi"}),{id:S.jobs[0].id}); ok("application added", S.apps.length===n0+1&&S.contacts.length===c0+1);
+    forms.vApply(fd({first:"Neo",last:"Cand",email:"neo@x.example"}),{id:S.jobs[0].id}); ok("duplicate blocked", S.apps.length===n0+1);
+    acts.visit({mode:"FOUNDER"}); acts.vpane({p:"connect"}); forms.vConnect(fd({first:"A",last:"B",email:"ab@x.example",company:"Z"})); ok("details shared -> contact", S.contacts.some(function(c){return c.email==="ab@x.example"}));
+    // approval gate
+    cfg("FOUNDER").approval=true; acts.visit({mode:"FOUNDER"}); ok("gate shown", html().indexOf("Request access")>=0&&html().indexOf("Pre-seed")<0&&html().indexOf("private")>=0);
+    forms.vRequest(fd({first:"Gate",last:"Keeper",email:"gk@x.example",note:"pls"})); ok("mode request created", S.modeReqs.some(function(r){return r.email==="gk@x.example"}));
+    acts.unlock(); ok("unlock shows page", html().indexOf("Request access")<0); cfg("FOUNDER").approval=false;
+    // locked file request
+    acts.visit({mode:"FOUNDER"}); acts.vpane({p:"kit"}); ok("locked deck shown as locked", html().indexOf("🔒")>=0);
+    var fr=S.fileReqs.length; forms.vFileReq(fd({first:"F",last:"R",email:"fr@x.example"}),{id:S.resources[0].id}); ok("file request created", S.fileReqs.length===fr+1);
+    // event visitor + registration
+    acts.visitEvent({id:ev.id}); ok("event page", html().indexOf("Register")>=0&&html().indexOf("Hiring at this event")>=0);
+    var a0=S.attendees.length; forms.vRegister(fd({first:"Rae",last:"Gistrant",email:"rae@x.example",company:"Q",["job_"+S.jobs[0].id]:"on"}),{id:ev.id});
+    var rae=S.attendees.filter(function(a){return a.email==="rae@x.example"})[0]; ok("registered with ticket + interest", S.attendees.length===a0+1&&rae.code.indexOf("FT-")===0&&rae.interested[0]===S.jobs[0].id);
+    ok("ticket QR shown", html().indexOf("Your ticket")>=0&&html().indexOf("<svg")>=0);
+    forms.vProject(fd({name:"Proj",tagline:"t",demo:"https://x.example",first:"R",last:"G"}),{id:ev.id}); ok("event project added", S.projects.some(function(p){return p.name==="Proj"&&p.eventId===ev.id}));
+    // owner pipeline & misc
+    acts.exitVisit(); go("contacts"); acts.appStatus({id:S.apps[0].id,s:"INTERVIEW"}); ok("applicant status", S.apps[0].status==="INTERVIEW");
+    acts.decideMode({id:S.modeReqs[0].id,s:"APPROVED"}); ok("mode request approved", S.modeReqs[0].status==="APPROVED");
+    forms.addJob(fd({title:"QA",location:"X",workType:"Remote",employment:"Contract",salary:"",description:"d",skills:"a,b",eventId:ev.id})); ok("job posted + linked", S.jobs[0].title==="QA"&&S.jobs[0].eventId===ev.id);
+    forms.createEvent(fd({name:"New Ev",description:"d",location:"L"})); ok("event created", S.events[0].name==="New Ev");
+    forms.addCareer(fd({title:"Dev",org:"Co",start:"2020-01",end:"",current:"on"}),{type:"EXPERIENCE"}); ok("career added (current)", S.career[S.career.length-1].end==="");
+    forms.contact(fd({phone:"1",email:"e@x.io",soc_linkedin:"alexrao",soc_github:"@alexrao",soc_portfolio:"alexrao.dev",soc_whatsapp:"+91 98765 43210"})); ok("socials normalised", S.me.socials.linkedin==="https://linkedin.com/in/alexrao"&&S.me.socials.github==="https://github.com/alexrao"&&S.me.socials.portfolio==="https://alexrao.dev"&&S.me.socials.whatsapp==="https://wa.me/919876543210");
+    forms.modeSettings(fd({approval:"on",intro:"hello",cta:"Go",booking:"https://calendly.com/x"}),{mode:"INVESTOR"}); ok("mode settings", cfg("INVESTOR").approval&&cfg("INVESTOR").intro==="hello");
+    ok("booking provider", bookingProvider("https://calendly.com/x")==="Calendly"&&bookingProvider("https://cal.com/x")==="Cal.com");
+    // persistence
+    save(); var again=loadLocal(); ok("state survives reload", again.setup&&again.apps.length===S.apps.length);
+    // hash route to own page
+    S=sampleState(); location.hash="#v-alex-rao-investor";
+  }catch(e){R.push("EXC "+e.message+"\n"+(e.stack||"").split("\n").slice(0,3).join("\n"))}
+  setTimeout(function(){
+    var h=$("#phone").innerHTML;
+    R.push((ui.visitor&&ui.visitor.mode==="INVESTOR"?"PASS ":"FAIL ")+"hash route opens own page in investor mode");
+    R=R.concat(window.__errs);
+    var f=R.filter(function(x){return x.indexOf("PASS")!==0});
+    $("#out").textContent=R.length+" checks, "+f.length+" problems\n"+R.join("\n");
+  },400);
+})();
+</script></body></html>
