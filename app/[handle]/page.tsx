@@ -309,7 +309,8 @@ export default async function Public({ params, searchParams }: { params: Promise
   const schools = showCareer ? p.career.filter((c) => c.type === "EDUCATION").sort(byStartDesc) : [];
   const skillList = showCareer ? listItems(p.skills) : [];
   const openTo = showCareer ? p.openTo : "";
-  const hasHire = !!(openTo || skillList.length || jobs.length || schools.length || group("RESUME").length || group("PORTFOLIO").length);
+  const portfolioLink = showCareer ? socials.portfolio : undefined;
+  const hasHire = !!(openTo || skillList.length || jobs.length || schools.length || group("RESUME").length || group("PORTFOLIO").length || portfolioLink);
   const timeline = (c: (typeof p.career)[number]) => (
     <div key={c.id} style={{ borderLeft: "3px solid #d7defb", padding: "2px 0 2px 12px", marginBottom: 12 }}>
       <b>{c.title}</b>
@@ -338,6 +339,7 @@ export default async function Public({ params, searchParams }: { params: Promise
       {jobs.length > 0 && <div className="card"><h3>💼 Experience</h3>{jobs.map(timeline)}</div>}
       {schools.length > 0 && <div className="card"><h3>🎓 Education</h3>{schools.map(timeline)}</div>}
       {group("RESUME").length > 0 && <div className="card"><h3>📄 {kindLabel(mode, "RESUME")}</h3>{group("RESUME").map((r) => r.gated ? locked(r) : viewer(r))}</div>}
+      {portfolioLink && <div className="card"><h3>🗂️ Portfolio</h3><a className="btn ghost" href={portfolioLink} target="_blank" rel="noopener noreferrer">Open my portfolio ↗</a></div>}
       {group("PORTFOLIO").length > 0 && <div className="card"><h3>🗂️ {kindLabel(mode, "PORTFOLIO")}</h3>{group("PORTFOLIO").map((r) => r.gated ? locked(r) : viewer(r))}</div>}
     </>
   );

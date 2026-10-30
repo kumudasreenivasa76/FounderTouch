@@ -65,7 +65,7 @@ export async function saveContact(fd: FormData) {
   const { profile } = await requireOwner();
   await db.profile.update({
     where: { id: profile.id },
-    data: { phone: String(fd.get("phone")).trim(), email: String(fd.get("email")).trim(), socials: socialsFromForm(fd) },
+    data: { phone: String(fd.get("phone")).trim(), email: String(fd.get("email")).trim(), website: withHttp(String(fd.get("website") ?? "").trim()), socials: socialsFromForm(fd) },
   });
   done();
   go("contact", "&saved=1");
@@ -75,7 +75,7 @@ export async function saveCompany(fd: FormData) {
   const { profile } = await requireOwner();
   await db.profile.update({
     where: { id: profile.id },
-    data: { company: String(fd.get("company")).trim(), website: withHttp(String(fd.get("website")).trim()) },
+    data: { company: String(fd.get("company")).trim() },
   });
   done();
   go("company", "&saved=1");
@@ -196,4 +196,16 @@ export async function delSection(fd: FormData) {
 export async function logout() {
   await endSession();
   redirect("/login");
+}
+
+/** Which text sections a mode shows. */
+export async function saveModeSections(fd: FormData) {
+  const { profile } = await requireOwner();
+  const mode = kitMode(fd.get("mode") ?? "ALL");
+  const real = String(fd.get("mode")) === "ALL" ? "ALL" : mode;
+  const own = new Set((await db.section.findMany({ where: { profileId: profile.id }, select: { id: true } })).map((s) => s.id));
+  const ids = fd.getAll("sec").map(String).filter((id) => own.has(id));
+  await db.modeConfig.updateMany({ where: { profileId: profile.id, mode: real }, data: { sectionIds: JSON.stringify(ids) } });
+  done();
+  redirect(`/app/profile/sections?mode=${real}&saved=1`);
 }

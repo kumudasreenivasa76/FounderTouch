@@ -29,7 +29,7 @@ export function modeNeeds(mode: Mode, d: NeedData): Need[] {
     case "HACKATHON":
       return [{ ok: d.projects > 0, label: "Add a project and demo", href: `${P}/projects` }, { ok: has("skills"), label: "Add your skills and stack", href: kit() }, { ok: d.events > 0, label: "Create or add an event", href: `/app/events` }];
     case "BUSINESS":
-      return [about("Describe what your company offers"), { ok: !!d.company, label: "Add your company name", href: `${P}/company` }, { ok: !!d.website, label: "Add your website", href: `${P}/company` }, book];
+      return [about("Describe what your company offers"), { ok: !!d.company, label: "Add your company name", href: `${P}/company` }, { ok: !!d.website, label: "Add your website", href: `${P}/contact` }, book];
     case "RECRUITER":
       return [about("Say why people should join you"), { ok: d.jobs > 0, label: "Post an open role", href: `${P}/jobs` }, { ok: has("perks") || has("process"), label: "Add perks or your hiring process", href: kit() }, { ok: !!d.company, label: "Add your company name", href: `${P}/company` }];
     case "OTHER":

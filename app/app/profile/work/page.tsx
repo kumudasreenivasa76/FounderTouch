@@ -16,14 +16,13 @@ const ERR: Record<string, string> = {
 };
 const FILES = [
   { kind: "RESUME", title: "Resume / CV", icon: "📄", hint: "Upload a PDF, or paste a Google Drive link. It shows right on your page.", ph: "Link to your resume (Google Drive, Notion, your site…)", eg: "My resume" },
-  { kind: "PORTFOLIO", title: "Portfolio", icon: "🗂️", hint: "Paste a link to your work (Behance, Dribbble, GitHub, your site) or upload a PDF.", ph: "Link to your portfolio (Behance, Dribbble, your site…)", eg: "Design portfolio" },
 ] as const;
 
 export default async function Hire({ searchParams }: { searchParams: Promise<{ err?: string; saved?: string }> }) {
   const sp = await searchParams;
   const { profile } = await requireOwner();
   const [files, career] = await Promise.all([
-    db.resource.findMany({ where: { profileId: profile.id, kind: { in: ["RESUME", "PORTFOLIO"] } }, orderBy: { createdAt: "asc" } }),
+    db.resource.findMany({ where: { profileId: profile.id, kind: "RESUME" }, orderBy: { createdAt: "asc" } }),
     db.careerItem.findMany({ where: { profileId: profile.id } }),
   ]);
   const jobs = career.filter((c) => c.type === "EXPERIENCE").sort(byStartDesc);
@@ -52,7 +51,7 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
 
   return (
     <>
-      <PageHead title="Hire me" sub="Your career in one place: openness to work, skills, experience, education, resume and portfolio." saved={!!sp.saved} error={sp.err ? ERR[sp.err] ?? "Something went wrong." : undefined} />
+      <PageHead title="Hire me" sub="Your career in one place: openness to work, skills, experience, education and resume. Your portfolio and website are in Contact & socials." saved={!!sp.saved} error={sp.err ? ERR[sp.err] ?? "Something went wrong." : undefined} />
 
       <form action={saveHire} className="card">
         <h3>Status &amp; skills</h3>

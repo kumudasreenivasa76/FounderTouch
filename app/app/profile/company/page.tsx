@@ -23,8 +23,6 @@ export default async function Company({ searchParams }: { searchParams: Promise<
       <form action={saveCompany} className="card">
         <label className="f">Company name</label>
         <input name="company" defaultValue={profile.company} placeholder="e.g. Lumen Labs" autoComplete="organization" />
-        <label className="f">Company website</label>
-        <input name="website" defaultValue={profile.website} placeholder="yourcompany.com" inputMode="url" autoCapitalize="none" />
         <button>Save company</button>
       </form>
 

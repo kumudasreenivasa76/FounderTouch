@@ -103,10 +103,10 @@ var forms = {
     save(); render();
   },
   details: function (fd) { var m = S.me; m.first = val(fd, "first"); m.last = val(fd, "last"); m.headline = val(fd, "headline"); m.bio = val(fd, "bio"); m.handle = slug(val(fd, "handle")) || slug(m.first + "-" + m.last) || "me"; save(); say("Saved ✓"); render(); },
-  contact: function (fd) { var m = S.me; m.phone = val(fd, "phone"); m.email = val(fd, "email"); m.socials = {}; SOCIALS.forEach(function (s) { var u = socialUrl(s.k, val(fd, "soc_" + s.k)); if (u) m.socials[s.k] = u; }); save(); say("Saved ✓"); render(); },
-  company: function (fd) { var w = val(fd, "website"); S.me.company = val(fd, "company"); S.me.website = w && !/^https?:\/\//i.test(w) ? "https://" + w : w; save(); say("Saved ✓"); render(); },
+  contact: function (fd) { var m = S.me, w = val(fd, "website"); m.phone = val(fd, "phone"); m.email = val(fd, "email"); m.website = w && !/^https?:\/\//i.test(w) ? "https://" + w : w; m.socials = {}; SOCIALS.forEach(function (s) { var u = socialUrl(s.k, val(fd, "soc_" + s.k)); if (u) m.socials[s.k] = u; }); save(); say("Saved ✓"); render(); },
+  company: function (fd) { S.me.company = val(fd, "company"); save(); say("Saved ✓"); render(); },
   addTeam: function (fd) { S.team.push({ id: uid("t"), name: val(fd, "name"), role: val(fd, "role"), link: val(fd, "link") }); save(); say("Added ✓"); render(); },
-  hire: function (fd) { var m = S.me; m.openTo = val(fd, "openTo"); m.skills = val(fd, "skills"); m.resumeUrl = val(fd, "resumeUrl"); m.portfolioUrl = val(fd, "portfolioUrl"); m.hireModes = MODES.filter(function (x) { return x !== "ALL" && fd.get("hm_" + x); }); save(); say("Saved ✓"); render(); },
+  hire: function (fd) { var m = S.me; m.openTo = val(fd, "openTo"); m.skills = val(fd, "skills"); m.resumeUrl = val(fd, "resumeUrl"); m.hireModes = MODES.filter(function (x) { return x !== "ALL" && fd.get("hm_" + x); }); save(); say("Saved ✓"); render(); },
   addCareer: function (fd, d) {
     var e = d.type === "EDUCATION", cur = !!fd.get("current");
     S.career.push({ id: uid("k"), type: d.type, title: val(fd, "title"), org: val(fd, "org"), location: val(fd, "location"), start: val(fd, "start"), end: cur ? "" : val(fd, "end"), description: val(fd, "description") });
