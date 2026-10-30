@@ -111,7 +111,7 @@ export default async function Public({ params, searchParams }: { params: Promise
     return (
       <div className="screen">
         <div className="card hero hero-themed" style={{ background: gradient(p.theme), border: 0 }}>
-          <Avatar name={p.name} handle={p.handle} hasPhoto={!!p.photo} avatar={p.avatar} size={88} />
+          <Avatar name={p.name} handle={p.handle} hasPhoto={!!p.photo} avatar={p.avatar} size={88} flip center />
           <h1>{p.name}</h1>
           <div>{byline(p.headline, p.company)}</div>
           <span className="pill" style={{ marginTop: 8 }}>🔒 {info.label} · private</span>
@@ -202,7 +202,7 @@ export default async function Public({ params, searchParams }: { params: Promise
   const meP = (
     <>
       <div className="card hero hero-themed" style={{ background: gradient(p.theme), border: 0 }}>
-        <Avatar name={p.name} handle={p.handle} hasPhoto={!!p.photo} avatar={p.avatar} size={88} />
+        <Avatar name={p.name} handle={p.handle} hasPhoto={!!p.photo} avatar={p.avatar} size={88} flip center />
         <h1>{p.name}</h1>
         <div>{byline(p.headline, p.company)}</div>
         <span className="pill" style={{ marginTop: 8 }}>{MODE_INFO[mode as Mode].icon} {MODE_INFO[mode as Mode].label}</span>

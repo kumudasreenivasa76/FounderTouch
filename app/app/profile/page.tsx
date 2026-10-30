@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { requireOwner } from "@/lib/auth";
 import { parseSocials } from "@/lib/socials";
 import { byline } from "@/lib/look";
+import { MODES, MODE_INFO } from "@/lib/modes";
+import { modeHasContent } from "@/lib/mode-content";
 import Avatar from "@/components/avatar";
 import { logout, uploadPhoto } from "./actions";
 import PhotoUpload from "@/components/photo-upload";
@@ -10,12 +12,16 @@ export const dynamic = "force-dynamic";
 
 export default async function ProfileHub() {
   const { user, profile } = await requireOwner();
-  const [resources, team, sections, projectCount] = await Promise.all([
-    db.resource.findMany({ where: { profileId: profile.id }, select: { kind: true } }),
+  const [resources, team, sections, projectCount, cfgs, eventCount, jobCount] = await Promise.all([
+    db.resource.findMany({ where: { profileId: profile.id }, select: { kind: true, modes: true } }),
     db.teamMember.count({ where: { profileId: profile.id } }),
     db.section.count({ where: { profileId: profile.id } }),
     db.project.count({ where: { profileId: profile.id, eventId: null } }),
+    db.modeConfig.findMany({ where: { profileId: profile.id } }),
+    db.event.count({ where: { profileId: profile.id } }),
+    db.job.count({ where: { profileId: profile.id, open: true } }),
   ]);
+  const visible = MODES.filter((m) => cfgs.find((c) => c.mode === m)?.isEnabled && modeHasContent(m, cfgs.find((c) => c.mode === m), resources, { projects: projectCount, events: eventCount, jobs: jobCount }));
   const n = (k: string) => resources.filter((r) => r.kind === k).length;
   const socials = Object.values(parseSocials(profile.socials)).filter(Boolean).length;
   const hasLook = !!profile.photo || !!profile.avatar;
@@ -43,7 +49,7 @@ export default async function ProfileHub() {
     { href: "/app/profile/company", icon: "🏢", title: "Company", sub: `${profile.company || "No company name"} · ${team} team member${team === 1 ? "" : "s"}` },
     { href: "/app/profile/work", icon: "💼", title: "Hire me", sub: `Resume, portfolio, experience, education` },
     { href: "/app/profile/kit", icon: "🚀", title: "Kits", sub: `Founder, Investor, Seller… · ${resources.length} item${resources.length === 1 ? "" : "s"}` },
-    { href: "/app/profile/sections", icon: "🧩", title: "Sections & projects", sub: `${sections} section${sections === 1 ? "" : "s"} · ${projectCount} project${projectCount === 1 ? "" : "s"}` },
+    { href: "/app/profile/sections", icon: "📝", title: "Text blocks & projects", sub: `${sections} text block${sections === 1 ? "" : "s"} · ${projectCount} project${projectCount === 1 ? "" : "s"}` },
   ];
 
   return (
@@ -53,7 +59,9 @@ export default async function ProfileHub() {
         <h1>{profile.name}</h1>
         <div className="muted">{byline(profile.headline, profile.company) || "Add a headline"}</div>
         <div className="muted" style={{ marginBottom: 10 }}>{user.email}</div>
-        <a className="btn" href={`/${profile.handle}`} target="_blank">View my page ↗</a>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
+          {visible.map((m) => <a key={m} className="btn" style={{ width: "auto", padding: "8px 14px" }} href={`/${profile.handle}?mode=${m}`} target="_blank">{MODE_INFO[m].icon} {MODE_INFO[m].label} ↗</a>)}
+        </div>
       </div>
 
       <div className="card">

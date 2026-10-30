@@ -101,7 +101,7 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
 
               {m === "HACKATHON" && (
                 <div className="card"><b>🏆 Projects &amp; events</b>
-                  <div className="row" style={{ marginTop: 8 }}><Link className="btn ghost" href="/app/profile/sections">My projects</Link><Link className="btn ghost" href="/app/events">Events</Link></div>
+                  <div className="row" style={{ marginTop: 8 }}><Link className="btn ghost" href="/app/profile/sections?tab=projects">My projects</Link><Link className="btn ghost" href="/app/events">Events</Link></div>
                 </div>
               )}
 

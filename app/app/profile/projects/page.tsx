@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** Projects now live together with sections. */
+/** Projects live together with text blocks. */
 export default function ProjectsMoved() {
-  redirect("/app/profile/sections");
+  redirect("/app/profile/sections?tab=projects");
 }

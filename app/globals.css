@@ -115,3 +115,14 @@ summary{list-style:none}summary::-webkit-details-marker{display:none}
 .btn:not(.ghost),button:not(.ghost):not(.sm){background:var(--accent,#3b5bdb)}
 .pill.on,.swiper-tabs button.on{background:var(--accent,#3b5bdb)}
 .swiper-dots i.on{background:var(--accent,#3b5bdb)}
+/* photo <-> avatar flip */
+.flipav{display:block;padding:0;background:none!important;border:0;border-radius:50%;perspective:700px;cursor:pointer;flex-shrink:0}
+.flipav-in{display:block;position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.2,.8,.2,1)}
+.flipav.on .flipav-in{transform:rotateY(180deg)}
+.flipav-face{position:absolute;inset:0;display:block;border-radius:50%;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.flipav-face.back{transform:rotateY(180deg)}
+.flipav-face .avatar{width:100%!important;height:100%!important}
+@media (prefers-reduced-motion:reduce){.flipav-in{transition:none}}
+/* only the selected tab takes the accent colour (this must win over the generic button rule above) */
+.swiper-tabs button:not(.on):not(.sm){background:#eef1f7;color:#1c2330}
+.swiper-tabs button.on:not(.sm){background:var(--accent,#3b5bdb);color:#fff}

@@ -24,9 +24,9 @@ export default async function Details({ searchParams }: { searchParams: Promise<
       <div className="card">
         <h3>Avatar</h3>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <Avatar name={profile.name} handle={profile.handle} hasPhoto={false} avatar={profile.avatar} size={64} />
+          <Avatar name={profile.name} handle={profile.handle} hasPhoto={!!profile.photo} avatar={profile.avatar} size={64} flip />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="muted" style={{ marginBottom: 8 }}>{profile.photo ? "Shown when you have no photo." : "Shown on your card and page."}</div>
+            <div className="muted" style={{ marginBottom: 8 }}>{profile.photo ? "Tap the picture to flip between your photo and your avatar." : "Shown on your card and page."}</div>
             <a className="btn ghost" href="/app/profile/avatar">🎨 Design avatar</a>
           </div>
         </div>

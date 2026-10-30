@@ -1,4 +1,5 @@
 import { AvatarCfg, parseAvatar, shade } from "@/lib/look";
+import FlipAvatar from "./flip-avatar";
 
 const hash = (s: string) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); };
 
@@ -171,11 +172,22 @@ export function AvatarArt({ cfg, size, view = [0, 0, 200] }: { cfg: AvatarCfg; s
   );
 }
 
-type Props = { name: string; handle: string; hasPhoto: boolean; size?: number; avatar?: string };
+type Props = { name: string; handle: string; hasPhoto: boolean; size?: number; avatar?: string; flip?: boolean; center?: boolean };
 
 /** Photo first, then illustrated avatar, then initials. */
-export default function Avatar({ name, handle, hasPhoto, size = 72, avatar = "" }: Props) {
+export default function Avatar({ name, handle, hasPhoto, size = 72, avatar = "", flip, center }: Props) {
   const st = { width: size, height: size, fontSize: size * 0.38 };
+  // With both a photo and an avatar, `flip` lets the picture turn over between them.
+  if (flip && hasPhoto) {
+    const c = parseAvatar(avatar);
+    if (c) {
+      return (
+        <FlipAvatar size={size} center={center}
+          front={<img className="avatar" style={st} src={`/photo/${handle}`} alt={name} />}
+          back={<div className="avatar" style={{ ...st, padding: 0, overflow: "hidden" }}><AvatarArt cfg={c} size={size - 6} /></div>} />
+      );
+    }
+  }
   if (hasPhoto) return <img className="avatar" style={st} src={`/photo/${handle}`} alt={name} />;
   const cfg = parseAvatar(avatar);
   if (cfg) return <div className="avatar" style={{ ...st, padding: 0, overflow: "hidden" }}><AvatarArt cfg={cfg} size={size - 6} /></div>;
