@@ -133,7 +133,7 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
               <DigitalCard
                 key={mode + profile.theme}
                 background={gradient(profile.theme)} back={`linear-gradient(135deg, ${t.to}, ${t.from})`}
-                avatar={avatarNode} name={profile.name} sub={byline(profile.headline, profile.company)} badge={label(mode)}
+                avatar={avatarNode} name={profile.name} sub={byline(profile.headline, profile.company)}
                 qr={qrs[i]} lines={cardLines} social={socialIcons}
               />
               <div className="row" style={{ marginTop: 8 }}>

@@ -43,3 +43,21 @@ export async function delCareer(fd: FormData) {
   await db.careerItem.deleteMany({ where: { id: String(fd.get("id")), profileId: profile.id } });
   done();
 }
+
+/** Open to work: on keeps your chosen kind of availability (or sets "Open to work"), off hides the badge. */
+export async function setOpenToWork(fd: FormData) {
+  const { profile } = await requireOwner();
+  const on = fd.get("on") === "1";
+  const keep = profile.openTo && profile.openTo !== "Not looking" ? profile.openTo : "Open to work";
+  await db.profile.update({ where: { id: profile.id }, data: { openTo: on ? keep : "" } });
+  done();
+  back();
+}
+
+/** Show or hide the whole Hire me page for visitors. Nothing is deleted. */
+export async function setHireVisible(fd: FormData) {
+  const { profile } = await requireOwner();
+  await db.modeConfig.updateMany({ where: { profileId: profile.id, mode: "HIRE" }, data: { isEnabled: fd.get("on") === "1" } });
+  done();
+  back();
+}

@@ -4,7 +4,7 @@ import { MODES, MODE_INFO, Mode } from "@/lib/modes";
 import { OPEN_TO, byStartDesc, fmtRange } from "@/lib/career";
 import PageHead from "@/components/page-head";
 import { addResource, delResource } from "../actions";
-import { addCareer, delCareer, saveHire } from "../hire-actions";
+import { addCareer, delCareer, saveHire, setHireVisible, setOpenToWork } from "../hire-actions";
 export const dynamic = "force-dynamic";
 
 const ERR: Record<string, string> = {
@@ -28,6 +28,9 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
   const jobs = career.filter((c) => c.type === "EXPERIENCE").sort(byStartDesc);
   const schools = career.filter((c) => c.type === "EDUCATION").sort(byStartDesc);
   const shownOn = new Set(profile.hireModes.split(",").filter(Boolean));
+  const hireCfg = await db.modeConfig.findFirst({ where: { profileId: profile.id, mode: "HIRE" } });
+  const pageOn = hireCfg?.isEnabled !== false;
+  const openOn = profile.openTo.startsWith("Open to");
 
   const careerForm = (type: "EXPERIENCE" | "EDUCATION") => {
     const edu = type === "EDUCATION";
@@ -52,6 +55,19 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
   return (
     <>
       <PageHead title="Hire me" sub="Your career in one place: openness to work, skills, experience, education and resume. Your portfolio and website are in Contact & socials." saved={!!sp.saved} error={sp.err ? ERR[sp.err] ?? "Something went wrong." : undefined} />
+
+      <div className="card">
+        <form action={setOpenToWork} className="switch-row">
+          <div><b>🟢 Open to work</b><div className="muted">Adds a green ring to your photo and an Open to work badge on your Hire me page.</div></div>
+          <input type="hidden" name="on" value={openOn ? "0" : "1"} />
+          <button type="submit" role="switch" aria-checked={openOn} aria-label="Open to work" className={"switch" + (openOn ? " on" : "")}><i /></button>
+        </form>
+        <form action={setHireVisible} className="switch-row">
+          <div><b>🙋 Show my Hire me page</b><div className="muted">Turn off to hide it from visitors and from Share. Nothing is deleted.</div></div>
+          <input type="hidden" name="on" value={pageOn ? "0" : "1"} />
+          <button type="submit" role="switch" aria-checked={pageOn} aria-label="Show my Hire me page" className={"switch" + (pageOn ? " on" : "")}><i /></button>
+        </form>
+      </div>
 
       <div className="card" style={{ background: "#f0f4ff", borderColor: "#d7defb" }}>
         <b>🙋 Your Hire me page</b>

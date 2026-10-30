@@ -52,7 +52,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ hand
               // eslint-disable-next-line @next/next/no-img-element
               ? <img src={avatarSrc} width={150} height={150} style={{ borderRadius: 75, border: "6px solid rgba(255,255,255,.85)", objectFit: "cover" }} alt="" />
               : <div style={{ display: "flex", width: 150, height: 150, borderRadius: 75, background: "rgba(255,255,255,.25)", alignItems: "center", justifyContent: "center", fontSize: 58, fontWeight: 700 }}>{initials}</div>}
-            <div style={{ display: "flex", marginLeft: 24, padding: "8px 20px", borderRadius: 40, background: "rgba(255,255,255,.22)", fontSize: 26 }}>{MODE_INFO[mode].label}</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", fontSize: 60, fontWeight: 700, lineHeight: 1.1 }}>{p.name}</div>
