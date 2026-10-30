@@ -105,7 +105,7 @@ export default async function Public({ params, searchParams }: { params: Promise
   if (!cfg || !cfg.isEnabled) notFound();
   const me = await currentUser();
   const isOwner = me?.profile?.id === p.id;
-  if (!isOwner && !modeHasContent(mode, cfg, p.resources, { projects: p.projects.length, events: p.events.length, jobs: p.jobs.length, career: p.career.length + (p.skills.trim() || p.openTo ? 1 : 0) })) notFound();
+  if (!isOwner && !modeHasContent(mode, cfg, p.resources, { projects: p.projects.length, events: p.events.length, jobs: p.jobs.length, career: p.career.length + (p.skills.trim() || p.openTo ? 1 : 0), projectModes: p.projects.flatMap((x) => x.modes.split(",").filter(Boolean)) })) notFound();
   if (!(await canView(p, mode, cfg.requireApproval))) {
     const info = MODE_INFO[mode as Mode];
     return (
@@ -134,9 +134,7 @@ export default async function Public({ params, searchParams }: { params: Promise
       </div>
     );
   }
-  const ids: string[] = JSON.parse(cfg.sectionIds);
-  const sections = p.sections.filter((s) => ids.includes(s.id)).sort((a, b) => a.order - b.order);
-  const enabled = MODES.filter((k) => k !== "ALL").map((k) => p.modes.find((m) => m.mode === k)).filter((m): m is NonNullable<typeof m> => !!m && m.isEnabled && modeHasContent(m.mode, m, p.resources, { projects: p.projects.length, events: p.events.length, jobs: p.jobs.length, career: p.career.length + (p.skills.trim() || p.openTo ? 1 : 0) }));
+  const enabled = MODES.filter((k) => k !== "ALL").map((k) => p.modes.find((m) => m.mode === k)).filter((m): m is NonNullable<typeof m> => !!m && m.isEnabled && modeHasContent(m.mode, m, p.resources, { projects: p.projects.length, events: p.events.length, jobs: p.jobs.length, career: p.career.length + (p.skills.trim() || p.openTo ? 1 : 0), projectModes: p.projects.flatMap((x) => x.modes.split(",").filter(Boolean)) }));
   const myJobs = me?.profile && !isOwner ? await db.job.findMany({ where: { profileId: me.profile.id, open: true }, orderBy: { createdAt: "desc" } }) : [];
   const invitedJobs = myJobs.length ? new Set((await db.invite.findMany({ where: { candidateProfileId: p.id, jobId: { in: myJobs.map((j) => j.id) } } })).map((i) => i.jobId)) : new Set<string>();
   const alreadySaved = me && !isOwner ? await db.savedCard.findUnique({ where: { userId_profileId: { userId: me.id, profileId: p.id } } }) : null;
@@ -228,7 +226,6 @@ export default async function Public({ params, searchParams }: { params: Promise
           </div>
         </div>
       )}
-      {sections.map((s) => <div className="card" key={s.id}><h3>{s.title}</h3><div style={{ whiteSpace: "pre-wrap" }}>{s.body}</div></div>)}
     </>
   );
   // This mode's own details (portfolio, services, skills…): only the ones that are filled in.
@@ -358,7 +355,8 @@ export default async function Public({ params, searchParams }: { params: Promise
     </>
   );
   const hack = inModes("HACKATHON", "ALL");
-  const projectsP = <>{p.projects.map((x) => <ProjectCard key={x.id} p={x} origin={origin} />)}</>;
+  const modeProjects = p.projects.filter((x) => mode === "ALL" || x.modes.split(",").includes(mode));
+  const projectsP = <>{modeProjects.map((x) => <ProjectCard key={x.id} p={x} origin={origin} />)}</>;
   const eventsP = (
     <>
       {p.events.map((e) => (
@@ -465,7 +463,7 @@ export default async function Public({ params, searchParams }: { params: Promise
         {jobs.length > 0 && li("Experience", <>{jobs.map(entry)}</>)}
         {schools.length > 0 && li("Education", <>{schools.map(entry)}</>)}
         {skillList.length > 0 && li("Skills", <div>{skillList.map((x) => <span key={x} className="pill">{x}</span>)}</div>)}
-        {p.projects.length > 0 && li("Projects", <>{p.projects.map((x) => (
+        {modeProjects.length > 0 && li("Projects", <>{modeProjects.map((x) => (
           <div key={x.id} style={{ marginBottom: 10 }}><b>{x.name}</b>{x.tagline && <div>{x.tagline}</div>}{x.demoUrl && <a href={x.demoUrl} target="_blank" rel="noopener noreferrer">Open demo ↗</a>}</div>
         ))}</>)}
         {(resumes.length > 0 || portfolios.length > 0 || portfolioLink) && li("Resume & portfolio", <>
@@ -499,7 +497,7 @@ export default async function Public({ params, searchParams }: { params: Promise
   if (mode === "RECRUITER" && p.jobs.length > 0) pages.push({ key: "roles", label: `Open roles (${p.jobs.length})`, node: rolesP });
   if (kitText || fieldDefs.length > 0 || group("DECK").length > 0) pages.push({ key: "product", label: MODE_INFO[mode as Mode].pane, node: productP });
   if (group("DEMO").length > 0) pages.push({ key: "demo", label: "Demo", node: demoP });
-  if (hack && p.projects.length > 0) pages.push({ key: "projects", label: "Projects", node: projectsP });
+  if (modeProjects.length > 0) pages.push({ key: "projects", label: "Projects", node: projectsP });
   if (hack && p.events.length > 0) pages.push({ key: "events", label: "Events", node: eventsP });
   if (hasHire) pages.push({ key: "hire", label: "Hire me", node: hireP });
   if (showTeam) pages.push({ key: "team", label: "Team", node: teamP });

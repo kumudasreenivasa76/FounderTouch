@@ -173,39 +173,8 @@ export async function delResource(fd: FormData) {
   done();
 }
 
-export async function addSection(fd: FormData) {
-  const { profile } = await requireOwner();
-  const order = await db.section.count({ where: { profileId: profile.id } });
-  await db.section.create({ data: { profileId: profile.id, type: "custom", title: String(fd.get("title")).trim(), body: String(fd.get("body")).trim(), order } });
-  done();
-  redirect("/app/profile/sections?saved=1");
-}
-
-export async function delSection(fd: FormData) {
-  const { profile } = await requireOwner();
-  const id = String(fd.get("id"));
-  if (!(await db.section.findFirst({ where: { id, profileId: profile.id } }))) return;
-  await db.section.delete({ where: { id } });
-  for (const m of await db.modeConfig.findMany({ where: { profileId: profile.id } })) {
-    const ids = (JSON.parse(m.sectionIds) as string[]).filter((x) => x !== id);
-    await db.modeConfig.update({ where: { id: m.id }, data: { sectionIds: JSON.stringify(ids) } });
-  }
-  done();
-}
-
 export async function logout() {
   await endSession();
   redirect("/login");
 }
 
-/** Which text sections a mode shows. */
-export async function saveModeSections(fd: FormData) {
-  const { profile } = await requireOwner();
-  const mode = kitMode(fd.get("mode") ?? "ALL");
-  const real = String(fd.get("mode")) === "ALL" ? "ALL" : mode;
-  const own = new Set((await db.section.findMany({ where: { profileId: profile.id }, select: { id: true } })).map((s) => s.id));
-  const ids = fd.getAll("sec").map(String).filter((id) => own.has(id));
-  await db.modeConfig.updateMany({ where: { profileId: profile.id, mode: real }, data: { sectionIds: JSON.stringify(ids) } });
-  done();
-  redirect(`/app/profile/sections?mode=${real}&saved=1`);
-}

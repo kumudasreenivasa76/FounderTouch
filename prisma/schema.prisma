@@ -190,6 +190,7 @@ model Project {
   team        String   @default("")
   submitter   String   @default("")
   email       String   @default("")
+  modes       String   @default("") // pages that show this project (your own projects only)
   createdAt   DateTime @default(now())
   profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   event       Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)

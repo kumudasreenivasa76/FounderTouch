@@ -23,9 +23,7 @@ async function finish(fd: FormData) {
   const picked = new Set(fd.getAll("modes").map(String));
 
   const p = await db.profile.create({ data: { userId: u.id, handle, name, firstName, lastName, headline, company, bio, phone: String(fd.get("phone")).trim(), socials: socialsFromForm(fd) } });
-  const about = await db.section.create({ data: { profileId: p.id, type: "about", title: "About", body: bio || `Hi, I'm ${name}.`, order: 0 } });
-  const ids = [about.id];
-  if (company) ids.push((await db.section.create({ data: { profileId: p.id, type: "company", title: "Company", body: `${company}${headline ? " · " + headline : ""}`, order: 1 } })).id);
+  const ids: string[] = [];
   for (const m of MODES) {
     await db.modeConfig.create({ data: { profileId: p.id, mode: m, sectionIds: JSON.stringify(ids), bookingUrl: url, ctaLabel: MODE_INFO[m].cta, isEnabled: m === "ALL" || picked.has(m) } });
     await db.shareLink.create({ data: { profileId: p.id, mode: m, token: randomBytes(6).toString("hex") } });

@@ -27,7 +27,6 @@ async function saveMode(fd: FormData) {
   await db.modeConfig.update({
     where: { profileId_mode: { profileId: profile.id, mode } },
     data: {
-      sectionIds: JSON.stringify(fd.getAll("sec").map(String)),
       ctaLabel: String(fd.get("cta")),
       intro: String(fd.get("intro") ?? "").trim().slice(0, 240),
       requireApproval: fd.get("approval") === "on",
@@ -59,26 +58,27 @@ const label = (m: string) => `${MODE_INFO[m as Mode].icon} ${MODE_INFO[m as Mode
 export default async function Share({ searchParams }: { searchParams: Promise<{ mode?: string; pane?: string }> }) {
   const { user, profile } = await requireOwner();
   const sp = await searchParams;
-  const [cfgs, links, sections, contactCount, resources, teamCount, projectCount, eventCount, saved, jobCount, careerN] = await Promise.all([
+  const [cfgs, links, contactCount, resources, teamCount, projectRows, eventCount, saved, jobCount, careerN] = await Promise.all([
     db.modeConfig.findMany({ where: { profileId: profile.id } }),
     db.shareLink.findMany({ where: { profileId: profile.id }, include: { _count: { select: { scans: true } } } }),
-    db.section.findMany({ where: { profileId: profile.id }, orderBy: { order: "asc" } }),
     db.contact.count({ where: { profileId: profile.id } }),
     db.resource.findMany({ where: { profileId: profile.id }, select: { kind: true, modes: true } }),
     db.teamMember.count({ where: { profileId: profile.id } }),
-    db.project.count({ where: { profileId: profile.id, eventId: null } }),
+    db.project.findMany({ where: { profileId: profile.id, eventId: null }, select: { modes: true } }),
     db.event.count({ where: { profileId: profile.id } }),
     db.savedCard.findMany({ where: { userId: user.id }, include: { profile: true }, orderBy: { createdAt: "desc" } }),
     db.job.count({ where: { profileId: profile.id, open: true } }),
     db.careerItem.count({ where: { profileId: profile.id } }),
   ]);
+  const projectCount = projectRows.length;
+  const projectModes = projectRows.flatMap((r) => r.modes.split(",").filter(Boolean));
   const h = await headers();
   const host = h.get("host") ?? "";
   const origin = `${h.get("x-forwarded-proto") ?? "http"}://${host}`;
 
   // Only modes with something in them are shown. The rest are offered under "Add a mode".
   const hireBits = careerN + (profile.skills.trim() || profile.openTo ? 1 : 0);
-  const extra = { projects: projectCount, events: eventCount, jobs: jobCount, career: hireBits };
+  const extra = { projects: projectCount, events: eventCount, jobs: jobCount, career: hireBits, projectModes };
   const visible = MODES.filter((m) => cfgs.find((c) => c.mode === m)?.isEnabled && modeHasContent(m, cfgs.find((c) => c.mode === m), resources, extra));
   const toAdd = MODES.filter((m) => !visible.includes(m));
 
@@ -122,7 +122,6 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
       <Swiper labels={labels} initial={start} select>
         {modeData.map(({ mode, link, cfg }, i) => {
           const info = MODE_INFO[mode];
-          const ids: string[] = JSON.parse(cfg.sectionIds);
           const mine = recent.filter((r) => r.shareLinkId === link.id);
           const counts = days.map((d) => mine.filter((r) => r.createdAt.toDateString() === d.toDateString()).length);
           const max = Math.max(1, ...counts);
@@ -180,9 +179,6 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
                 <p className="muted" style={{ margin: "0 0 8px" }}>People who scan see only your name and a request form until you approve them in Contacts.</p>
                 <label className="f">Intro message</label>
                 <textarea name="intro" rows={2} maxLength={240} defaultValue={cfg.intro} placeholder={`A short hello for ${info.label.toLowerCase()} visitors`} />
-                <label className="f">Sections shown</label>
-                {sections.length === 0 && <p className="muted" style={{ margin: 0 }}>No text sections yet. Add some in Profile → Page sections.</p>}
-                {sections.map((s) => <label key={s.id} style={{ display: "block", margin: "4px 0" }}><input type="checkbox" name="sec" value={s.id} defaultChecked={ids.includes(s.id)} />{s.title}</label>)}
                 <label className="f">Button label</label>
                 <input name="cta" defaultValue={cfg.ctaLabel} />
                 <label className="f">Booking link</label>

@@ -8,21 +8,24 @@ import { modeHasContent } from "@/lib/mode-content";
 import Avatar from "@/components/avatar";
 import { logout, uploadPhoto } from "./actions";
 import PhotoUpload from "@/components/photo-upload";
+import OpenPage from "@/components/open-page";
 export const dynamic = "force-dynamic";
 
 export default async function ProfileHub() {
   const { user, profile } = await requireOwner();
-  const [resources, team, sections, projectCount, cfgs, eventCount, jobCount, careerN] = await Promise.all([
+  const [resources, team, sections, projectRows, cfgs, eventCount, jobCount, careerN] = await Promise.all([
     db.resource.findMany({ where: { profileId: profile.id }, select: { kind: true, modes: true } }),
     db.teamMember.count({ where: { profileId: profile.id } }),
     db.section.count({ where: { profileId: profile.id } }),
-    db.project.count({ where: { profileId: profile.id, eventId: null } }),
+    db.project.findMany({ where: { profileId: profile.id, eventId: null }, select: { modes: true } }),
     db.modeConfig.findMany({ where: { profileId: profile.id } }),
     db.event.count({ where: { profileId: profile.id } }),
     db.job.count({ where: { profileId: profile.id, open: true } }),
     db.careerItem.count({ where: { profileId: profile.id } }),
   ]);
-  const visible = MODES.filter((m) => cfgs.find((c) => c.mode === m)?.isEnabled && modeHasContent(m, cfgs.find((c) => c.mode === m), resources, { projects: projectCount, events: eventCount, jobs: jobCount, career: careerN + (profile.skills.trim() || profile.openTo ? 1 : 0) }));
+  const projectCount = projectRows.length;
+  const projectModes = projectRows.flatMap((r) => r.modes.split(",").filter(Boolean));
+  const visible = MODES.filter((m) => cfgs.find((c) => c.mode === m)?.isEnabled && modeHasContent(m, cfgs.find((c) => c.mode === m), resources, { projects: projectCount, events: eventCount, jobs: jobCount, career: careerN + (profile.skills.trim() || profile.openTo ? 1 : 0), projectModes }));
   const n = (k: string) => resources.filter((r) => r.kind === k).length;
   const socials = Object.values(parseSocials(profile.socials)).filter(Boolean).length;
   const hasLook = !!profile.photo || !!profile.avatar;
@@ -50,7 +53,7 @@ export default async function ProfileHub() {
     { href: "/app/profile/company", icon: "🏢", title: "Company", sub: `${profile.company || "No company name"} · ${team} team member${team === 1 ? "" : "s"}` },
     { href: "/app/profile/work", icon: "💼", title: "Hire me", sub: `Resume, portfolio, experience, education` },
     { href: "/app/profile/kit", icon: "🚀", title: "Kits", sub: `Founder, Investor, Seller… · ${resources.length} item${resources.length === 1 ? "" : "s"}` },
-    { href: "/app/profile/sections", icon: "📝", title: "Text blocks & projects", sub: `${sections} text block${sections === 1 ? "" : "s"} · ${projectCount} project${projectCount === 1 ? "" : "s"}` },
+    { href: "/app/profile/projects", icon: "💡", title: "Projects", sub: projectCount ? `${projectCount} project${projectCount === 1 ? "" : "s"} you have built` : "Show what you have built" },
   ];
 
   return (
@@ -60,9 +63,7 @@ export default async function ProfileHub() {
         <h1>{profile.name}</h1>
         <div className="muted">{byline(profile.headline, profile.company) || "Add a headline"}</div>
         <div className="muted" style={{ marginBottom: 10 }}>{user.email}</div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
-          {visible.map((m) => <a key={m} className="btn" style={{ width: "auto", padding: "8px 14px" }} href={`/${profile.handle}?mode=${m}`} target="_blank">{MODE_INFO[m].icon} {MODE_INFO[m].label} ↗</a>)}
-        </div>
+        <OpenPage handle={profile.handle} options={visible.map((m) => ({ value: m, label: `${MODE_INFO[m].icon} ${MODE_INFO[m].label}` }))} />
       </div>
 
       <div className="card">
