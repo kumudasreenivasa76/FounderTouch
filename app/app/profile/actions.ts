@@ -183,6 +183,7 @@ export async function logout() {
 /** Company logo and brand colours. Colours become the theme for the card, the page and the card image. */
 export async function saveBrand(fd: FormData) {
   const { profile } = await requireOwner();
+  const home = String(fd.get("ret")) === "settings" ? "/app/settings" : "/app/profile/company";
   const hex = (v: FormDataEntryValue | null) => (/^#[0-9a-f]{6}$/i.test(String(v ?? "").trim()) ? String(v).trim().toLowerCase() : "");
   const c1 = hex(fd.get("color1")), c2 = hex(fd.get("color2")) || c1;
   let logo = profile.logo;
@@ -193,7 +194,7 @@ export async function saveBrand(fd: FormData) {
   const f = fd.get("logo") as File | null;
   if (f && f.size > 0) {
     const ext = path.extname(f.name).toLowerCase();
-    if (![".png", ".jpg", ".jpeg", ".webp"].includes(ext) || f.size > 2 * 1024 * 1024) redirect("/app/profile/company?err=logo");
+    if (![".png", ".jpg", ".jpeg", ".webp"].includes(ext) || f.size > 2 * 1024 * 1024) redirect(`${home}?err=logo`);
     const name = "logo-" + randomBytes(8).toString("hex") + ext;
     await mkdir(UPLOADS(), { recursive: true });
     await writeFile(path.join(UPLOADS(), name), Buffer.from(await f.arrayBuffer()));
@@ -203,5 +204,5 @@ export async function saveBrand(fd: FormData) {
   const theme = fd.get("reset") === "on" ? "sunset" : c1 ? customTheme(c1, c2) : profile.theme;
   await db.profile.update({ where: { id: profile.id }, data: { logo, theme } });
   done();
-  redirect("/app/profile/company?saved=1");
+  redirect(`${home}?saved=1`);
 }

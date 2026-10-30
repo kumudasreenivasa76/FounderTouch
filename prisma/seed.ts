@@ -17,7 +17,7 @@ async function main() {
     team: await mk("team", "Team", "5 people: 3 eng, 1 design, 1 ops.", 5),
   };
   const sel: Record<string, string[]> = {
-    FOUNDER: [s.about, s.products, s.team], SELLER: [s.about, s.products, s.pricing], SERVICES: [s.about, s.team, s.pricing], BUSINESS: [s.about, s.products, s.pricing], CUSTOMER: [s.products, s.pricing],
+    FOUNDER: [s.about, s.products, s.team], SERVICES: [s.about, s.products, s.pricing], CUSTOMER: [s.products, s.pricing],
     INVESTOR: [s.about, s.traction, s.team], HACKATHON: [s.about, s.project, s.team], ALL: Object.values(s),
   } as any;
     for (const m of MODES) {

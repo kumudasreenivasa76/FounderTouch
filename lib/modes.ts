@@ -2,7 +2,7 @@
  * The modes (who you are when you share). Each mode asks for only what it needs:
  * its own fields and only the kinds of files that make sense for it.
  */
-export const MODES = ["FOUNDER", "INVESTOR", "SELLER", "SERVICES", "HIRE", "RECRUITER", "HACKATHON", "BUSINESS", "OTHER", "ALL"] as const;
+export const MODES = ["FOUNDER", "INVESTOR", "SERVICES", "HIRE", "RECRUITER", "HACKATHON", "OTHER", "ALL"] as const;
 export type Mode = (typeof MODES)[number];
 
 export type Kind = "DECK" | "DEMO" | "RESUME" | "PORTFOLIO" | "DOC" | "SUPPORT";
@@ -46,28 +46,20 @@ export const MODE_INFO: Record<Mode, Info> = {
       { key: "howToPitch", label: "How to pitch me", type: "textarea", hint: "What to send and what you respond to" },
     ],
   },
-  SELLER: {
-    label: "Seller", icon: "🛍️", blurb: "I sell products", cta: "Request a quote",
-    kit: "Seller kit", about: "What I sell", aboutHint: "Your products and who they are for", pane: "Products",
-    kinds: { RESUME: "Resume / CV", PORTFOLIO: "Product portfolio", DEMO: "Product video", DOC: "Catalog / price list", SUPPORT: "Certificates & other documents" },
-    fields: [
-      { key: "priceRange", label: "Price range", type: "text", hint: "e.g. ₹500 to ₹5,000" },
-      { key: "minOrder", label: "Minimum order", type: "text", hint: "e.g. 5 units" },
-      { key: "delivery", label: "Delivery & areas", type: "text", hint: "e.g. Ships in 7 days, pan-India" },
-      { key: "payment", label: "Payment terms", type: "text" },
-      { key: "catalogUrl", label: "Catalog or store link", type: "url" },
-    ],
-  },
   SERVICES: {
-    label: "Service Provider", icon: "🛠️", blurb: "I offer services", cta: "Book a consultation",
-    kit: "Service Provider kit", about: "What I offer", aboutHint: "Who you help and how", pane: "Services",
-    kinds: { RESUME: "Resume / CV", PORTFOLIO: "Portfolio", DEMO: "Work sample video", DOC: "Brochure / rate card", SUPPORT: "Case studies & other documents" },
+    label: "Business", icon: "🛠️", blurb: "I sell products or services", cta: "Get a quote",
+    kit: "Business kit", about: "What we offer", aboutHint: "Your products or services and who they are for", pane: "Offerings",
+    kinds: { RESUME: "Resume / CV", PORTFOLIO: "Portfolio & clients", DECK: "Company profile", DEMO: "Product or work video", DOC: "Catalog, rate card or brochure", SUPPORT: "Case studies & other documents" },
     fields: [
-      { key: "services", label: "Services offered", type: "list", hint: "One per line, e.g. Brand design" },
-      { key: "rate", label: "Pricing", type: "text", hint: "e.g. From ₹40,000 per project" },
+      { key: "industry", label: "Industry", type: "text" },
+      { key: "services", label: "Products & services", type: "list", hint: "One per line, e.g. Brand design, Handmade soaps" },
+      { key: "rate", label: "Pricing", type: "text", hint: "e.g. From ₹40,000 per project, or ₹500 to ₹5,000 per unit" },
+      { key: "minOrder", label: "Minimum order", type: "text", hint: "e.g. 5 units (for products)" },
+      { key: "delivery", label: "Delivery & areas", type: "text", hint: "e.g. Ships in 7 days, pan-India" },
       { key: "availability", label: "Availability", type: "text", hint: "e.g. Taking new clients from December" },
-      { key: "portfolioUrl", label: "Portfolio link", type: "url", hint: "Your work, case studies or Behance/Dribbble" },
+      { key: "portfolioUrl", label: "Portfolio, catalog or store link", type: "url" },
       { key: "clients", label: "Selected clients", type: "list" },
+      { key: "partnerships", label: "Partnerships we want", type: "textarea" },
     ],
   },
   HIRE: {
@@ -97,17 +89,6 @@ export const MODE_INFO: Record<Mode, Info> = {
       { key: "skills", label: "Skills & stack", type: "list", hint: "e.g. React, Python, ML" },
       { key: "team", label: "Looking for a team?", type: "select", options: ["Yes", "Maybe", "No"] },
       { key: "wins", label: "Past hackathons & wins", type: "textarea" },
-    ],
-  },
-  BUSINESS: {
-    label: "Business", icon: "🤝", blurb: "I represent a company", cta: "Explore a partnership",
-    kit: "Business kit", about: "What we offer", aboutHint: "What your company does and who it serves", pane: "Company",
-    kinds: { RESUME: "Resume / CV", PORTFOLIO: "Client portfolio", DECK: "Company profile", DOC: "Capability statement", SUPPORT: "Other documents" },
-    fields: [
-      { key: "industry", label: "Industry", type: "text" },
-      { key: "size", label: "Company size", type: "select", options: ["1 to 10", "11 to 50", "51 to 200", "201 to 1,000", "1,000+"] },
-      { key: "offers", label: "Products & services", type: "list" },
-      { key: "partnerships", label: "Partnerships we want", type: "textarea" },
     ],
   },
   OTHER: {

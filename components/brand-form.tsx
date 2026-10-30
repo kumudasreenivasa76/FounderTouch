@@ -39,7 +39,7 @@ function luminance(hex: string) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-export default function BrandForm({ action, logoSrc, color1, color2, company }: { action: (fd: FormData) => void; logoSrc: string; color1: string; color2: string; company: string }) {
+export default function BrandForm({ action, logoSrc, color1, color2, company, ret }: { action: (fd: FormData) => void; logoSrc: string; color1: string; color2: string; company: string; ret?: string }) {
   const [c1, setC1] = useState(color1);
   const [c2, setC2] = useState(color2);
   const [preview, setPreview] = useState(logoSrc);
@@ -63,6 +63,7 @@ export default function BrandForm({ action, logoSrc, color1, color2, company }: 
 
   return (
     <form action={action} className="card">
+      {ret && <input type="hidden" name="ret" value={ret} />}
       <h3>Company logo &amp; colours</h3>
       <p className="muted" style={{ marginTop: 0 }}>Your logo shows on your digital card and page, and your colours replace the preset theme everywhere.</p>
 

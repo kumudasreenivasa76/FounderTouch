@@ -168,3 +168,22 @@ button.pulse{animation:pulseBtn 2s ease-in-out infinite}
 /* pill-shaped buttons: only the selected one is filled */
 button.pill:not(.on):not(.sm){background:#eef1f7;color:#1c2330}
 button.pill.on:not(.sm){background:var(--accent,#3b5bdb);color:#fff}
+
+/* settings button */
+.gear{width:38px;height:38px;border-radius:50%;background:#eef1f7;color:#1c2330;display:grid;place-items:center;font-size:19px;flex-shrink:0}
+/* card: hint when there is no QR on it */
+.face-hint{position:absolute;right:14px;bottom:12px;font-size:12px;opacity:.85;z-index:1}
+/* QR section, in the style of HiHello */
+.qr-frame{padding:20px 16px 16px;border-radius:26px;text-align:center;color:#fff;box-shadow:0 14px 30px rgba(17,24,39,.22)}
+.qr-tile{position:relative;background:#fff;border-radius:20px;padding:14px;width:min(270px,100%);margin:0 auto}
+.qr-tile img{width:100%;display:block;image-rendering:pixelated}
+.qr-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:50%;background:#fff;padding:4px;display:grid;place-items:center}
+.qr-name{font-size:20px;font-weight:700;margin-top:12px}.qr-sub{opacity:.9;font-size:14px}
+.share-via{display:flex;justify-content:space-around;margin:16px 0 10px}
+.via{display:flex!important;flex-direction:column;align-items:center;gap:5px;width:auto!important;background:none!important;color:#1c2330!important;font-size:12px;font-weight:500!important;padding:0!important;border-radius:0!important}
+.via span{width:50px;height:50px;border-radius:50%;background:#eef1f7;display:grid;place-items:center;font-size:21px}
+/* scanning other people's codes */
+.viewfinder{position:relative;border-radius:20px;overflow:hidden;background:#0b0d12;aspect-ratio:1/1}
+.viewfinder video{width:100%;height:100%;object-fit:cover}
+.vf-frame{position:absolute;inset:18%;border:3px solid rgba(255,255,255,.92);border-radius:20px;box-shadow:0 0 0 999px rgba(0,0,0,.38)}
+.vf-empty{position:absolute;inset:0;display:grid;place-items:center;color:#cfd4dd;font-size:46px}

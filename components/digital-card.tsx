@@ -10,7 +10,7 @@ export type CardLine = { icon: string; text: string; href: string };
 export default function DigitalCard({
   background, back, avatar, name, sub, qr, logo, lines, social,
 }: {
-  background: string; back: string; avatar: React.ReactNode; name: string; sub: string; qr: string; logo?: string;
+  background: string; back: string; avatar: React.ReactNode; name: string; sub: string; qr?: string; logo?: string;
   lines: CardLine[]; social: React.ReactNode;
 }) {
   const [flipped, setFlipped] = useState(false);
@@ -24,7 +24,7 @@ export default function DigitalCard({
             <div className="face-top">{avatar}{logo && <img className="face-logo" src={logo} alt="" />}</div>
             <div className="face-name">{name}</div>
             {sub && <div className="face-sub">{sub}</div>}
-            <div className="face-qr"><img src={qr} alt="QR code to open this card" /></div>
+            {qr ? <div className="face-qr"><img src={qr} alt="QR code to open this card" /></div> : <div className="face-hint">Tap to flip ↻</div>}
           </div>
           <div className="face backside" style={{ background: back }}>
             <div className="face-name" style={{ fontSize: 17 }}>{name}</div>
