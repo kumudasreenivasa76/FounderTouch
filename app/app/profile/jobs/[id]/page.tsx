@@ -5,6 +5,7 @@ import { STATUSES } from "@/lib/hiring";
 import { listItems } from "@/lib/modes";
 import PageHead from "@/components/page-head";
 import { setApplicantStatus, setJobEvent, toggleJob } from "../../job-actions";
+import I from "@/components/icon";
 export const dynamic = "force-dynamic";
 
 const day = (d: Date) => d.toLocaleDateString("en-IN", { dateStyle: "medium" });
@@ -39,7 +40,7 @@ export default async function JobContacts({ params, searchParams }: { params: Pr
       </form>
       <form action={toggleJob} style={{ marginBottom: 12 }}><input type="hidden" name="id" value={job.id} /><button className="ghost">{job.open ? "Close this role" : "Reopen this role"}</button></form>
 
-      <h2>🎯 Applicants ({job.applications.length})</h2>
+      <h2><I n="users" /> Applicants ({job.applications.length})</h2>
       {job.applications.length === 0 && <div className="card muted">Nobody has applied yet. Share your Recruiter page or the event page.</div>}
       {job.applications.map((a) => {
         const c = candidates.find((x) => x.handle === a.candidateHandle);
@@ -54,7 +55,7 @@ export default async function JobContacts({ params, searchParams }: { params: Pr
             <div className="muted">{a.email}{a.phone ? ` · ${a.phone}` : ""} · {day(a.createdAt)}</div>
             {c && (
               <div style={{ margin: "6px 0" }}>
-                <span className="pill on" style={{ margin: "0 6px 6px 0" }}>⚡ FounderTouch profile</span>
+                <span className="pill on" style={{ margin: "0 6px 6px 0" }}><I n="user" /> FounderTouch profile</span>
                 {c.openTo && <span className="pill">{c.openTo}</span>}
                 {last && <span className="pill">{last.title}, {last.org}</span>}
                 {listItems(c.skills).slice(0, 4).map((x) => <span key={x} className="pill">{x}</span>)}
@@ -63,9 +64,9 @@ export default async function JobContacts({ params, searchParams }: { params: Pr
             {a.note && <div style={{ margin: "6px 0" }}>&ldquo;{a.note}&rdquo;</div>}
             <div className="row" style={{ margin: "8px 0" }}>
               {c && <a className="btn ghost" href={`/${c.handle}?mode=ALL&pane=hire`} target="_blank">View profile</a>}
-              {a.resumeFile && <a className="btn ghost" href={`/applicant-file/${a.id}`} target="_blank">📄 Resume</a>}
-              {a.resumeUrl && <a className="btn ghost" href={a.resumeUrl} target="_blank" rel="noopener noreferrer">📄 Resume link</a>}
-              <a className="btn ghost" href={`mailto:${a.email}?subject=${encodeURIComponent("Your application: " + job.title)}`}>✉ Email</a>
+              {a.resumeFile && <a className="btn ghost" href={`/applicant-file/${a.id}`} target="_blank"><I n="file" /> Resume</a>}
+              {a.resumeUrl && <a className="btn ghost" href={a.resumeUrl} target="_blank" rel="noopener noreferrer"><I n="file" /> Resume link</a>}
+              <a className="btn ghost" href={`mailto:${a.email}?subject=${encodeURIComponent("Your application: " + job.title)}`}><I n="mail" /> Email</a>
             </div>
             <form action={setApplicantStatus} style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               <input type="hidden" name="id" value={a.id} />
@@ -75,13 +76,13 @@ export default async function JobContacts({ params, searchParams }: { params: Pr
         );
       })}
 
-      <h2>🏆 Interested at the event ({interested.length})</h2>
+      <h2><I n="trophy" /> Interested at the event ({interested.length})</h2>
       {interested.length === 0 && <div className="card muted">{job.event ? "No one has marked this role when registering yet." : "Link this role to an event above to collect interest at registration."}</div>}
       {interested.map((a) => (
         <div className="card" key={a.id}>
-          <b>{a.name}</b> {a.checkedInAt && <span className="pill" style={{ background: "#e6f9ef", margin: 0 }}>✅ attended</span>}
+          <b>{a.name}</b> {a.checkedInAt && <span className="pill good" style={{ margin: 0 }}><I n="check-circle" /> attended</span>}
           <div className="muted">{a.email}{a.company ? ` · ${a.company}` : ""} · {a.event.name}</div>
-          <a className="btn ghost" style={{ marginTop: 8 }} href={`mailto:${a.email}?subject=${encodeURIComponent("About the " + job.title + " role")}`}>✉ Email</a>
+          <a className="btn ghost" style={{ marginTop: 8 }} href={`mailto:${a.email}?subject=${encodeURIComponent("About the " + job.title + " role")}`}><I n="mail" /> Email</a>
         </div>
       ))}
     </>

@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
       <li>Set these in <code>.env</code> and restart the app:<pre style="background:#f1f3f8;padding:10px;border-radius:8px;overflow:auto">GOOGLE_WALLET_ISSUER_ID=...
 GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL=...@...iam.gserviceaccount.com
 GOOGLE_WALLET_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"</pre></li></ol>
-      <p>Until then, use <b>Card image</b> to save the card to Photos, or Share → Add to Home Screen.</p><p><a href="/app?pane=wallet">← Back</a></p>`, 501);
+      <p>Until then, use <b>Card image</b> to save the card to Photos, or Share → Add to Home Screen.</p><p><a href="/app?pane=wallet">Back</a></p>`, 501);
   }
 
   const p = u.profile, origin = req.nextUrl.origin, theme = themeOf(p.theme);

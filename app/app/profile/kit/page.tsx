@@ -6,6 +6,7 @@ import { buildNeedData, modeNeeds } from "@/lib/mode-needs";
 import { tagList } from "@/lib/tags";
 import Swiper from "@/components/swiper";
 import { addResource, delResource, saveKitText, setResourceModes } from "../actions";
+import I from "@/components/icon";
 export const dynamic = "force-dynamic";
 
 const ERR: Record<string, string> = {
@@ -38,12 +39,12 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
   return (
     <>
       <div className="shell-head" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <Link href="/app/profile" className="muted">← Back</Link>
+        <Link href="/app/profile" className="back"><I n="arrow-left" size={16} />Back</Link>
         <b style={{ fontSize: 17 }}>Kits</b>
         <span className="muted" style={{ marginLeft: "auto" }}>Swipe to switch</span>
       </div>
 
-      <Swiper labels={PAGES.map((m) => `${MODE_INFO[m].icon} ${MODE_INFO[m].label}`)} initial={start}>
+      <Swiper labels={PAGES.map((m) => MODE_INFO[m].label)} initial={start}>
         {PAGES.map((m) => {
           const info = MODE_INFO[m];
           const cfg = cfgs.find((c) => c.mode === m);
@@ -57,16 +58,16 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
           const kind = active && sp.kind && (kinds as readonly string[]).includes(sp.kind) ? sp.kind : kinds[0];
           return (
             <div key={m}>
-              <h2 style={{ marginBottom: 2 }}>{info.icon} {info.kit}</h2>
+              <h2 style={{ marginBottom: 2 }}><I n={info.icon} /> {info.kit}</h2>
               <p className="muted" style={{ marginTop: 0 }}>{info.blurb}. Fill in only what applies to you.</p>
-              {active && sp.saved && <div className="ok">Saved ✓</div>}
+              {active && sp.saved && <div className="ok">Saved</div>}
               {active && sp.err && <div className="err">{ERR[sp.err] ?? "Something went wrong."}</div>}
 
-              <div className="card" style={{ borderColor: todo.length ? "#ffd8a8" : "#b2f2bb", background: todo.length ? "#fff9f0" : "#f3fcf5" }}>
-                <b>{todo.length ? `Still needed for the ${info.label} page` : `${info.label} page is ready ✓`}</b>
+              <div className="card">
+                <h3>{todo.length ? `Still needed for the ${info.label} page` : `${info.label} page is ready`}</h3>
                 {needs.map((n) => (
-                  <Link key={n.label} href={n.href} style={{ display: "flex", gap: 8, padding: "4px 0", color: n.ok ? "#6b7587" : "#1c2330" }}>
-                    <span>{n.ok ? "✅" : "➕"}</span><span style={{ flex: 1, textDecoration: n.ok ? "line-through" : "none" }}>{n.label}</span>
+                  <Link key={n.label} href={n.href} className={"todo" + (n.ok ? " done" : "")}>
+                    <I n={n.ok ? "check-circle" : "plus"} /><span style={{ flex: 1 }}>{n.label}</span>{!n.ok && <I n="chevron-right" size={16} />}
                   </Link>
                 ))}
               </div>
@@ -93,14 +94,14 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
               </form>
 
               {m === "RECRUITER" && (
-                <div className="card"><b>💼 Open roles</b>
+                <div className="card"><b><I n="briefcase" /> Open roles</b>
                   <p className="muted" style={{ margin: "4px 0 8px" }}>Post the roles you are hiring for. Candidates apply on your page and show up in Contacts.</p>
                   <Link className="btn" href="/app/profile/jobs">Manage open roles</Link>
                 </div>
               )}
 
               {m === "HACKATHON" && (
-                <div className="card"><b>🏆 Projects &amp; events</b>
+                <div className="card"><b><I n="trophy" /> Projects &amp; events</b>
                   <div className="row" style={{ marginTop: 8 }}><Link className="btn ghost" href="/app/profile/projects">My projects</Link><Link className="btn ghost" href="/app/events">Events</Link></div>
                 </div>
               )}
@@ -113,19 +114,19 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
                     <div className="card" key={r.id}>
                       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <b>{r.title}</b>{r.gated && <span className="pill" style={{ marginLeft: 6 }}>🔒 needs approval</span>}
+                          <b>{r.title}</b>{r.gated && <span className="pill" style={{ marginLeft: 6 }}><I n="lock" /> needs approval</span>}
                           {tagList(r.tags).length > 0 && <div>{tagList(r.tags).map((t) => <span key={t} className="pill">#{t}</span>)}</div>}
                           <div className="muted">{r.filePath ? "Uploaded file" : new URL(r.url).hostname}</div>
                         </div>
                         <form action={delResource}><input type="hidden" name="id" value={r.id} /><button className="ghost sm">Remove</button></form>
                       </div>
                       <details style={{ marginTop: 8 }}>
-                        <summary className="muted">Also on: {r.modes.split(",").filter((x) => x && x !== m).map((x) => MODE_INFO[x as Mode]?.label).filter(Boolean).join(", ") || "only this page"} · <span style={{ color: "#3b5bdb" }}>change</span></summary>
+                        <summary className="muted">Also on: {r.modes.split(",").filter((x) => x && x !== m).map((x) => MODE_INFO[x as Mode]?.label).filter(Boolean).join(", ") || "only this page"} · <span style={{ color: "var(--ink)" }}>change</span></summary>
                         <form action={setResourceModes}>
                           <input type="hidden" name="id" value={r.id} /><input type="hidden" name="kmode" value={m} />
                           <div className="chips">
                             {PAGES.filter((x) => kindsOf(x).includes(r.kind as never)).map((x) => (
-                              <label key={x} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={x} defaultChecked={r.modes.split(",").includes(x)} />{MODE_INFO[x].icon} {MODE_INFO[x].label}</label>
+                              <label key={x} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={x} defaultChecked={r.modes.split(",").includes(x)} />{MODE_INFO[x].label}</label>
                             ))}
                           </div>
                           <button className="ghost sm">Save</button>
@@ -149,10 +150,10 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
                 <label className="f">Also show on</label>
                 <div className="chips">
                   {PAGES.filter((x) => kinds.some((k) => kindsOf(x).includes(k))).map((x) => (
-                    <label key={x} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={x} defaultChecked={x === m} />{MODE_INFO[x].icon} {MODE_INFO[x].label}</label>
+                    <label key={x} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={x} defaultChecked={x === m} />{MODE_INFO[x].label}</label>
                   ))}
                 </div>
-                <label style={{ display: "block", margin: "4px 0 10px" }}><input type="checkbox" name="gated" />🔒 Visitors need my approval to open it</label>
+                <label style={{ display: "block", margin: "4px 0 10px" }}><input type="checkbox" name="gated" /><I n="lock" /> Visitors need my approval to open it</label>
                 <button>Add</button>
               </form>
             </div>

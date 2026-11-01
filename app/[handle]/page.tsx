@@ -12,13 +12,14 @@ import { bookingInfo } from "@/lib/booking";
 import { MODES, MODE_INFO, Mode, kindLabel, kindsOf, listItems, parseFields } from "@/lib/modes";
 import Avatar from "@/components/avatar";
 import { tagList } from "@/lib/tags";
-import { SocialBadge } from "@/components/social-icon";
+import { SocialBadge, SocialIcon } from "@/components/social-icon";
 import { socialUrl } from "@/lib/socials";
 import { gradient, byline } from "@/lib/look";
 import Swiper from "@/components/swiper";
 import ProjectCard from "@/components/project-card";
 import { byStartDesc, fmtRange } from "@/lib/career";
 import { SOCIALS, parseSocials } from "@/lib/socials";
+import I from "@/components/icon";
 export const dynamic = "force-dynamic";
 
 async function exchange(fd: FormData) {
@@ -115,10 +116,10 @@ export default async function Public({ params, searchParams }: { params: Promise
           <Avatar name={p.name} handle={p.handle} hasPhoto={!!p.photo} avatar={p.avatar} size={88} flip center />
           <h1>{p.name}</h1>
           <div>{byline(p.headline, p.company)}</div>
-          <span className="pill" style={{ marginTop: 8 }}>🔒 {info.label} · private</span>
+          <span className="pill" style={{ marginTop: 8 }}><I n="lock" /> {info.label} · private</span>
         </div>
         {sp.requested ? (
-          <div className="ok">Request sent ✓ {p.name} will review it and send you a private link.</div>
+          <div className="ok">Request sent. {p.name} will review it and send you a private link.</div>
         ) : (
           <form action={requestModeAccess} className="card">
             <h3>Request access</h3>
@@ -164,8 +165,8 @@ export default async function Public({ params, searchParams }: { params: Promise
         <b style={{ display: "block", marginBottom: 6 }}>{r.title}</b>
         {src && <video src={src} controls playsInline preload="metadata" style={frame} />}
         {embed && <iframe src={embed} title={r.title} loading="lazy" allowFullScreen allow="autoplay; fullscreen; picture-in-picture" style={{ ...frame, aspectRatio: "16 / 9", border: 0 }} />}
-        {!src && !embed && <a className="btn ghost" href={href(r)} target="_blank" rel="noopener noreferrer">▶ Watch demo</a>}
-        {(src || embed) && r.url && <a className="muted" href={r.url} target="_blank" rel="noopener noreferrer">Open original ↗</a>}
+        {!src && !embed && <a className="btn ghost" href={href(r)} target="_blank" rel="noopener noreferrer"><I n="play" /> Watch demo</a>}
+        {(src || embed) && r.url && <a className="muted" href={r.url} target="_blank" rel="noopener noreferrer">Open original <I n="external" size={15} /></a>}
       </div>
     );
   };
@@ -176,15 +177,15 @@ export default async function Public({ params, searchParams }: { params: Promise
       <div key={r.id} style={{ marginBottom: 12 }}>
         <b style={{ display: "block", marginBottom: 6 }}>{r.title}</b>
         {src
-          ? <iframe src={src} title={r.title} loading="lazy" allowFullScreen style={{ width: "100%", height: 340, border: "1px solid #e3e6ec", borderRadius: 12, background: "#fff" }} />
+          ? <iframe src={src} title={r.title} loading="lazy" allowFullScreen style={{ width: "100%", height: 340, border: "1px solid var(--line)", borderRadius: 12, background: "#fff" }} />
           : ext && !isPublicOrigin(origin) && <p className="muted" style={{ margin: "0 0 6px" }}>Inline preview of PowerPoint/Word files works once the site is online. Upload a PDF to preview it anywhere.</p>}
-        <a className="btn ghost" style={{ marginTop: 8 }} href={href(r)} target="_blank">{src ? "Open full screen ↗" : "📄 Open " + r.title}</a>
+        <a className="btn ghost" style={{ marginTop: 8 }} href={href(r)} target="_blank">{src ? <>Open full screen <I n="external" size={15} /></> : <><I n="file" /> Open {r.title}</>}</a>
       </div>
     );
   };
   const locked = (r: Res) => (
-    <details key={r.id} className="card" style={{ background: "#f6f7f9", padding: 10, marginBottom: 8 }}>
-      <summary>🔒 {r.title} <span className="muted">· request access</span></summary>
+    <details key={r.id} className="card" style={{ background: "var(--sunken)", padding: 10, marginBottom: 8 }}>
+      <summary><I n="lock" /> {r.title} <span className="muted">· request access</span></summary>
       <form action={requestAccess}>
         <input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value={mode} /><input type="hidden" name="resourceId" value={r.id} />
         <div className="row"><input name="firstName" placeholder="First name" required /><input name="lastName" placeholder="Last name" required /></div><input name="email" type="email" placeholder="Your email" required />
@@ -204,27 +205,27 @@ export default async function Public({ params, searchParams }: { params: Promise
         {p.logo && <img className="brand-logo" src={`/logo/${p.handle}?v=${encodeURIComponent(p.logo)}`} alt={p.company ? `${p.company} logo` : ""} />}
         <Avatar name={p.name} handle={p.handle} hasPhoto={!!p.photo} avatar={p.avatar} size={88} flip center />
         <h1>{p.name}</h1>
-        <div>{byline(p.headline, p.company)}</div>
-        <span className="pill" style={{ marginTop: 8 }}>{MODE_INFO[mode as Mode].icon} {MODE_INFO[mode as Mode].label}</span>
-        {mode === "RECRUITER" && p.jobs.length > 0 && <div><span className="pill on" style={{ background: "#fff", color: "#0b7a4b" }}>🟢 Hiring · {p.jobs.length} open role{p.jobs.length === 1 ? "" : "s"}</span></div>}
-        {p.bio && <p className="muted" style={{ margin: "4px 0 12px" }}>{p.bio}</p>}
+        <div style={{ opacity: .85 }}>{byline(p.headline, p.company)}</div>
+        {mode !== "ALL" && <span className="pill" style={{ marginTop: 10 }}><I n={MODE_INFO[mode as Mode].icon} size={14} /> {MODE_INFO[mode as Mode].label}</span>}
+        {mode === "RECRUITER" && p.jobs.length > 0 && <div><span className="pill on" style={{ background: "#fff", color: "var(--good)" }}><span className="dot-live" /> Hiring · {p.jobs.length} open role{p.jobs.length === 1 ? "" : "s"}</span></div>}
+        {p.bio && <p className="muted" style={{ margin: "12px auto 18px", maxWidth: 360 }}>{p.bio}</p>}
         {mode === "RECRUITER" && p.jobs.length > 0 && <a className="btn" style={{ marginBottom: 8 }} href={`/${handle}?mode=RECRUITER&pane=roles`}>See open roles ({p.jobs.length})</a>}
         {booking && (booking.embed
           ? <a className="btn" style={{ marginBottom: 8 }} href={`/${handle}?mode=${mode}&pane=book`}>{cfg.ctaLabel}</a>
           : <a className="btn" style={{ marginBottom: 8 }} href={cfg.bookingUrl} target="_blank" rel="noopener noreferrer">{cfg.ctaLabel}</a>)}
-        <a className="btn ghost" href={`/${handle}/vcard?mode=${mode}`}>⬇ Save contact</a>
+        <a className={"btn" + (booking || (mode === "RECRUITER" && p.jobs.length > 0) ? " ghost" : "")} href={`/${handle}/vcard?mode=${mode}`}><I n="download" /> Save contact</a>
         {!isOwner && (alreadySaved || sp.saved
-          ? <div className="pill" style={{ marginTop: 8, display: "block", textAlign: "center", padding: "10px 12px" }}>✓ Saved to your wallet</div>
-          : <form action={saveCard} style={{ marginTop: 8 }}><input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value={mode} /><button className="ghost">💾 Save card</button></form>)}
-        {resume && <a className="btn ghost" style={{ marginTop: 8 }} href={`/${handle}?mode=${mode}&pane=hire`}>📄 View resume</a>}
-        {socials.linkedin && <a className="btn ghost" style={{ marginTop: 8 }} href={socials.linkedin} target="_blank" rel="noopener noreferrer">in Connect on LinkedIn</a>}
+          ? <div className="pill" style={{ marginTop: 8, display: "block", textAlign: "center", padding: "10px 12px" }}><I n="check" /> Saved to your wallet</div>
+          : <form action={saveCard} style={{ marginTop: 8 }}><input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value={mode} /><button className="ghost"><I n="bookmark" /> Save card</button></form>)}
+        {resume && <a className="btn ghost" style={{ marginTop: 8 }} href={`/${handle}?mode=${mode}&pane=hire`}><I n="file" /> View resume</a>}
+        {socials.linkedin && <a className="btn ghost" style={{ marginTop: 8 }} href={socials.linkedin} target="_blank" rel="noopener noreferrer"><SocialIcon k="linkedin" size={16} /> Connect on LinkedIn</a>}
       </div>
-      {cfg.intro && <div className="card" style={{ background: "#eef1ff", borderColor: "#d7defb" }}>👋 {cfg.intro}</div>}
+      {cfg.intro && <div className="card">{cfg.intro}</div>}
       {enabled.length > 0 && (mode === "ALL" || enabled.length > 1) && (
         <div className="card"><b>I am a…</b>
           <div style={{ marginTop: 8 }}>
             <ModeSelect handle={handle} current={mode} placeholder={mode === "ALL" ? "Choose who you are" : "Switch to another view"}
-              options={[...enabled.map((m) => ({ value: m.mode, label: `${MODE_INFO[m.mode as Mode].icon} ${MODE_INFO[m.mode as Mode].label}` })), ...(mode !== "ALL" ? [{ value: "ALL", label: "✨ Everything" }] : [])]} />
+              options={[...enabled.map((m) => ({ value: m.mode, label: MODE_INFO[m.mode as Mode].label })), ...(mode !== "ALL" ? [{ value: "ALL", label: "Everything" }] : [])]} />
           </div>
         </div>
       )}
@@ -242,7 +243,7 @@ export default async function Public({ params, searchParams }: { params: Promise
         </div>
       ))}
       {fieldDefs.filter((f) => f.type === "url").map((f) => (
-        <a key={f.key} className="btn ghost" style={link} href={fv[f.key]} target="_blank" rel="noopener noreferrer">🔗 {f.label} ↗</a>
+        <a key={f.key} className="btn ghost" style={link} href={fv[f.key]} target="_blank" rel="noopener noreferrer"><I n="link" /> {f.label} <I n="external" size={15} /></a>
       ))}
     </div>
   );
@@ -263,7 +264,7 @@ export default async function Public({ params, searchParams }: { params: Promise
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0" }}>
             <Avatar name={nm} handle={lp?.handle ?? ""} hasPhoto={!!lp?.photo} avatar={lp?.avatar ?? ""} size={44} />
             <div style={{ flex: 1 }}><b>{nm}</b><div className="muted">{role}</div></div>
-            {t.link && <span className="pill" style={{ margin: 0 }}>View ↗</span>}
+            {t.link && <span className="pill" style={{ margin: 0 }}>View <I n="external" size={15} /></span>}
           </div>
         );
         return t.link ? <a key={t.id} href={t.link} target={t.memberHandle ? undefined : "_blank"} rel="noopener noreferrer" style={{ color: "inherit", display: "block" }}>{row}</a> : <div key={t.id}>{row}</div>;
@@ -274,7 +275,7 @@ export default async function Public({ params, searchParams }: { params: Promise
     <>
       {group("DOC").length > 0 && (
         <div className="card"><h3>{kindLabel(mode, "DOC")}</h3>
-          {group("DOC").map((r) => r.gated ? locked(r) : <a key={r.id} className="btn ghost" style={link} href={href(r)} target="_blank">📎 {r.title}</a>)}
+          {group("DOC").map((r) => r.gated ? locked(r) : <a key={r.id} className="btn ghost" style={link} href={href(r)} target="_blank"><I n="clip" /> {r.title}</a>)}
         </div>
       )}
       {group("SUPPORT").length > 0 && (() => {
@@ -293,7 +294,7 @@ export default async function Public({ params, searchParams }: { params: Promise
             )}
             {shown.map((r) => r.gated ? locked(r) : (
               <a key={r.id} className="btn ghost" style={{ ...link, textAlign: "left" }} href={href(r)} target="_blank">
-                📎 {r.title}
+                <I n="clip" /> {r.title}
                 {tagList(r.tags).length > 0 && <span style={{ display: "block", fontSize: 12, opacity: 0.7, fontWeight: 400 }}>{tagList(r.tags).map((t) => "#" + t).join("  ")}</span>}
               </a>
             ))}
@@ -311,7 +312,7 @@ export default async function Public({ params, searchParams }: { params: Promise
   const portfolioLink = showCareer ? socials.portfolio : undefined;
   const hasHire = !!(openTo || skillList.length || jobs.length || schools.length || group("RESUME").length || group("PORTFOLIO").length || portfolioLink);
   const timeline = (c: (typeof p.career)[number]) => (
-    <div key={c.id} style={{ borderLeft: "3px solid #d7defb", padding: "2px 0 2px 12px", marginBottom: 12 }}>
+    <div key={c.id} style={{ borderLeft: "3px solid var(--line)", padding: "2px 0 2px 12px", marginBottom: 12 }}>
       <b>{c.title}</b>
       <div>{c.org}{c.location ? ` · ${c.location}` : ""}</div>
       {fmtRange(c.start, c.end) && <div className="muted">{fmtRange(c.start, c.end)}</div>}
@@ -321,25 +322,25 @@ export default async function Public({ params, searchParams }: { params: Promise
   const hireP = (
     <>
       {showCareer && myJobs.length > 0 && openTo !== "Not looking" && (
-        <form action={inviteCandidate} className="card" style={{ background: "#eef1ff", borderColor: "#d7defb" }}>
+        <form action={inviteCandidate} className="card">
           <input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value={mode} />
-          <b>🎯 Invite {p.firstName || p.name} to apply</b>
-          {sp.invited && <div className="ok" style={{ marginTop: 8 }}>Invite sent ✓</div>}
+          <b><I n="briefcase" /> Invite {p.firstName || p.name} to apply</b>
+          {sp.invited && <div className="ok" style={{ marginTop: 8 }}>Invite sent</div>}
           <select name="jobId" style={{ marginTop: 8 }}>{myJobs.map((j) => <option key={j.id} value={j.id}>{j.title}{invitedJobs.has(j.id) ? " (invited)" : ""}</option>)}</select>
           <button>Send invite</button>
         </form>
       )}
       {(openTo || skillList.length > 0) && (
         <div className="card">
-          {openTo && <div style={{ marginBottom: skillList.length ? 10 : 0 }}><span className="pill on" style={{ margin: 0 }}>{openTo === "Not looking" ? "⚪" : "🟢"} {openTo}</span></div>}
+          {openTo && <div style={{ marginBottom: skillList.length ? 10 : 0 }}><span className="pill on" style={{ margin: 0 }}><span className={openTo === "Not looking" ? "dot-off" : "dot-live"} /> {openTo}</span></div>}
           {skillList.length > 0 && <><h3>Skills</h3><div>{skillList.map((x) => <span key={x} className="pill">{x}</span>)}</div></>}
         </div>
       )}
-      {jobs.length > 0 && <div className="card"><h3>💼 Experience</h3>{jobs.map(timeline)}</div>}
-      {schools.length > 0 && <div className="card"><h3>🎓 Education</h3>{schools.map(timeline)}</div>}
-      {group("RESUME").length > 0 && <div className="card"><h3>📄 {kindLabel(mode, "RESUME")}</h3>{group("RESUME").map((r) => r.gated ? locked(r) : viewer(r))}</div>}
-      {portfolioLink && <div className="card"><h3>🗂️ Portfolio</h3><a className="btn ghost" href={portfolioLink} target="_blank" rel="noopener noreferrer">Open my portfolio ↗</a></div>}
-      {group("PORTFOLIO").length > 0 && <div className="card"><h3>🗂️ {kindLabel(mode, "PORTFOLIO")}</h3>{group("PORTFOLIO").map((r) => r.gated ? locked(r) : viewer(r))}</div>}
+      {jobs.length > 0 && <div className="card"><h3><I n="briefcase" /> Experience</h3>{jobs.map(timeline)}</div>}
+      {schools.length > 0 && <div className="card"><h3><I n="school" /> Education</h3>{schools.map(timeline)}</div>}
+      {group("RESUME").length > 0 && <div className="card"><h3><I n="file" /> {kindLabel(mode, "RESUME")}</h3>{group("RESUME").map((r) => r.gated ? locked(r) : viewer(r))}</div>}
+      {portfolioLink && <div className="card"><h3><I n="folder" /> Portfolio</h3><a className="btn ghost" href={portfolioLink} target="_blank" rel="noopener noreferrer">Open my portfolio <I n="external" size={15} /></a></div>}
+      {group("PORTFOLIO").length > 0 && <div className="card"><h3><I n="folder" /> {kindLabel(mode, "PORTFOLIO")}</h3>{group("PORTFOLIO").map((r) => r.gated ? locked(r) : viewer(r))}</div>}
     </>
   );
   const rolesP = (
@@ -348,10 +349,10 @@ export default async function Public({ params, searchParams }: { params: Promise
         <div className="card" key={j.id}>
           <b style={{ fontSize: 16 }}>{j.title}</b>
           <div className="muted">{[j.location, j.workType, j.employment].filter(Boolean).join(" · ")}</div>
-          {j.salary && <div style={{ marginTop: 4 }}>💰 {j.salary}</div>}
+          {j.salary && <div style={{ marginTop: 4 }}><I n="money" /> {j.salary}</div>}
           {j.description && <p style={{ whiteSpace: "pre-wrap", margin: "8px 0" }}>{j.description.length > 220 ? j.description.slice(0, 220) + "…" : j.description}</p>}
           {listItems(j.skills).length > 0 && <div>{listItems(j.skills).map((x) => <span className="pill" key={x}>{x}</span>)}</div>}
-          <a className="btn" style={{ marginTop: 8 }} href={`/${handle}/apply/${j.id}`}>Apply →</a>
+          <a className="btn" style={{ marginTop: 8 }} href={`/${handle}/apply/${j.id}`}>Apply <I n="arrow-right" size={16} /></a>
         </div>
       ))}
     </>
@@ -363,7 +364,7 @@ export default async function Public({ params, searchParams }: { params: Promise
     <>
       {p.events.map((e) => (
         <a key={e.id} href={`/e/${e.slug}`} className="menu-row">
-          <span className="menu-ico">🏆</span>
+          <span className="menu-ico"><I n="trophy" /> </span>
           <span style={{ flex: 1, minWidth: 0 }}><b>{e.name}</b><span className="muted" style={{ display: "block" }}>{[e.startsAt?.toLocaleDateString("en-IN", { dateStyle: "medium" }), e.location].filter(Boolean).join(" · ") || "Details soon"}</span></span>
           <span className={"pill" + (e.open ? " on" : "")} style={{ margin: 0 }}>{e.open ? "Open" : "Closed"}</span>
         </a>
@@ -371,20 +372,20 @@ export default async function Public({ params, searchParams }: { params: Promise
     </>
   );
   const bookP = booking && (
-    <div className="card"><h3>{booking.icon} {cfg.ctaLabel}</h3>
+    <div className="card"><h3><I n={booking.icon} /> {cfg.ctaLabel}</h3>
       <p className="muted" style={{ marginTop: 0 }}>Booking with {p.name} via {booking.provider}.</p>
-      {booking.embed && <iframe src={booking.embed} title={`Book with ${p.name}`} loading="lazy" allow="payment" style={{ width: "100%", height: 560, border: "1px solid #e3e6ec", borderRadius: 12, background: "#fff" }} />}
-      <a className="btn ghost" style={{ marginTop: 8 }} href={cfg.bookingUrl} target="_blank" rel="noopener noreferrer">Open the booking page ↗</a>
+      {booking.embed && <iframe src={booking.embed} title={`Book with ${p.name}`} loading="lazy" allow="payment" style={{ width: "100%", height: 560, border: "1px solid var(--line)", borderRadius: 12, background: "#fff" }} />}
+      <a className="btn ghost" style={{ marginTop: 8 }} href={cfg.bookingUrl} target="_blank" rel="noopener noreferrer">Open the booking page <I n="external" size={15} /></a>
     </div>
   );
   const connectP = (
     <>
       {hasContact && (
         <div className="card"><h3>Contact</h3>
-          {p.company && <div>🏢 {p.company}</div>}
-          {p.phone && <div>📞 <a href={`tel:${p.phone.replace(/\s+/g, "")}`}>{p.phone}</a></div>}
-          {p.email && <div>✉ <a href={`mailto:${p.email}`}>{p.email}</a></div>}
-          {p.website && <div>🌐 <a href={p.website} target="_blank">{p.website.replace(/^https?:\/\//, "")}</a></div>}
+          {p.company && <div><I n="building" /> {p.company}</div>}
+          {p.phone && <div><I n="phone" /> <a href={`tel:${p.phone.replace(/\s+/g, "")}`}>{p.phone}</a></div>}
+          {p.email && <div><I n="mail" /> <a href={`mailto:${p.email}`}>{p.email}</a></div>}
+          {p.website && <div><I n="globe" /> <a href={p.website} target="_blank">{p.website.replace(/^https?:\/\//, "")}</a></div>}
           {Object.keys(socials).length > 0 && (
             <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 10 }}>
               {SOCIALS.filter((x) => socials[x.key]).map((x) => (
@@ -419,7 +420,7 @@ export default async function Public({ params, searchParams }: { params: Promise
     const li = (title: string, body: React.ReactNode) => (<div className="li"><h3>{title}</h3>{body}</div>);
     const entry = (c: (typeof p.career)[number]) => (
       <div key={c.id} style={{ display: "flex", gap: 12, marginBottom: 14 }}>
-        <div style={{ width: 46, height: 46, borderRadius: 6, background: "#eef1ff", color: "#3b5bdb", display: "grid", placeItems: "center", fontWeight: 700, flexShrink: 0 }}>{initials(c.org) || "•"}</div>
+        <div style={{ width: 46, height: 46, borderRadius: 6, background: "var(--sunken)", color: "var(--ink)", display: "grid", placeItems: "center", fontWeight: 700, flexShrink: 0 }}>{initials(c.org) || "•"}</div>
         <div style={{ minWidth: 0 }}>
           <b>{c.title}</b>
           <div>{c.org}{c.location ? ` · ${c.location}` : ""}</div>
@@ -433,7 +434,7 @@ export default async function Public({ params, searchParams }: { params: Promise
         <div className="li" style={{ padding: 0 }}>
           <div style={{ height: 120, background: gradient(p.theme), position: "relative" }}>{p.logo && <img className="brand-logo" src={`/logo/${p.handle}?v=${encodeURIComponent(p.logo)}`} alt={p.company ? `${p.company} logo` : ""} />}</div>
           <div style={{ padding: "0 16px 16px" }}>
-            <div style={{ marginTop: -52, marginBottom: 8, display: "inline-block", borderRadius: "50%", padding: 4, background: openToWork ? "#0ca678" : "#fff" }}>
+            <div style={{ marginTop: -52, marginBottom: 8, display: "inline-block", borderRadius: "50%", padding: 4, background: openToWork ? "var(--good)" : "#fff" }}>
               <div style={{ borderRadius: "50%", background: "#fff", padding: 3 }}>
                 <Avatar name={p.name} handle={p.handle} hasPhoto={!!p.photo} avatar={p.avatar} size={96} flip />
               </div>
@@ -441,22 +442,22 @@ export default async function Public({ params, searchParams }: { params: Promise
             <h1 style={{ margin: 0, fontSize: 24 }}>{p.name}</h1>
             <div style={{ fontSize: 16 }}>{p.headline || byline(p.headline, p.company)}</div>
             <div className="muted">{[p.company, p.website && p.website.replace(/^https?:\/\//, "")].filter(Boolean).join(" · ")}</div>
-            {cfg.intro && <div className="muted" style={{ marginTop: 6 }}>👋 {cfg.intro}</div>}
+            {cfg.intro && <div className="muted" style={{ marginTop: 6 }}>{cfg.intro}</div>}
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
               {contactHref && <a className="btn" style={{ width: "auto", padding: "8px 18px", borderRadius: 99 }} href={contactHref}>{cfg.ctaLabel || "Contact me"}</a>}
-              {socials.linkedin && <a className="btn ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }} href={socials.linkedin} target="_blank" rel="noopener noreferrer">in Connect</a>}
+              {socials.linkedin && <a className="btn ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }} href={socials.linkedin} target="_blank" rel="noopener noreferrer"><SocialIcon k="linkedin" size={15} /> Connect</a>}
               <a className="btn ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }} href={`/${handle}/vcard?mode=HIRE`}>Save contact</a>
-              {firstResume && <a className="btn ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }} href={href(firstResume)} target="_blank" rel="noopener noreferrer">📄 Resume</a>}
+              {firstResume && <a className="btn ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }} href={href(firstResume)} target="_blank" rel="noopener noreferrer"><I n="file" /> Resume</a>}
               {!isOwner && (alreadySaved || sp.saved
-                ? <span className="pill" style={{ margin: 0, alignSelf: "center" }}>✓ Saved</span>
-                : <form action={saveCard}><input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value="HIRE" /><button className="ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }}>💾 Save card</button></form>)}
+                ? <span className="pill" style={{ margin: 0, alignSelf: "center" }}><I n="check" /> Saved</span>
+                : <form action={saveCard}><input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value="HIRE" /><button className="ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }}><I n="bookmark" /> Save card</button></form>)}
             </div>
           </div>
         </div>
 
         {openTo && (
-          <div className="li" style={{ background: openToWork ? "#f0fbf5" : "#fff", borderLeft: `4px solid ${openToWork ? "#0ca678" : "#cfd4dd"}` }}>
-            <b>{openToWork ? "🟢 " : "⚪ "}{openTo}</b>
+          <div className="li" style={{ background: openToWork ? "var(--good-soft)" : "#fff", borderLeft: `4px solid ${openToWork ? "var(--good)" : "var(--line-strong)"}` }}>
+            <b><span className={openToWork ? "dot-live" : "dot-off"} /> {openTo}</b>
             {skillList.length > 0 && <div className="muted">{skillList.slice(0, 3).join(" · ")}</div>}
           </div>
         )}
@@ -466,17 +467,17 @@ export default async function Public({ params, searchParams }: { params: Promise
         {schools.length > 0 && li("Education", <>{schools.map(entry)}</>)}
         {skillList.length > 0 && li("Skills", <div>{skillList.map((x) => <span key={x} className="pill">{x}</span>)}</div>)}
         {modeProjects.length > 0 && li("Projects", <>{modeProjects.map((x) => (
-          <div key={x.id} style={{ marginBottom: 10 }}><b>{x.name}</b>{x.tagline && <div>{x.tagline}</div>}{x.demoUrl && <a href={x.demoUrl} target="_blank" rel="noopener noreferrer">Open demo ↗</a>}</div>
+          <div key={x.id} style={{ marginBottom: 10 }}><b>{x.name}</b>{x.tagline && <div>{x.tagline}</div>}{x.demoUrl && <a href={x.demoUrl} target="_blank" rel="noopener noreferrer">Open demo <I n="external" size={15} /></a>}</div>
         ))}</>)}
         {(resumes.length > 0 || portfolios.length > 0 || portfolioLink) && li("Resume & portfolio", <>
           {resumes.map((r) => r.gated ? locked(r) : viewer(r))}
-          {portfolioLink && <a className="btn ghost" style={{ marginBottom: 8 }} href={portfolioLink} target="_blank" rel="noopener noreferrer">🗂️ Open my portfolio ↗</a>}
+          {portfolioLink && <a className="btn ghost" style={{ marginBottom: 8 }} href={portfolioLink} target="_blank" rel="noopener noreferrer"><I n="folder" /> Open my portfolio <I n="external" size={15} /></a>}
           {portfolios.map((r) => r.gated ? locked(r) : viewer(r))}
         </>)}
         {hasContact && li("Contact info", <>
-          {p.phone && <div>📞 <a href={`tel:${p.phone.replace(/\s+/g, "")}`}>{p.phone}</a></div>}
-          {p.email && <div>✉ <a href={`mailto:${p.email}`}>{p.email}</a></div>}
-          {p.website && <div>🌐 <a href={p.website} target="_blank" rel="noopener noreferrer">{p.website.replace(/^https?:\/\//, "")}</a></div>}
+          {p.phone && <div><I n="phone" /> <a href={`tel:${p.phone.replace(/\s+/g, "")}`}>{p.phone}</a></div>}
+          {p.email && <div><I n="mail" /> <a href={`mailto:${p.email}`}>{p.email}</a></div>}
+          {p.website && <div><I n="globe" /> <a href={p.website} target="_blank" rel="noopener noreferrer">{p.website.replace(/^https?:\/\//, "")}</a></div>}
           {Object.keys(socials).length > 0 && <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 10 }}>{SOCIALS.filter((x) => socials[x.key]).map((x) => (
             <a key={x.key} href={socials[x.key]} target="_blank" rel="noopener noreferrer" aria-label={x.label} title={x.label}><SocialBadge k={x.key} size={40} /></a>
           ))}</div>}

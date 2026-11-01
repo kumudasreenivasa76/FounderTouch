@@ -34,7 +34,7 @@ export function SocialIcon({ k, size = 20 }: { k: string; size?: number }) {
 /** Round brand-coloured badge with the white glyph inside. */
 export function SocialBadge({ k, size = 40 }: { k: string; size?: number }) {
   return (
-    <span style={{ width: size, height: size, borderRadius: "50%", background: SOCIAL_COLORS[k] ?? "#3b5bdb", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+    <span style={{ width: size, height: size, borderRadius: "50%", background: SOCIAL_COLORS[k] ?? "var(--ink)", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
       <SocialIcon k={k} size={Math.round(size * 0.5)} />
     </span>
   );

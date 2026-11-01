@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import I from "@/components/icon";
+import { SocialIcon } from "@/components/social-icon";
 
 /** A big branded QR with the ways to send it, in the style of HiHello: Link, Text, Email, WhatsApp and More. */
 export default function QrPanel({ qrSrc, url, name, modeLabel, modeIcon, frame, center, downloadName }: {
@@ -14,11 +16,11 @@ export default function QrPanel({ qrSrc, url, name, modeLabel, modeIcon, frame, 
     else copy();
   };
   const via = [
-    { k: "link", icon: "🔗", label: "Link", onClick: copy },
-    { k: "text", icon: "💬", label: "Text", href: `sms:?&body=${encodeURIComponent(text)}` },
-    { k: "email", icon: "✉️", label: "Email", href: `mailto:?subject=${encodeURIComponent(`${name}'s digital card`)}&body=${encodeURIComponent(text)}` },
-    { k: "wa", icon: "🟢", label: "WhatsApp", href: `https://wa.me/?text=${encodeURIComponent(text)}`, external: true },
-    { k: "more", icon: "⋯", label: "More", onClick: more },
+    { k: "link", icon: "link", label: "Link", onClick: copy },
+    { k: "text", icon: "message", label: "Text", href: `sms:?&body=${encodeURIComponent(text)}` },
+    { k: "email", icon: "mail", label: "Email", href: `mailto:?subject=${encodeURIComponent(`${name}'s digital card`)}&body=${encodeURIComponent(text)}` },
+    { k: "wa", icon: "whatsapp", label: "WhatsApp", href: `https://wa.me/?text=${encodeURIComponent(text)}`, external: true },
+    { k: "more", icon: "more", label: "More", onClick: more },
   ];
   return (
     <div>
@@ -28,16 +30,16 @@ export default function QrPanel({ qrSrc, url, name, modeLabel, modeIcon, frame, 
           <div className="qr-center">{center}</div>
         </div>
         <div className="qr-name">{name}</div>
-        <div className="qr-sub">{modeIcon} {modeLabel} page</div>
+        <div className="qr-sub">{modeLabel} page</div>
       </div>
 
       <div className="share-via" role="group" aria-label="Send my card">
         {via.map((v) => v.href
-          ? <a key={v.k} className="via" href={v.href} {...(v.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}><span>{v.icon}</span>{v.label}</a>
-          : <button key={v.k} type="button" className="via" onClick={v.onClick}><span>{v.icon}</span>{v.label}</button>)}
+          ? <a key={v.k} className="via" href={v.href} {...(v.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}><span>{v.icon === "whatsapp" ? <SocialIcon k="whatsapp" size={19} /> : <I n={v.icon} size={20} />}</span>{v.label}</a>
+          : <button key={v.k} type="button" className="via" onClick={v.onClick}><span>{v.icon === "whatsapp" ? <SocialIcon k="whatsapp" size={19} /> : <I n={v.icon} size={20} />}</span>{v.label}</button>)}
       </div>
       <div className="muted" style={{ textAlign: "center", minHeight: 18, marginTop: -4 }}>{note || "Anyone who scans this QR code opens this page."}</div>
-      <a className="btn ghost" style={{ marginTop: 10 }} href={qrSrc} download={downloadName}>⬇ Save QR image</a>
+      <a className="btn ghost" style={{ marginTop: 10 }} href={qrSrc} download={downloadName}><I n="download" /> Save QR image</a>
     </div>
   );
 }

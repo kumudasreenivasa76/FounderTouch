@@ -6,6 +6,7 @@ import { STATUSES } from "@/lib/hiring";
 import { setApplicantStatus, deleteApplicant } from "../profile/job-actions";
 import { requireOwner } from "@/lib/auth";
 import CopyButton from "@/components/copy-button";
+import I from "@/components/icon";
 export const dynamic = "force-dynamic";
 
 async function decide(fd: FormData) {
@@ -53,9 +54,9 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
 
       {invites.length > 0 && (
         <>
-          <h2>🎯 Job invites ({invites.length})</h2>
+          <h2><I n="briefcase" /> Job invites ({invites.length})</h2>
           {invites.map((i) => (
-            <div className="card" key={i.id} style={{ borderColor: "#d7defb", background: "#eef1ff" }}>
+            <div className="card" key={i.id}>
               <b>{i.job.profile.company || i.job.profile.name}</b> invited you to apply
               <div style={{ fontSize: 16, fontWeight: 600 }}>{i.job.title}</div>
               <div className="muted">{[i.job.location, i.job.workType, i.job.employment, i.job.salary].filter(Boolean).join(" · ")}</div>
@@ -67,7 +68,7 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
 
       {applicants.length > 0 && (
         <>
-          <h2>🎯 Applicants {newCount > 0 && <span className="pill on">{newCount} new</span>}</h2>
+          <h2><I n="users" /> Applicants {newCount > 0 && <span className="pill on">{newCount} new</span>}</h2>
           {jobList.length > 1 && (
             <div className="chips" style={{ marginBottom: 8 }}>
               <a href="/app/contacts" className={"pill" + (!sp.job ? " on" : "")}>All roles</a>
@@ -87,7 +88,7 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
                 <div className="muted">{a.email}{a.phone ? ` · ${a.phone}` : ""} · {a.createdAt.toLocaleDateString("en-IN", { dateStyle: "medium" })}</div>
                 {c && (
                   <div style={{ margin: "6px 0" }}>
-                    <span className="pill on" style={{ margin: "0 6px 6px 0" }}>⚡ FounderTouch profile</span>
+                    <span className="pill on" style={{ margin: "0 6px 6px 0" }}><I n="user" /> FounderTouch profile</span>
                     {c.openTo && <span className="pill">{c.openTo}</span>}
                     {last && <span className="pill">{last.title}, {last.org}</span>}
                     {listItems(c.skills).slice(0, 4).map((x) => <span key={x} className="pill">{x}</span>)}
@@ -96,10 +97,10 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
                 {a.note && <div style={{ margin: "6px 0" }}>&ldquo;{a.note}&rdquo;</div>}
                 <div className="row" style={{ margin: "8px 0" }}>
                   {c && <a className="btn ghost" href={`/${c.handle}?mode=ALL&pane=hire`} target="_blank">View profile</a>}
-                  {a.resumeFile && <a className="btn ghost" href={`/applicant-file/${a.id}`} target="_blank">📄 Resume</a>}
-                  {a.resumeUrl && <a className="btn ghost" href={a.resumeUrl} target="_blank" rel="noopener noreferrer">📄 Resume link</a>}
+                  {a.resumeFile && <a className="btn ghost" href={`/applicant-file/${a.id}`} target="_blank"><I n="file" /> Resume</a>}
+                  {a.resumeUrl && <a className="btn ghost" href={a.resumeUrl} target="_blank" rel="noopener noreferrer"><I n="file" /> Resume link</a>}
                   {a.linkedin && <a className="btn ghost" href={a.linkedin} target="_blank" rel="noopener noreferrer">in LinkedIn</a>}
-                  <a className="btn ghost" href={`mailto:${a.email}?subject=${encodeURIComponent("Your application: " + a.job.title)}`}>✉ Email</a>
+                  <a className="btn ghost" href={`mailto:${a.email}?subject=${encodeURIComponent("Your application: " + a.job.title)}`}><I n="mail" /> Email</a>
                 </div>
                 <form action={setApplicantStatus} style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   <input type="hidden" name="id" value={a.id} />
@@ -116,7 +117,7 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
           <h2>Page access {mPending.length > 0 && <span className="pill on">{mPending.length}</span>}</h2>
           {mPending.map((r) => (
             <div className="card" key={r.id}>
-              <b>{r.name}</b> <span className="muted">wants to view your</span> <b>{MODE_INFO[r.mode as Mode]?.icon} {MODE_INFO[r.mode as Mode]?.label ?? r.mode}</b> <span className="muted">page</span>
+              <b>{r.name}</b> <span className="muted">wants to view your</span> <b>{MODE_INFO[r.mode as Mode]?.label ?? r.mode}</b> <span className="muted">page</span>
               <div className="muted">{r.email}</div>
               {r.note && <div style={{ marginTop: 4 }}>"{r.note}"</div>}
               <form action={decideMode} className="row" style={{ marginTop: 10 }}>
@@ -137,13 +138,13 @@ ${url}
 ${profile.name}`);
             return (
               <div className="card" key={r.id}>
-                <b>{r.name}</b> · {MODE_INFO[r.mode as Mode]?.label ?? r.mode} <span className="pill" style={{ background: "#e6f9ef" }}>approved</span> {expired && <span className="pill">expired</span>}
+                <b>{r.name}</b> · {MODE_INFO[r.mode as Mode]?.label ?? r.mode} <span className="pill good">approved</span> {expired && <span className="pill">expired</span>}
                 {!expired && (
                   <>
                     <input readOnly value={url} style={{ marginTop: 8 }} />
                     <div className="row">
                       <CopyButton label="Copy link" text={url} />
-                      <a className="btn ghost" href={`mailto:${r.email}?subject=${encodeURIComponent("Your access link")}&body=${body}`}>✉ Email it</a>
+                      <a className="btn ghost" href={`mailto:${r.email}?subject=${encodeURIComponent("Your access link")}&body=${body}`}><I n="mail" /> Email it</a>
                     </div>
                   </>
                 )}
@@ -183,7 +184,7 @@ ${profile.name}`);
                 {!expired && (
                   <>
                     <input readOnly value={url} style={{ marginTop: 8 }} />
-                    <a className="btn ghost" href={`mailto:${r.email}?subject=${encodeURIComponent("Your access link")}&body=${body}`}>✉ Email the link</a>
+                    <a className="btn ghost" href={`mailto:${r.email}?subject=${encodeURIComponent("Your access link")}&body=${body}`}><I n="mail" /> Email the link</a>
                   </>
                 )}
               </div>

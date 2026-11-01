@@ -9,5 +9,5 @@ export async function GET() {
     <ul><li>Tap <b>Card image</b> in Share, then save it to Photos. You can open it in a second.</li>
     <li>In Safari tap Share → <b>Add to Home Screen</b> on your page for one-tap access.</li>
     <li>Anyone can tap <b>Save contact</b> on your page to add you to their Contacts.</li></ul>
-    <p><a href="/app?pane=wallet">← Back</a></p></body>`, { status: 501, headers: { "Content-Type": "text/html; charset=utf-8" } });
+    <p><a href="/app?pane=wallet">Back</a></p></body>`, { status: 501, headers: { "Content-Type": "text/html; charset=utf-8" } });
 }

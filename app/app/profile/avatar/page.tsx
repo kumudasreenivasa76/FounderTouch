@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { requireOwner } from "@/lib/auth";
 import { AVATAR_DEFAULT, parseAvatar } from "@/lib/look";
 import Editor from "./editor";
+import I from "@/components/icon";
 
 async function save(fd: FormData) {
   "use server";
@@ -20,7 +21,7 @@ export default async function AvatarPage() {
   const { profile } = await requireOwner();
   return (
     <>
-      <Link href="/app/profile" className="muted">← Back</Link>
+      <Link href="/app/profile" className="back"><I n="arrow-left" size={16} />Back</Link>
       <h1>Design your avatar</h1>
       <p className="muted">{profile.photo ? "You also have a photo uploaded. The photo is shown first; remove it to show the avatar." : "Shown on your card and public page."}</p>
       <Editor initial={parseAvatar(profile.avatar) ?? AVATAR_DEFAULT} save={save} />

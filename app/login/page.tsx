@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import I from "@/components/icon";
 import { db } from "@/lib/db";
 import { checkPassword, currentUser, startSession } from "@/lib/auth";
 
@@ -19,19 +20,21 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
   const next = sp.next && sp.next.startsWith("/") && !sp.next.startsWith("//") ? sp.next : "";
   if (await currentUser()) redirect(next || "/app");
   return (
-    <div className="screen center">
-      <div className="logo">F</div>
-      <h1 style={{ textAlign: "center" }}>Welcome back</h1>
-      <p className="muted" style={{ textAlign: "center" }}>Log in to your FounderTouch</p>
-      {sp.error && <div className="err">Wrong email or password.</div>}
+    <div className="screen auth">
+      <div className="wordmark"><span className="logo">ft</span>FounderTouch</div>
+      <h1>Welcome back</h1>
+      <p className="muted">Log in to manage your card and contacts.</p>
+      {sp.error && <div className="err"><I n="alert" size={16} /> Wrong email or password.</div>}
       <form action={login}>
         <input type="hidden" name="next" value={next} />
-        <input name="email" type="email" placeholder="Email" required autoComplete="email" />
-        <input name="password" type="password" placeholder="Password" required autoComplete="current-password" />
-        <button>Log in</button>
+        <label className="f" htmlFor="email">Email</label>
+        <input id="email" name="email" type="email" placeholder="you@company.com" required autoComplete="email" />
+        <label className="f" htmlFor="password">Password</label>
+        <input id="password" name="password" type="password" required autoComplete="current-password" />
+        <button style={{ marginTop: 8 }}>Log in</button>
       </form>
-      <p className="muted" style={{ textAlign: "center", marginTop: 16 }}>New here? <Link href="/signup">Create account</Link></p>
-      <p className="muted" style={{ textAlign: "center" }}>Demo: demo@founder.example / demo1234</p>
+      <p className="muted" style={{ marginTop: 18 }}>New here? <Link href="/signup">Create an account</Link></p>
+      <p className="muted demo-note">Demo account: demo@founder.example / demo1234</p>
     </div>
   );
 }

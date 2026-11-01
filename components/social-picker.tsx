@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { SOCIALS } from "@/lib/socials";
 import { SocialBadge } from "./social-icon";
+import I from "@/components/icon";
 
 /**
  * Row of social icons. Tap one to open a field for its link.
@@ -22,15 +23,15 @@ export default function SocialPicker({ initial }: { initial: Record<string, stri
           return (
             <button key={s.key} type="button" title={s.label} aria-label={`${s.label}${filled ? " (added)" : ""}`} aria-pressed={on}
               onClick={() => setActive(on ? null : s.key)}
-              style={{ width: 48, height: 48, padding: 0, background: "none", position: "relative", borderRadius: "50%", outline: on ? "3px solid #3b5bdb" : "none", outlineOffset: 2, opacity: filled || on ? 1 : 0.4, filter: filled || on ? "none" : "grayscale(1)" }}>
+              style={{ width: 48, height: 48, padding: 0, background: "none", position: "relative", borderRadius: "50%", outline: on ? "3px solid var(--ink)" : "none", outlineOffset: 2, opacity: filled || on ? 1 : 0.4, filter: filled || on ? "none" : "grayscale(1)" }}>
               <SocialBadge k={s.key} size={48} />
-              {filled && <span style={{ position: "absolute", right: -2, top: -2, width: 16, height: 16, borderRadius: "50%", background: "#0ca678", color: "#fff", fontSize: 10, lineHeight: "16px", border: "2px solid #fff" }}>✓</span>}
+              {filled && <span style={{ position: "absolute", right: -2, top: -2, width: 16, height: 16, borderRadius: "50%", background: "var(--good)", color: "#fff", fontSize: 10, lineHeight: "16px", border: "2px solid #fff" }}><I n="check" /> </span>}
             </button>
           );
         })}
       </div>
       {cur ? (
-        <div className="card" style={{ background: "#f6f7f9", marginBottom: 6 }}>
+        <div className="card" style={{ background: "var(--sunken)", marginBottom: 6 }}>
           <label className="f" style={{ marginTop: 0 }}>{cur.label} link</label>
           <input autoFocus value={vals[cur.key]} placeholder={cur.ph} inputMode={cur.key === "whatsapp" ? "tel" : "url"} autoCapitalize="none" autoCorrect="off"
             onChange={(e) => setVals({ ...vals, [cur.key]: e.target.value })}

@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import jsQR from "jsqr";
 import type { CheckInResult } from "@/app/app/events/actions";
+import I from "@/components/icon";
 
 /** Camera scanner for event check-in. Reads ticket QR codes and marks the attendee as arrived. */
 export default function QrScanner({ eventId, initialChecked, total, check }: { eventId: string; initialChecked: number; total: number; check: (eventId: string, code: string) => Promise<CheckInResult> }) {
@@ -68,10 +69,10 @@ export default function QrScanner({ eventId, initialChecked, total, check }: { e
   useEffect(() => stop, [stop]);
 
   const banner = res && {
-    ok: { bg: "#e6f9ef", fg: "#0b7a4b", text: `✅ ${res.name} checked in` },
-    already: { bg: "#fff4e0", fg: "#a35a00", text: `⚠️ ${res.name} was already checked in${res.at ? " at " + new Date(res.at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : ""}` },
-    unknown: { bg: "#fde8e8", fg: "#a61b1b", text: "❌ Not a ticket for this event" },
-    error: { bg: "#fde8e8", fg: "#a61b1b", text: "Something went wrong. Try again." },
+    ok: { bg: "var(--good-soft)", fg: "var(--good)", text: `${res.name} checked in` },
+    already: { bg: "var(--warn-soft)", fg: "var(--warn)", text: `${res.name} was already checked in${res.at ? " at " + new Date(res.at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : ""}` },
+    unknown: { bg: "var(--bad-soft)", fg: "var(--bad)", text: "Not a ticket for this event" },
+    error: { bg: "var(--bad-soft)", fg: "var(--bad)", text: "Something went wrong. Try again." },
   }[res.status];
 
   return (
@@ -81,7 +82,7 @@ export default function QrScanner({ eventId, initialChecked, total, check }: { e
       <div style={{ position: "relative", borderRadius: 18, overflow: "hidden", background: "#0b0d12", aspectRatio: "1 / 1" }}>
         <video ref={video} playsInline muted style={{ width: "100%", height: "100%", objectFit: "cover", display: on ? "block" : "none" }} />
         {on && <div style={{ position: "absolute", inset: "18%", border: "3px solid rgba(255,255,255,.9)", borderRadius: 18, boxShadow: "0 0 0 999px rgba(0,0,0,.35)" }} />}
-        {!on && <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#cfd4dd", fontSize: 44 }}>📷</div>}
+        {!on && <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--line-strong)", fontSize: 44 }}><I n="camera" /> </div>}
       </div>
       <canvas ref={canvas} style={{ display: "none" }} />
 

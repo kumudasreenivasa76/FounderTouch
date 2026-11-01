@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import type { Found } from "@/app/app/tap-actions";
+import I from "@/components/icon";
 
 type Ndef = {
   write: (m: { records: { recordType: string; data: string }[] }) => Promise<void>;
@@ -88,18 +89,18 @@ export default function TapShare({ pages, avatar, peek, save }: {
         <div className="card found-card">
           <div className="found-ini">{found.initials}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="muted" style={{ fontSize: 12 }}>🎉 Found someone</div>
+            <div className="muted" style={{ fontSize: 12 }}>Found someone</div>
             <b style={{ fontSize: 18 }}>{found.name}</b>
             <div className="muted">{found.sub || found.modeLabel}</div>
           </div>
           <div style={{ display: "grid", gap: 6 }}>
-            <button type="button" onClick={doSave} disabled={saved} style={{ width: "auto", padding: "8px 14px" }}>{saved ? "✓ Saved" : "Save card"}</button>
+            <button type="button" onClick={doSave} disabled={saved} style={{ width: "auto", padding: "8px 14px" }}>{saved ? <><I n="check" /> Saved</> : "Save card"}</button>
             <a className="btn ghost" style={{ width: "auto", padding: "8px 14px" }} href={`/${found.handle}?mode=${found.mode}`} target="_blank">Open</a>
           </div>
         </div>
       ) : (
         <div style={{ textAlign: "center", marginBottom: 12 }}>
-          <h2 style={{ margin: "0 0 4px" }}>{live ? "Searching for people nearby…" : "Tap to share"}</h2>
+          <h2 style={{ margin: "0 0 4px", justifyContent: "center" }}>{live ? "Searching for people nearby…" : "Tap to share"}</h2>
           <div className="muted">{live ? "Hold the back of your phone against an NFC card, sticker or phone." : "Meet someone? Start tapping, then touch phones or cards."}</div>
         </div>
       )}
@@ -107,7 +108,7 @@ export default function TapShare({ pages, avatar, peek, save }: {
       <div style={{ margin: "0 0 10px" }}>
         {live
           ? <button type="button" className="ghost" onClick={stop}>Stop searching</button>
-          : <button type="button" className={state === "found" ? "ghost" : "pulse"} onClick={start} disabled={supported === null}>{state === "found" ? "Find someone else" : "📲 Start tapping"}</button>}
+          : <button type="button" className={state === "found" ? "ghost" : "pulse"} onClick={start} disabled={supported === null}>{state === "found" ? "Find someone else" : <><I n="nfc" /> Start tapping</>}</button>}
       </div>
       {msg && <p className={state === "error" ? "err" : "muted"} style={{ textAlign: "center" }}>{msg}</p>}
 
@@ -115,12 +116,12 @@ export default function TapShare({ pages, avatar, peek, save }: {
         <b>What do you want to share?</b>
         <div className="chips" style={{ marginTop: 8 }}>
           {pages.map((p) => (
-            <button key={p.mode} type="button" onClick={() => setMode(p.mode)} className={"pill" + (p.mode === cur.mode ? " on" : "")} style={{ border: 0, width: "auto", fontWeight: 400, cursor: "pointer" }}>{p.icon} {p.label}</button>
+            <button key={p.mode} type="button" onClick={() => setMode(p.mode)} className={"pill" + (p.mode === cur.mode ? " on" : "")} style={{ width: "auto", minHeight: 0, cursor: "pointer" }}>{p.label}</button>
           ))}
         </div>
         <div className="row" style={{ marginTop: 6 }}>
-          <button type="button" className="ghost" onClick={shareSheet}>📤 Send to a phone</button>
-          {supported && <button type="button" className="ghost" onClick={writeTag}>🏷️ Write to a tag</button>}
+          <button type="button" className="ghost" onClick={shareSheet}><I n="send" /> Send to a phone</button>
+          {supported && <button type="button" className="ghost" onClick={writeTag}><I n="tag" /> Write to a tag</button>}
         </div>
         <p className="muted" style={{ margin: "8px 0 0", fontSize: 12.5 }}>
           Searching works with NFC cards and stickers, and with phones that share a tap link. Sending to a phone uses your phone&apos;s own share sheet (Nearby Share or AirDrop). Browsers can&apos;t beam to another phone directly.

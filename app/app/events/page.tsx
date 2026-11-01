@@ -4,6 +4,7 @@ import { requireOwner } from "@/lib/auth";
 import { themeOf, gradient } from "@/lib/look";
 import PageHead from "@/components/page-head";
 import { createEvent } from "./actions";
+import I from "@/components/icon";
 export const dynamic = "force-dynamic";
 
 const fmt = (d: Date | null) => (d ? d.toLocaleDateString("en-IN", { dateStyle: "medium" }) : "");
@@ -19,7 +20,7 @@ export default async function Events({ searchParams }: { searchParams: Promise<{
   const t = themeOf(profile.theme);
   return (
     <>
-      <PageHead title="Events" sub="Run a meetup or hackathon: registration, tickets, check-in at the door and a branded event page." back="/app" error={sp.err ? "Give the event a name." : undefined} />
+      <PageHead title="Events" sub="Run a meetup or hackathon: registration, tickets, check-in at the door and a branded event page." back={null} error={sp.err ? "Give the event a name." : undefined} />
 
       {events.length === 0 && <div className="card muted">No events yet. Create your first one below.</div>}
       {events.map((e) => (
@@ -28,7 +29,7 @@ export default async function Events({ searchParams }: { searchParams: Promise<{
           <span style={{ flex: 1, minWidth: 0, padding: "12px 4px 12px 12px" }}>
             <b>{e.name}</b>
             <span className="muted" style={{ display: "block" }}>{[fmt(e.startsAt), e.location].filter(Boolean).join(" · ") || "No date yet"}</span>
-            <span className="muted" style={{ display: "block" }}>🎟 {e._count.attendees} registered · ✅ {e.attendees.length} checked in · 💡 {e._count.projects} projects</span>
+            <span className="muted" style={{ display: "block" }}>{e._count.attendees} registered · {e.attendees.length} checked in · {e._count.projects} projects</span>
           </span>
           <span style={{ padding: 12 }}><span className={"pill" + (e.open ? " on" : "")} style={{ margin: 0 }}>{e.open ? "Open" : "Closed"}</span></span>
         </Link>

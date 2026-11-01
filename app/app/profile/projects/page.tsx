@@ -29,7 +29,7 @@ export default async function Projects({ searchParams }: { searchParams: Promise
             <div className="muted" style={{ marginBottom: 4 }}>Shown on</div>
             <div className="chips">
               {PAGES.map((m) => (
-                <label key={m} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={m} defaultChecked={p.modes.split(",").includes(m)} />{MODE_INFO[m as Mode].icon} {MODE_INFO[m as Mode].label}</label>
+                <label key={m} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={m} defaultChecked={p.modes.split(",").includes(m)} />{MODE_INFO[m as Mode].label}</label>
               ))}
             </div>
             <div className="row" style={{ marginTop: 4 }}>
@@ -51,7 +51,7 @@ export default async function Projects({ searchParams }: { searchParams: Promise
         <label className="f">Show on</label>
         <div className="chips">
           {PAGES.map((m) => (
-            <label key={m} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={m} defaultChecked={m === "HIRE" || m === "HACKATHON"} />{MODE_INFO[m as Mode].icon} {MODE_INFO[m as Mode].label}</label>
+            <label key={m} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={m} defaultChecked={m === "HIRE" || m === "HACKATHON"} />{MODE_INFO[m as Mode].label}</label>
           ))}
         </div>
         <button>Add project</button>

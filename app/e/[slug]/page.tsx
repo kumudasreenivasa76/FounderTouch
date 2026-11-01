@@ -10,6 +10,7 @@ import Avatar from "@/components/avatar";
 import Swiper from "@/components/swiper";
 import ShareButtons from "@/components/share-buttons";
 import ProjectCard from "@/components/project-card";
+import I from "@/components/icon";
 export const dynamic = "force-dynamic";
 
 const link = (v: FormDataEntryValue | null) => { const s = String(v ?? "").trim(); return s && !/^https?:\/\//i.test(s) ? "https://" + s : s; };
@@ -91,12 +92,12 @@ export default async function EventPage({ params, searchParams }: { params: Prom
     <>
       <div className="card hero hero-themed" style={{ background: heroBg, border: 0 }}>
         {ev.logo && <img src={`/event-img/${ev.slug}/logo`} alt="" style={{ height: 76, maxWidth: 160, objectFit: "contain", background: "#fff", borderRadius: 16, padding: 6, margin: "0 auto 10px", display: "block" }} />}
-        <span className="pill">🏆 {ended ? "Event ended" : full ? "Event full" : ev.open ? "Open" : "Closed"}</span>
+        <span className="pill"><I n="trophy" /> {ended ? "Event ended" : full ? "Event full" : ev.open ? "Open" : "Closed"}</span>
         <h1 style={{ marginTop: 8 }}>{ev.name}</h1>
-        {when(ev.startsAt, ev.endsAt) && <div>🗓 {when(ev.startsAt, ev.endsAt)}</div>}
-        {ev.location && <div>📍 {ev.location}</div>}
+        {when(ev.startsAt, ev.endsAt) && <div><I n="calendar" /> {when(ev.startsAt, ev.endsAt)}</div>}
+        {ev.location && <div><I n="pin" /> {ev.location}</div>}
         {myTicket
-          ? <Link className="btn" style={{ marginTop: 12 }} href={`/e/${ev.slug}/ticket/${myTicket.token}`}>🎟 View my ticket</Link>
+          ? <Link className="btn" style={{ marginTop: 12 }} href={`/e/${ev.slug}/ticket/${myTicket.token}`}><I n="ticket" /> View my ticket</Link>
           : ev.open && !full && !ended && <Link className="btn" style={{ marginTop: 12 }} href={`/e/${ev.slug}?pane=register`}>Register now</Link>}
       </div>
       {ev.description && <div className="card" style={{ whiteSpace: "pre-wrap" }}>{ev.description}</div>}
@@ -115,9 +116,9 @@ export default async function EventPage({ params, searchParams }: { params: Prom
 
   const register = myTicket ? (
     <div className="card" style={{ textAlign: "center" }}>
-      <h3>You&apos;re registered ✅</h3>
+      <h3><I n="check-circle" /> You&apos;re registered</h3>
       <p className="muted">Show your ticket QR at the door.</p>
-      <Link className="btn" href={`/e/${ev.slug}/ticket/${myTicket.token}`}>🎟 Open my ticket</Link>
+      <Link className="btn" href={`/e/${ev.slug}/ticket/${myTicket.token}`}><I n="ticket" /> Open my ticket</Link>
     </div>
   ) : (
     <form action={registerAttendee} className="card">
@@ -149,9 +150,9 @@ export default async function EventPage({ params, searchParams }: { params: Prom
         <div className="card" key={j.id}>
           <b style={{ fontSize: 16 }}>{j.title}</b>
           <div className="muted">{[j.location, j.workType, j.employment].filter(Boolean).join(" · ")}</div>
-          {j.salary && <div style={{ marginTop: 4 }}>💰 {j.salary}</div>}
+          {j.salary && <div style={{ marginTop: 4 }}><I n="money" /> {j.salary}</div>}
           {j.description && <p style={{ whiteSpace: "pre-wrap", margin: "8px 0" }}>{j.description.length > 200 ? j.description.slice(0, 200) + "…" : j.description}</p>}
-          <a className="btn" href={`/${o.handle}/apply/${j.id}?event=${ev.slug}`}>Apply →</a>
+          <a className="btn" href={`/${o.handle}/apply/${j.id}?event=${ev.slug}`}>Apply <I n="arrow-right" size={16} /></a>
         </div>
       ))}
     </>
@@ -159,7 +160,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
 
   const projects = (
     <>
-      {sp.added && <div className="ok">Your project was added 🎉</div>}
+      {sp.added && <div className="ok">Your project was added</div>}
       {ev.projects.length === 0 && <div className="card muted">No projects yet. Be the first to add yours.</div>}
       {ev.projects.map((p) => <ProjectCard key={p.id} p={p} origin={origin} />)}
     </>
@@ -196,7 +197,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
   ];
   const start = Math.max(0, pages.findIndex((x) => x.key === sp.pane));
   return (
-    <div style={{ display: "contents", ["--accent" as string]: c1 }}>
+    <div style={{ display: "contents", ["--accent-btn" as string]: c1 }}>
       <Swiper labels={pages.map((x) => x.label)} initial={start}>{pages.map((x) => <div key={x.key}>{x.node}</div>)}</Swiper>
     </div>
   );

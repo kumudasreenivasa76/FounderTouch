@@ -2,6 +2,7 @@
 import { useRef, useState } from "react";
 import SocialPicker from "@/components/social-picker";
 import { MODE_INFO, Mode } from "@/lib/modes";
+import I from "@/components/icon";
 
 export default function Wizard({ firstName, lastName, finish, modes }: { firstName: string; lastName: string; finish: (fd: FormData) => void; modes: readonly string[] }) {
   const [step, setStep] = useState(0);
@@ -63,7 +64,7 @@ export default function Wizard({ firstName, lastName, finish, modes }: { firstNa
         {modes.map((m) => (
           <label key={m} className="card" style={{ display: "flex", alignItems: "center", padding: 12, marginBottom: 8 }}>
             <input type="checkbox" name="modes" value={m} defaultChecked={m === "FOUNDER"} />
-            <span><b>{MODE_INFO[m as Mode].icon} {MODE_INFO[m as Mode].label}</b><br /><span className="muted">{MODE_INFO[m as Mode].blurb}</span></span>
+            <span><b style={{ display: "flex", alignItems: "center", gap: 8 }}><I n={MODE_INFO[m as Mode].icon} /> {MODE_INFO[m as Mode].label}</b><br /><span className="muted">{MODE_INFO[m as Mode].blurb}</span></span>
           </label>
         ))}
         <label className="f">Booking link (Calendly / Cal.com), optional</label>

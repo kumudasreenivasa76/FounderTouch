@@ -9,6 +9,7 @@ import ModePanels from "@/components/mode-panels";
 import { saveBrand } from "../profile/actions";
 import { saveMode, setTheme } from "./actions";
 import { headers } from "next/headers";
+import I from "@/components/icon";
 export const dynamic = "force-dynamic";
 
 /** Everything that changes how your card and pages look and behave, in one place. */
@@ -38,7 +39,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
       <BrandForm action={saveBrand} ret="settings" company={profile.company} logoSrc={profile.logo ? `/logo/${profile.handle}?v=${encodeURIComponent(profile.logo)}` : ""} color1={t.from} color2={t.to} />
 
       <h2>Page settings</h2>
-      <ModePanels title="Choose a mode" initial={start} labels={MODES.map((m) => `${MODE_INFO[m].icon} ${MODE_INFO[m].label}`)}>
+      <ModePanels title="Choose a mode" initial={start} labels={MODES.map((m) => MODE_INFO[m].label)}>
         {MODES.map((m) => {
           const c = cfgs.find((x) => x.mode === m);
           const info = MODE_INFO[m];
@@ -46,8 +47,8 @@ export default async function Settings({ searchParams }: { searchParams: Promise
           return (
             <form key={m} action={saveMode} className="card">
               <input type="hidden" name="mode" value={m} />
-              <h3 style={{ marginTop: 0 }}>{info.icon} {info.label}</h3>
-              <label style={{ display: "block", margin: "6px 0 2px" }}><input type="checkbox" name="approval" defaultChecked={!!c?.requireApproval} /><b>🔒 Visitors need my approval</b></label>
+              <h3 style={{ marginTop: 0 }}><I n={info.icon} /> {info.label}</h3>
+              <label style={{ display: "block", margin: "6px 0 2px" }}><input type="checkbox" name="approval" defaultChecked={!!c?.requireApproval} /><b><I n="lock" /> Visitors need my approval</b></label>
               <p className="muted" style={{ margin: "0 0 8px" }}>People who scan see only your name and a request form until you approve them in Contacts.</p>
               <label className="f">Intro message</label>
               <textarea name="intro" rows={2} maxLength={240} defaultValue={c?.intro ?? ""} placeholder={`A short hello for ${info.label.toLowerCase()} visitors`} />
@@ -55,7 +56,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
               <input name="cta" defaultValue={c?.ctaLabel ?? info.cta} />
               <label className="f">Booking link</label>
               <input name="url" defaultValue={c?.bookingUrl ?? ""} placeholder="Calendly, Cal.com, Google Calendar, Microsoft Bookings…" inputMode="url" autoCapitalize="none" />
-              <p className="muted" style={{ margin: "0 0 8px" }}>{book ? `${book.icon} ${book.provider}${book.embed ? " · visitors book right on your page" : " · opens the booking page"}` : "Paste any scheduling link. Calendly, Cal.com and Google Calendar show inside your page."}</p>
+              <p className="muted" style={{ margin: "0 0 8px" }}>{book ? `${book.provider}${book.embed ? " · visitors book right on your page" : " · opens the booking page"}` : "Paste any scheduling link. Calendly, Cal.com and Google Calendar show inside your page."}</p>
               {m !== "ALL" && <label style={{ display: "block", margin: "8px 0" }}><input type="checkbox" name="on" value="off" defaultChecked={c?.isEnabled === false} />Hide this mode for now</label>}
               <button>Save {info.label} settings</button>
             </form>

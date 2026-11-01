@@ -1,10 +1,10 @@
 export const THEMES: Record<string, { name: string; from: string; to: string }> = {
-  indigo: { name: "Indigo", from: "#3b5bdb", to: "#7048e8" },
-  sunset: { name: "Sunset", from: "#f76707", to: "#e03131" },
-  emerald: { name: "Emerald", from: "#0ca678", to: "#1098ad" },
-  ocean: { name: "Ocean", from: "#1c7ed6", to: "#0b7285" },
-  rose: { name: "Rose", from: "#d6336c", to: "#9c36b5" },
-  midnight: { name: "Midnight", from: "#212529", to: "#495057" },
+  indigo: { name: "Cobalt", from: "#2a4fc9", to: "#1c3796" },
+  midnight: { name: "Graphite", from: "#2b2e34", to: "#16181b" },
+  ocean: { name: "Harbour", from: "#1f5f7a", to: "#123f52" },
+  emerald: { name: "Forest", from: "#22634c", to: "#133f30" },
+  rose: { name: "Plum", from: "#6b2c4f", to: "#461b33" },
+  sunset: { name: "Rust", from: "#b0482a", to: "#7c2f1a" },
 };
 const CUSTOM = /^custom:(#[0-9a-f]{6}):(#[0-9a-f]{6})$/i;
 export const isCustomTheme = (k: string) => CUSTOM.test(k);
@@ -35,8 +35,8 @@ export type AvatarCfg = {
 };
 
 export const AVATAR_DEFAULT: AvatarCfg = {
-  bg: "#dbe4ff", skin: "#eab98a", face: 0, hair: "#2b1b12", style: 0,
-  eyes: "#3b2a1d", brows: 0, mouth: 0, glasses: 0, beard: 0, accessory: 0, outfit: 0, shirt: "#3b5bdb",
+  bg: "#e3e7ee", skin: "#eab98a", face: 0, hair: "#2b1b12", style: 0,
+  eyes: "#3b2a1d", brows: 0, mouth: 0, glasses: 0, beard: 0, accessory: 0, outfit: 0, shirt: "#2a4fc9",
 };
 
 /** Names for each numbered option, and the colour palettes. */
@@ -52,7 +52,7 @@ export const AVATAR_OPTS = {
   skin: ["#ffdfc4", "#f6c9a0", "#eab98a", "#d79f6e", "#b9784a", "#8d5524", "#6b3f20", "#4a2a15"],
   hair: ["#0f0f10", "#2b1b12", "#4a2f1e", "#7a4a26", "#c28a3d", "#e3c46d", "#b23a48", "#6c3fc2", "#2a8fbd", "#9aa0a6"],
   eyes: ["#3b2a1d", "#6b4423", "#5a7a3a", "#3b6fb5", "#5c6770", "#2f8f7f"],
-  shirt: ["#3b5bdb", "#0ca678", "#e8590c", "#d6336c", "#212529", "#7048e8", "#f1b72a", "#868e96"],
+  shirt: ["#2a4fc9", "#0ca678", "#e8590c", "#d6336c", "#212529", "#6b2c4f", "#f1b72a", "#868e96"],
   bg: ["#dbe4ff", "#ffe3e3", "#d3f9d8", "#fff3bf", "#e5dbff", "#c5f6fa", "#ffd8a8", "#dee2e6"],
 };
 

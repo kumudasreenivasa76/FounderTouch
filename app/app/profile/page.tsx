@@ -9,6 +9,7 @@ import Avatar from "@/components/avatar";
 import { logout, uploadPhoto } from "./actions";
 import PhotoUpload from "@/components/photo-upload";
 import OpenPage from "@/components/open-page";
+import I from "@/components/icon";
 export const dynamic = "force-dynamic";
 
 export default async function ProfileHub() {
@@ -48,37 +49,40 @@ export default async function ProfileHub() {
   const next = steps.find((s) => !s.ok);
 
   const rows = [
-    { href: "/app/profile/details", icon: "👤", title: "Basic details", sub: [profile.name, profile.headline].filter(Boolean).join(" · ") || "Name, headline, bio, photo" },
-    { href: "/app/profile/contact", icon: "📇", title: "Contact & socials", sub: `${profile.phone || profile.email ? "Phone/email set" : "No phone or email"} · ${socials} social link${socials === 1 ? "" : "s"}` },
-    { href: "/app/profile/company", icon: "🏢", title: "Company", sub: `${profile.company || "No company name"} · ${team} team member${team === 1 ? "" : "s"}` },
-    { href: "/app/profile/work", icon: "💼", title: "Hire me", sub: `Resume, portfolio, experience, education` },
-    { href: "/app/profile/kit", icon: "🚀", title: "Kits", sub: `Founder, Investor, Seller… · ${resources.length} item${resources.length === 1 ? "" : "s"}` },
-    { href: "/app/profile/projects", icon: "💡", title: "Projects", sub: projectCount ? `${projectCount} project${projectCount === 1 ? "" : "s"} you have built` : "Show what you have built" },
+    { href: "/app/profile/details", icon: "user", title: "Basic details", sub: [profile.name, profile.headline].filter(Boolean).join(" · ") || "Name, headline, bio, photo" },
+    { href: "/app/profile/contact", icon: "contact", title: "Contact & socials", sub: `${profile.phone || profile.email ? "Phone/email set" : "No phone or email"} · ${socials} social link${socials === 1 ? "" : "s"}` },
+    { href: "/app/profile/company", icon: "building", title: "Company", sub: `${profile.company || "No company name"} · ${team} team member${team === 1 ? "" : "s"}` },
+    { href: "/app/profile/work", icon: "briefcase", title: "Hire me", sub: `Resume, portfolio, experience, education` },
+    { href: "/app/profile/kit", icon: "layers", title: "Kits", sub: `Founder, Investor, Seller… · ${resources.length} item${resources.length === 1 ? "" : "s"}` },
+    { href: "/app/profile/projects", icon: "idea", title: "Projects", sub: projectCount ? `${projectCount} project${projectCount === 1 ? "" : "s"} you have built` : "Show what you have built" },
   ];
 
   return (
     <>
-      <div className="card hero" style={{ marginBottom: 12 }}>
+      <div className="hero" style={{ paddingTop: 8 }}>
         <PhotoUpload action={uploadPhoto} size={84} center><Avatar name={profile.name} handle={profile.handle} hasPhoto={!!profile.photo} avatar={profile.avatar} size={84} /></PhotoUpload>
         <h1>{profile.name}</h1>
         <div className="muted">{byline(profile.headline, profile.company) || "Add a headline"}</div>
         <div className="muted" style={{ marginBottom: 10 }}>{user.email}</div>
-        <OpenPage handle={profile.handle} options={visible.map((m) => ({ value: m, label: `${MODE_INFO[m].icon} ${MODE_INFO[m].label}` }))} />
+        <OpenPage handle={profile.handle} options={visible.map((m) => ({ value: m, label: MODE_INFO[m].label }))} />
       </div>
 
       <div className="card">
-        <div style={{ display: "flex", justifyContent: "space-between" }}><b>Profile {pct}% complete</b><span className="muted">{doneCount}/{steps.length}</span></div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}><b>Profile {pct}% complete</b><span className="muted tnum">{doneCount} of {steps.length}</span></div>
         <div className="meter"><i style={{ width: `${pct}%` }} /></div>
-        {next ? <Link href={next.href} className="muted">Next: {next.label} →</Link> : <span className="muted">All set. Your page is ready to share 🎉</span>}
+        {next ? <Link href={next.href} className="link-row" style={{ fontSize: 14, fontWeight: 550 }}>Next: {next.label} <I n="arrow-right" size={16} /></Link> : <span className="muted">All set. Your page is ready to share</span>}
       </div>
 
+      <div className="label">Your profile</div>
+      <div className="group">
       {rows.map((r) => (
         <Link key={r.href} href={r.href} className="menu-row">
-          <span className="menu-ico">{r.icon}</span>
+          <span className="menu-ico"><I n={r.icon} /></span>
           <span style={{ flex: 1, minWidth: 0 }}><b>{r.title}</b><span className="muted" style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.sub}</span></span>
-          <span className="muted">›</span>
+          <I n="chevron-right" size={18} />
         </Link>
       ))}
+      </div>
 
       <form action={logout} style={{ marginTop: 16 }}><button className="ghost">Log out</button></form>
     </>

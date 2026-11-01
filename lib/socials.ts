@@ -1,13 +1,13 @@
 export const SOCIALS = [
-  { key: "linkedin", label: "LinkedIn", icon: "in", base: "https://linkedin.com/in/", ph: "linkedin.com/in/you" },
-  { key: "x", label: "X (Twitter)", icon: "𝕏", base: "https://x.com/", ph: "@you" },
-  { key: "instagram", label: "Instagram", icon: "◎", base: "https://instagram.com/", ph: "@you" },
-  { key: "github", label: "GitHub", icon: "⌘", base: "https://github.com/", ph: "github.com/you" },
-  { key: "youtube", label: "YouTube", icon: "▶", base: "https://youtube.com/@", ph: "youtube.com/@you" },
-  { key: "facebook", label: "Facebook", icon: "f", base: "https://facebook.com/", ph: "facebook.com/you" },
-  { key: "telegram", label: "Telegram", icon: "✈", base: "https://t.me/", ph: "@you" },
-  { key: "portfolio", label: "Portfolio", icon: "🗂", base: "https://", ph: "yourportfolio.com" },
-  { key: "whatsapp", label: "WhatsApp", icon: "✆", base: "https://wa.me/", ph: "+91 98765 43210" },
+  { key: "linkedin", label: "LinkedIn", icon: "linkedin", base: "https://linkedin.com/in/", ph: "linkedin.com/in/you" },
+  { key: "x", label: "X (Twitter)", icon: "x", base: "https://x.com/", ph: "@you" },
+  { key: "instagram", label: "Instagram", icon: "instagram", base: "https://instagram.com/", ph: "@you" },
+  { key: "github", label: "GitHub", icon: "github", base: "https://github.com/", ph: "github.com/you" },
+  { key: "youtube", label: "YouTube", icon: "youtube", base: "https://youtube.com/@", ph: "youtube.com/@you" },
+  { key: "facebook", label: "Facebook", icon: "facebook", base: "https://facebook.com/", ph: "facebook.com/you" },
+  { key: "telegram", label: "Telegram", icon: "telegram", base: "https://t.me/", ph: "@you" },
+  { key: "portfolio", label: "Portfolio", icon: "portfolio", base: "https://", ph: "yourportfolio.com" },
+  { key: "whatsapp", label: "WhatsApp", icon: "whatsapp", base: "https://wa.me/", ph: "+91 98765 43210" },
 ] as const;
 
 export type Socials = Partial<Record<(typeof SOCIALS)[number]["key"], string>>;

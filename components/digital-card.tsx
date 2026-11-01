@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import I from "@/components/icon";
 
 export type CardLine = { icon: string; text: string; href: string };
 
@@ -24,21 +25,20 @@ export default function DigitalCard({
             <div className="face-top">{avatar}{logo && <img className="face-logo" src={logo} alt="" />}</div>
             <div className="face-name">{name}</div>
             {sub && <div className="face-sub">{sub}</div>}
-            {qr ? <div className="face-qr"><img src={qr} alt="QR code to open this card" /></div> : <div className="face-hint">Tap to flip ↻</div>}
+            {qr ? <div className="face-qr"><img src={qr} alt="QR code to open this card" /></div> : <div className="face-hint"><I n="flip" size={13} /> Tap to flip</div>}
           </div>
           <div className="face backside" style={{ background: back }}>
             <div className="face-name" style={{ fontSize: 17 }}>{name}</div>
             <div className="face-lines">
               {lines.length === 0 && <div style={{ opacity: 0.85 }}>Add a phone, email or website in Profile to show it here.</div>}
               {lines.map((l) => (
-                <a key={l.text} href={l.href} target={l.href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer"><span>{l.icon}</span>{l.text}</a>
+                <a key={l.text} href={l.href} target={l.href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer"><I n={l.icon} />{l.text}</a>
               ))}
             </div>
             <div className="face-social">{social}</div>
           </div>
         </div>
       </div>
-      <button type="button" className="ghost" onClick={() => setFlipped((f) => !f)} style={{ marginTop: 10 }}>↻ Flip card</button>
     </div>
   );
 }

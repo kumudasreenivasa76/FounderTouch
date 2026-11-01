@@ -10,9 +10,9 @@ export default function Splash() {
   }, [router]);
   return (
     <div className="screen center splash">
-      <div className="logo">F</div>
+      <div className="logo">ft</div>
       <h1>FounderTouch</h1>
-      <p className="muted">Scan. Share. Follow up.</p>
+      <p className="muted">Scan, share, follow up.</p>
     </div>
   );
 }

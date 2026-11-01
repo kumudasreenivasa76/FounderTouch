@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { AvatarArt } from "@/components/avatar";
 import { AVATAR_OPTS, AVATAR_PRESETS, AvatarCfg } from "@/lib/look";
+import I from "@/components/icon";
 
 type View = [number, number, number];
 const VIEWS: Record<string, View> = {
@@ -19,9 +20,9 @@ function Thumbs({ title, names, current, make, view, onPick }: { title: string; 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
         {names.map((n, i) => (
           <button key={n} type="button" onClick={() => onPick(i)} aria-pressed={current === i} aria-label={n}
-            style={{ width: 64, padding: 4, background: "#fff", borderRadius: 16, border: current === i ? "2px solid #3b5bdb" : "2px solid #e3e6ec", boxShadow: current === i ? "0 0 0 3px rgba(59,91,219,.15)" : "none" }}>
+            style={{ width: 64, padding: 4, background: "#fff", borderRadius: 16, border: current === i ? "2px solid var(--ink)" : "2px solid var(--line)", boxShadow: current === i ? "0 0 0 3px rgba(59,91,219,.15)" : "none" }}>
             <AvatarArt cfg={make(i)} size={52} view={view} />
-            <div style={{ fontSize: 10.5, marginTop: 2, color: current === i ? "#3b5bdb" : "#6b7587", fontWeight: current === i ? 600 : 400 }}>{n}</div>
+            <div style={{ fontSize: 10.5, marginTop: 2, color: current === i ? "var(--ink)" : "var(--ink-3)", fontWeight: current === i ? 600 : 400 }}>{n}</div>
           </button>
         ))}
       </div>
@@ -36,7 +37,7 @@ function Swatches({ title, values, current, onPick }: { title: string; values: s
       <div style={{ display: "flex", gap: 9, flexWrap: "wrap", marginTop: 5 }}>
         {values.map((v) => (
           <button key={v} type="button" aria-label={v} onClick={() => onPick(v)}
-            style={{ width: 34, height: 34, padding: 0, borderRadius: "50%", background: `radial-gradient(circle at 35% 30%, ${v}, ${v} 60%, rgba(0,0,0,.25))`, border: current === v ? "3px solid #3b5bdb" : "2px solid #fff", boxShadow: "0 0 0 1px #cfd4dd" }} />
+            style={{ width: 34, height: 34, padding: 0, borderRadius: "50%", background: `radial-gradient(circle at 35% 30%, ${v}, ${v} 60%, rgba(0,0,0,.25))`, border: current === v ? "3px solid var(--ink)" : "2px solid #fff", boxShadow: "0 0 0 1px #cfd4dd" }} />
         ))}
       </div>
     </div>
@@ -76,11 +77,11 @@ export default function Editor({ initial, save }: { initial: AvatarCfg; save: (f
         </div>
       </div>
       <div className="row" style={{ marginBottom: 8 }}>
-        <button type="button" className="ghost" onClick={random}>🎲 Surprise me</button>
+        <button type="button" className="ghost" onClick={random}><I n="shuffle" /> Surprise me</button>
         <button>Save avatar</button>
       </div>
 
-      <div className="swiper-tabs" style={{ margin: "0 -4px 10px", borderRadius: 14, border: "1px solid #e3e6ec" }}>
+      <div className="swiper-tabs" style={{ margin: "0 -4px 10px", borderRadius: 14, border: "1px solid var(--line)" }}>
         {TABS.map((t) => <button key={t} type="button" className={t === tab ? "on" : ""} onClick={() => setTab(t)}>{t}</button>)}
       </div>
 
@@ -90,7 +91,7 @@ export default function Editor({ initial, save }: { initial: AvatarCfg; save: (f
             <label className="f" style={{ marginTop: 0 }}>Start from a look, then tweak it</label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 6 }}>
               {AVATAR_PRESETS.map((p, i) => (
-                <button key={i} type="button" onClick={() => setC(p)} aria-label={`Look ${i + 1}`} style={{ width: 66, height: 66, padding: 3, borderRadius: "50%", background: "#fff", border: "2px solid #e3e6ec" }}>
+                <button key={i} type="button" onClick={() => setC(p)} aria-label={`Look ${i + 1}`} style={{ width: 66, height: 66, padding: 3, borderRadius: "50%", background: "#fff", border: "2px solid var(--line)" }}>
                   <AvatarArt cfg={p} size={56} />
                 </button>
               ))}

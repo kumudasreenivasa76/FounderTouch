@@ -20,6 +20,7 @@ import PhotoUpload from "@/components/photo-upload";
 import DigitalCard, { CardLine } from "@/components/digital-card";
 import { SocialIcon } from "@/components/social-icon";
 import { uploadPhoto } from "./profile/actions";
+import I from "@/components/icon";
 export const dynamic = "force-dynamic";
 
 async function unsaveCard(fd: FormData) {
@@ -29,7 +30,7 @@ async function unsaveCard(fd: FormData) {
   revalidatePath("/app");
 }
 
-const label = (m: string) => `${MODE_INFO[m as Mode].icon} ${MODE_INFO[m as Mode].label}`;
+const label = (m: string) => MODE_INFO[m as Mode].label;
 
 export default async function Share({ searchParams }: { searchParams: Promise<{ mode?: string; pane?: string; via?: string }> }) {
   const { user, profile } = await requireOwner();
@@ -70,9 +71,9 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
   const t = themeOf(profile.theme);
   const socials = parseSocials(profile.socials);
   const cardLines: CardLine[] = [];
-  if (profile.phone) cardLines.push({ icon: "📞", text: profile.phone, href: `tel:${profile.phone.replace(/\s+/g, "")}` });
-  if (profile.email) cardLines.push({ icon: "✉️", text: profile.email, href: `mailto:${profile.email}` });
-  if (profile.website) cardLines.push({ icon: "🌐", text: profile.website.replace(/^https?:\/\//, ""), href: profile.website });
+  if (profile.phone) cardLines.push({ icon: "phone", text: profile.phone, href: `tel:${profile.phone.replace(/\s+/g, "")}` });
+  if (profile.email) cardLines.push({ icon: "mail", text: profile.email, href: `mailto:${profile.email}` });
+  if (profile.website) cardLines.push({ icon: "globe", text: profile.website.replace(/^https?:\/\//, ""), href: profile.website });
   const socialIcons = SOCIALS.filter((s) => socials[s.key]).map((s) => (
     <a key={s.key} href={socials[s.key]} target="_blank" rel="noopener noreferrer" title={s.label} aria-label={s.label}
       style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(255,255,255,.22)", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center" }}><SocialIcon k={s.key} size={16} /></a>
@@ -81,7 +82,7 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
 
   // Three ways to share: show a QR, tap, or scan someone else's.
   const via = sp.via === "tap" || sp.pane === "tap" ? "tap" : sp.via === "scan" ? "scan" : "qr";
-  const labels = [...visible.map(label), "＋ Add a mode", "👛 Wallet"];
+  const labels = [...visible.map(label), "Add a mode", "Wallet"];
   const addIdx = visible.length, walletIdx = visible.length + 1;
   const start = sp.pane === "wallet" ? walletIdx : sp.pane === "add" ? addIdx
     : visible.includes(sp.mode as Mode) ? visible.indexOf(sp.mode as Mode) : toAdd.includes(sp.mode as Mode) ? addIdx : 0;
@@ -92,13 +93,13 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
       <div className="shell-head" style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <PhotoUpload action={uploadPhoto} size={46}><Avatar name={profile.name} handle={profile.handle} hasPhoto={!!profile.photo} avatar={profile.avatar} size={46} /></PhotoUpload>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <b style={{ fontSize: 17 }}>Hi, {profile.firstName || profile.name.split(" ")[0]} 👋</b>
-          <div className="muted">{total} scans · {taps} taps · {contactCount} contacts</div>
+          <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-.02em" }}>Hi, {profile.firstName || profile.name.split(" ")[0]}</div>
+          <div className="muted tnum">{total} scans · {taps} taps · {contactCount} contacts</div>
         </div>
-        <Link href="/app/settings" className="gear" aria-label="Card settings" title="Card colour, logo and settings">⚙</Link>
+        <Link href="/app/settings" className="gear" aria-label="Card settings" title="Card colour, logo and settings"><I n="settings" /></Link>
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", padding: "0 18px 18px", minHeight: 0 }}>
+      <div className="shell-body">
         {/* the card is always here, the same for every mode */}
         <DigitalCard
           key={profile.theme}
@@ -106,15 +107,15 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
           avatar={avatarNode} name={profile.name} sub={byline(profile.headline, profile.company)} logo={logoUrl} lines={cardLines} social={socialIcons}
         />
         <div className="row" style={{ marginTop: 8 }}>
-          <a className="btn ghost" href={`/card/${profile.handle}/image?mode=ALL`} download={`${profile.handle}-card.png`}>⬇ Card image</a>
-          <Link className="btn ghost" href="/app?pane=wallet">👛 Wallet</Link>
+          <a className="btn ghost" href={`/card/${profile.handle}/image?mode=ALL`} download={`${profile.handle}-card.png`}><I n="download" /> Card image</a>
+          <Link className="btn ghost" href="/app?pane=wallet"><I n="wallet" /> Wallet</Link>
         </div>
 
-        <div className="chips" style={{ margin: "14px 0 12px" }}>
-          <Link href="/app" className={"pill" + (via === "qr" ? " on" : "")} style={{ padding: "7px 16px" }}>▦ QR code</Link>
-          <Link href="/app?via=tap" className={"pill" + (via === "tap" ? " on" : "")} style={{ padding: "7px 16px" }}>📲 Tap</Link>
-          <Link href="/app?via=scan" className={"pill" + (via === "scan" ? " on" : "")} style={{ padding: "7px 16px" }}>📷 Scan</Link>
-        </div>
+        <nav className="seg" aria-label="How to share">
+          <Link href="/app" className={via === "qr" ? "on" : ""}><I n="qr" size={16} /> QR code</Link>
+          <Link href="/app?via=tap" className={via === "tap" ? "on" : ""}><I n="nfc" size={16} /> Tap</Link>
+          <Link href="/app?via=scan" className={via === "scan" ? "on" : ""}><I n="scan" size={16} /> Scan</Link>
+        </nav>
 
         {via === "tap" ? (
           <TapShare
@@ -143,15 +144,15 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
                   />
                   <div className="row" style={{ marginTop: 8 }}>
                     <a className="btn ghost" href={`/${profile.handle}?mode=${mode}`} target="_blank">Preview page</a>
-                    <Link className="btn ghost" href={`/app/settings?mode=${mode}`}>⚙ Page settings</Link>
+                    <Link className="btn ghost" href={`/app/settings?mode=${mode}`}><I n="settings" /> Page settings</Link>
                   </div>
 
-                  <div className="card" style={{ marginTop: 14, borderColor: todo.length ? "#ffd8a8" : "#b2f2bb", background: todo.length ? "#fff9f0" : "#f3fcf5" }}>
-                    <b>{info.icon} {todo.length ? `Finish your ${info.label} page` : `${info.label} page is ready ✓`}</b>
+                  <div className="card" style={{ marginTop: 14 }}>
+                    <h3 style={{ margin: "0 0 4px" }}><I n={info.icon} /> {todo.length ? `Finish your ${info.label} page` : `${info.label} page is ready`}</h3>
                     <div className="muted" style={{ marginBottom: 6 }}>{info.blurb}</div>
                     {needs.map((n) => (
-                      <Link key={n.label} href={n.href} style={{ display: "flex", gap: 8, padding: "5px 0", color: n.ok ? "#6b7587" : "#1c2330" }}>
-                        <span>{n.ok ? "✅" : "➕"}</span><span style={{ flex: 1, textDecoration: n.ok ? "line-through" : "none" }}>{n.label}</span>
+                      <Link key={n.label} href={n.href} className={"todo" + (n.ok ? " done" : "")}>
+                        <I n={n.ok ? "check-circle" : "plus"} /><span style={{ flex: 1 }}>{n.label}</span>{!n.ok && <I n="chevron-right" size={16} />}
                       </Link>
                     ))}
                   </div>
@@ -169,13 +170,15 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
               <h2 style={{ marginTop: 0 }}>Add a mode</h2>
               <p className="muted" style={{ marginTop: 0 }}>A mode shows up for visitors once you add something to it. Pick the ones that describe you.</p>
               {toAdd.filter((m) => m !== "ALL").length === 0 && <div className="card muted">You have added every mode.</div>}
+              <div className="group">
               {toAdd.filter((m) => m !== "ALL").map((m) => (
                 <Link key={m} href={m === "HIRE" ? "/app/profile/work" : `/app/profile/kit?mode=${m}`} className="menu-row">
-                  <span className="menu-ico">{MODE_INFO[m].icon}</span>
+                  <span className="menu-ico"><I n={MODE_INFO[m].icon} /></span>
                   <span style={{ flex: 1, minWidth: 0 }}><b>{MODE_INFO[m].label}</b><span className="muted" style={{ display: "block" }}>{MODE_INFO[m].blurb}</span></span>
-                  <span className="muted">＋</span>
+                  <I n="plus" style={{ color: "var(--ink-3)" }} />
                 </Link>
               ))}
+              </div>
             </div>
 
             <div key="wallet">
@@ -186,7 +189,7 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
                   <a className="btn" href="/wallet/google">Google Wallet</a>
                   <a className="btn ghost" href="/wallet/apple">Apple Wallet</a>
                 </div>
-                <p className="muted" style={{ marginBottom: 0 }}>Or save the card image and keep it in Photos, or tap Share → Add to Home Screen in your browser.</p>
+                <p className="muted" style={{ marginBottom: 0 }}>Or save the card image and keep it in Photos, or tap Share, then Add to Home Screen in your browser.</p>
               </div>
 
               <h3 style={{ margin: "14px 0 6px" }}>Saved cards ({saved.length})</h3>

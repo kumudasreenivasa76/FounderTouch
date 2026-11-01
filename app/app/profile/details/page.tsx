@@ -3,6 +3,7 @@ import Avatar from "@/components/avatar";
 import PageHead from "@/components/page-head";
 import PhotoUpload from "@/components/photo-upload";
 import { removePhoto, saveDetails, uploadPhoto } from "../actions";
+import I from "@/components/icon";
 export const dynamic = "force-dynamic";
 
 export default async function Details({ searchParams }: { searchParams: Promise<{ err?: string; saved?: string }> }) {
@@ -27,7 +28,7 @@ export default async function Details({ searchParams }: { searchParams: Promise<
           <Avatar name={profile.name} handle={profile.handle} hasPhoto={!!profile.photo} avatar={profile.avatar} size={64} flip />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="muted" style={{ marginBottom: 8 }}>{profile.photo ? "Tap the picture to flip between your photo and your avatar." : "Shown on your card and page."}</div>
-            <a className="btn ghost" href="/app/profile/avatar">🎨 Design avatar</a>
+            <a className="btn ghost" href="/app/profile/avatar"><I n="palette" /> Design avatar</a>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import I from "@/components/icon";
 
 export default function ShareButtons({ url, title }: { url: string; title: string }) {
   const [done, setDone] = useState(false);
@@ -12,7 +13,7 @@ export default function ShareButtons({ url, title }: { url: string; title: strin
   };
   return (
     <div className="row" style={{ marginTop: 12 }}>
-      <button type="button" className="ghost" onClick={copy}>{done ? "Copied ✓" : "Copy link"}</button>
+      <button type="button" className="ghost" onClick={copy}>{done ? <><I n="check" /> Copied</> : <><I n="copy" /> Copy link</>}</button>
       <button type="button" onClick={share}>Share</button>
     </div>
   );

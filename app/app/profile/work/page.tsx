@@ -5,6 +5,7 @@ import { OPEN_TO, byStartDesc, fmtRange } from "@/lib/career";
 import PageHead from "@/components/page-head";
 import { addResource, delResource } from "../actions";
 import { addCareer, delCareer, saveHire, setHireVisible, setOpenToWork } from "../hire-actions";
+import I from "@/components/icon";
 export const dynamic = "force-dynamic";
 
 const ERR: Record<string, string> = {
@@ -15,7 +16,7 @@ const ERR: Record<string, string> = {
   edu: "Add a degree or course and a school.",
 };
 const FILES = [
-  { kind: "RESUME", title: "Resume / CV", icon: "📄", hint: "Upload a PDF, or paste a Google Drive link. It shows right on your page.", ph: "Link to your resume (Google Drive, Notion, your site…)", eg: "My resume" },
+  { kind: "RESUME", title: "Resume / CV", icon: "file", hint: "Upload a PDF, or paste a Google Drive link. It shows right on your page.", ph: "Link to your resume (Google Drive, Notion, your site…)", eg: "My resume" },
 ] as const;
 
 export default async function Hire({ searchParams }: { searchParams: Promise<{ err?: string; saved?: string }> }) {
@@ -58,23 +59,23 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
 
       <div className="card">
         <form action={setOpenToWork} className="switch-row">
-          <div><b>🟢 Open to work</b><div className="muted">Adds a green ring to your photo and an Open to work badge on your Hire me page.</div></div>
+          <div><b><span className="dot-live" /> Open to work</b><div className="muted">Adds a green ring to your photo and an Open to work badge on your Hire me page.</div></div>
           <input type="hidden" name="on" value={openOn ? "0" : "1"} />
           <button type="submit" role="switch" aria-checked={openOn} aria-label="Open to work" className={"switch" + (openOn ? " on" : "")}><i /></button>
         </form>
         <form action={setHireVisible} className="switch-row">
-          <div><b>🙋 Show my Hire me page</b><div className="muted">Turn off to hide it from visitors and from Share. Nothing is deleted.</div></div>
+          <div><b><I n="user" /> Show my Hire me page</b><div className="muted">Turn off to hide it from visitors and from Share. Nothing is deleted.</div></div>
           <input type="hidden" name="on" value={pageOn ? "0" : "1"} />
           <button type="submit" role="switch" aria-checked={pageOn} aria-label="Show my Hire me page" className={"switch" + (pageOn ? " on" : "")}><i /></button>
         </form>
       </div>
 
-      <div className="card" style={{ background: "#f0f4ff", borderColor: "#d7defb" }}>
-        <b>🙋 Your Hire me page</b>
+      <div className="card">
+        <b><I n="user" /> Your Hire me page</b>
         <p className="muted" style={{ margin: "4px 0 10px" }}>This is what people see when you share your Hire me mode: a profile-style page built from everything below.</p>
         <div className="row">
-          <a className="btn ghost" href={`/${profile.handle}?mode=HIRE`} target="_blank">Preview ↗</a>
-          <a className="btn" href="/app?mode=HIRE">Share it →</a>
+          <a className="btn ghost" href={`/${profile.handle}?mode=HIRE`} target="_blank">Preview <I n="external" size={15} /></a>
+          <a className="btn" href="/app?mode=HIRE">Share it <I n="arrow-right" size={16} /></a>
         </div>
       </div>
 
@@ -90,14 +91,14 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
         <label className="f">Show these details on</label>
         <div className="chips">
           {MODES.filter((m) => m !== "ALL").map((m) => (
-            <label key={m} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={m} defaultChecked={shownOn.has(m)} />{MODE_INFO[m].icon} {MODE_INFO[m].label}</label>
+            <label key={m} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={m} defaultChecked={shownOn.has(m)} />{MODE_INFO[m].label}</label>
           ))}
         </div>
         <p className="muted" style={{ margin: "0 0 8px" }}>The "All" page always shows them.</p>
         <button>Save</button>
       </form>
 
-      <h2>💼 Experience ({jobs.length})</h2>
+      <h2><I n="briefcase" /> Experience ({jobs.length})</h2>
       {jobs.length === 0 && <div className="card muted">No experience added yet.</div>}
       {jobs.map((c) => (
         <div className="card" key={c.id} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
@@ -112,7 +113,7 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
       ))}
       {careerForm("EXPERIENCE")}
 
-      <h2>🎓 Education ({schools.length})</h2>
+      <h2><I n="school" /> Education ({schools.length})</h2>
       {schools.length === 0 && <div className="card muted">No education added yet.</div>}
       {schools.map((c) => (
         <div className="card" key={c.id} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
@@ -131,7 +132,7 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
         const mine = files.filter((r) => r.kind === s.kind);
         return (
           <div key={s.kind}>
-            <h2>{s.icon} {s.title} ({mine.length})</h2>
+            <h2><I n={s.icon} /> {s.title} ({mine.length})</h2>
             {mine.map((r) => (
               <div className="card" key={r.id} style={{ display: "flex", gap: 10, alignItems: "center" }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -153,10 +154,10 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
               <label className="f">Show on these pages</label>
               <div className="chips">
                 {MODES.filter((m) => m !== "ALL").map((m) => (
-                  <label key={m} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={m} defaultChecked />{MODE_INFO[m].icon} {MODE_INFO[m].label}</label>
+                  <label key={m} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={m} defaultChecked />{MODE_INFO[m].label}</label>
                 ))}
               </div>
-              <label style={{ display: "block", margin: "4px 0 10px" }}><input type="checkbox" name="gated" />🔒 Require my approval before people can open it</label>
+              <label style={{ display: "block", margin: "4px 0 10px" }}><input type="checkbox" name="gated" /><I n="lock" /> Require my approval before people can open it</label>
               <button>Add {s.title.toLowerCase()}</button>
             </form>
           </div>

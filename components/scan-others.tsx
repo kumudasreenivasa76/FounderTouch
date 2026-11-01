@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import jsQR from "jsqr";
 import type { Found } from "@/app/app/tap-actions";
+import I from "@/components/icon";
 
 /** Scan someone else's QR code with the camera. A FounderTouch card shows who it is and can be saved. */
 export default function ScanOthers({ peek, save }: { peek: (raw: string) => Promise<Found>; save: (handle: string, mode: string) => Promise<{ ok: boolean; own?: boolean }> }) {
@@ -70,22 +71,22 @@ export default function ScanOthers({ peek, save }: { peek: (raw: string) => Prom
       <div className="viewfinder">
         <video ref={video} playsInline muted style={{ display: on ? "block" : "none" }} />
         {on && <div className="vf-frame" />}
-        {!on && <div className="vf-empty">📷</div>}
+        {!on && <div className="vf-empty"><I n="camera" /> </div>}
       </div>
       <canvas ref={canvas} style={{ display: "none" }} />
-      <div style={{ marginTop: 10 }}>{on ? <button type="button" className="ghost" onClick={stop}>Stop camera</button> : <button type="button" onClick={start}>📷 Start scanning</button>}</div>
+      <div style={{ marginTop: 10 }}>{on ? <button type="button" className="ghost" onClick={stop}>Stop camera</button> : <button type="button" onClick={start}><I n="camera" /> Start scanning</button>}</div>
       {err && <div className="err" style={{ marginTop: 10 }}>{err}</div>}
 
       {found && (
         <div className="card found-card" style={{ marginTop: 12 }}>
           <div className="found-ini">{found.initials}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="muted" style={{ fontSize: 12 }}>{found.own ? "That's you" : "🎉 Found a card"}</div>
+            <div className="muted" style={{ fontSize: 12 }}>{found.own ? "That's you" : "Found a card"}</div>
             <b style={{ fontSize: 18 }}>{found.name}</b>
             <div className="muted">{found.sub || found.modeLabel}</div>
           </div>
           <div style={{ display: "grid", gap: 6 }}>
-            {!found.own && <button type="button" onClick={doSave} disabled={saved} style={{ width: "auto", padding: "8px 14px" }}>{saved ? "✓ Saved" : "Save card"}</button>}
+            {!found.own && <button type="button" onClick={doSave} disabled={saved} style={{ width: "auto", padding: "8px 14px" }}>{saved ? <><I n="check" /> Saved</> : "Save card"}</button>}
             <a className="btn ghost" style={{ width: "auto", padding: "8px 14px" }} href={`/${found.handle}?mode=${found.mode}`} target="_blank">Open</a>
           </div>
         </div>
@@ -94,7 +95,7 @@ export default function ScanOthers({ peek, save }: { peek: (raw: string) => Prom
         <div className="card" style={{ marginTop: 12 }}>
           <b>That isn&apos;t a FounderTouch card</b>
           <div className="muted" style={{ wordBreak: "break-all", margin: "4px 0 8px" }}>{other}</div>
-          {isUrl && <a className="btn ghost" href={other} target="_blank" rel="noopener noreferrer">Open link ↗</a>}
+          {isUrl && <a className="btn ghost" href={other} target="_blank" rel="noopener noreferrer">Open link <I n="external" size={15} /></a>}
         </div>
       )}
 

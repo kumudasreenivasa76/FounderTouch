@@ -11,6 +11,7 @@ import { gradient, byline } from "@/lib/look";
 import { listItems } from "@/lib/modes";
 import { parseSocials, socialUrl } from "@/lib/socials";
 import Avatar from "@/components/avatar";
+import I from "@/components/icon";
 export const dynamic = "force-dynamic";
 
 const here = (handle: string, jobId: string) => `/${handle}/apply/${jobId}`;
@@ -101,24 +102,24 @@ export default async function Apply({ params, searchParams }: { params: Promise<
   return (
     <div className="screen">
       <div className="card hero hero-themed" style={{ background: gradient(p.theme), border: 0 }}>
-        <span className="pill">🎯 {p.company || p.name} is hiring</span>
+        <span className="pill"><I n="briefcase" /> {p.company || p.name} is hiring</span>
         <h1 style={{ marginTop: 8 }}>{job.title}</h1>
         <div>{[job.location, job.workType, job.employment].filter(Boolean).join(" · ")}</div>
-        {job.salary && <div style={{ marginTop: 4 }}>💰 {job.salary}</div>}
+        {job.salary && <div style={{ marginTop: 4 }}><I n="money" /> {job.salary}</div>}
       </div>
       {job.description && <div className="card" style={{ whiteSpace: "pre-wrap" }}>{job.description}</div>}
       {skills.length > 0 && <div className="card"><h3>Skills</h3>{skills.map((s) => <span key={s} className="pill">{s}</span>)}</div>}
 
       {sp.sent ? (
-        <div className="ok">Application sent ✓ {p.company || p.name} will get in touch if there is a fit.</div>
+        <div className="ok">Application sent. {p.company || p.name} will get in touch if there is a fit.</div>
       ) : (
         <>
           {sp.err && <div className="err">{ERR[sp.err] ?? "Something went wrong."}</div>}
 
           {mine && mineStats && (
-            <form action={applyWithProfile} className="card" style={{ borderColor: "#b2f2bb", background: "#f3fcf5" }}>
+            <form action={applyWithProfile} className="card">
               <input type="hidden" name="handle" value={handle} /><input type="hidden" name="jobId" value={jobId} /><input type="hidden" name="event" value={sp.event ?? ""} />
-              <b>⚡ Apply with your FounderTouch profile</b>
+              <b><I n="user" /> Apply with your FounderTouch profile</b>
               <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "10px 0" }}>
                 <Avatar name={mine.name} handle={mine.handle} hasPhoto={!!mine.photo} avatar={mine.avatar} size={44} />
                 <div style={{ minWidth: 0 }}><b>{mine.name}</b><div className="muted">{byline(mine.headline, mine.company)}</div></div>
@@ -128,7 +129,7 @@ export default async function Apply({ params, searchParams }: { params: Promise<
               <button>Apply in one tap</button>
             </form>
           )}
-          {!me && <Link href={`/login?next=${encodeURIComponent(here(handle, jobId))}`} className="btn ghost" style={{ marginBottom: 12 }}>⚡ Have a FounderTouch profile? Log in to apply in one tap</Link>}
+          {!me && <Link href={`/login?next=${encodeURIComponent(here(handle, jobId))}`} className="btn ghost" style={{ marginBottom: 12 }}><I n="user" /> Have a FounderTouch profile? Log in to apply in one tap</Link>}
 
           <form action={applyForm} className="card">
             <input type="hidden" name="handle" value={handle} /><input type="hidden" name="jobId" value={jobId} /><input type="hidden" name="event" value={sp.event ?? ""} />
@@ -146,7 +147,7 @@ export default async function Apply({ params, searchParams }: { params: Promise<
           </form>
         </>
       )}
-      <Link href={`/${handle}?mode=RECRUITER&pane=roles`} className="btn ghost">← All open roles</Link>
+      <Link href={`/${handle}?mode=RECRUITER&pane=roles`} className="btn ghost"><I n="arrow-left" /> All open roles</Link>
     </div>
   );
 }

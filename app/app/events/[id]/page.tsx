@@ -8,6 +8,7 @@ import { themeOf } from "@/lib/look";
 import PageHead from "@/components/page-head";
 import ShareButtons from "@/components/share-buttons";
 import { deleteEvent, removeAttendee, removeProject, saveBranding, setCheckedIn, toggleEvent, updateEvent } from "../actions";
+import I from "@/components/icon";
 export const dynamic = "force-dynamic";
 
 const ERR: Record<string, string> = { name: "Give the event a name.", img: "Images must be JPG, PNG or WebP under 5 MB." };
@@ -39,7 +40,7 @@ export default async function ManageEvent({ params, searchParams }: { params: Pr
         <div className="card"><b>{checked}</b><span className="muted">checked in</span></div>
         <div className="card"><b>{e.projects.length}</b><span className="muted">projects</span></div>
       </div>
-      <Link href={`/app/events/${e.id}/scan`} className="btn" style={{ marginBottom: 12 }}>📷 Scan tickets to check in</Link>
+      <Link href={`/app/events/${e.id}/scan`} className="btn" style={{ marginBottom: 12 }}><I n="camera" /> Scan tickets to check in</Link>
 
       <div className="card" style={{ textAlign: "center" }}>
         <img className="qr" src={qr} alt={`QR for ${e.name}`} />
@@ -47,7 +48,7 @@ export default async function ManageEvent({ params, searchParams }: { params: Pr
         <ShareButtons url={`${origin}/e/${e.slug}`} title={e.name} />
         <div className="row" style={{ marginTop: 8 }}>
           <a className="btn ghost" href={`/e/${e.slug}`} target="_blank">View event page</a>
-          <a className="btn ghost" href={qr} download={`${e.slug}-qr.png`}>⬇ QR</a>
+          <a className="btn ghost" href={qr} download={`${e.slug}-qr.png`}><I n="download" /> QR</a>
         </div>
       </div>
 
@@ -87,24 +88,24 @@ export default async function ManageEvent({ params, searchParams }: { params: Pr
         <button>Save look &amp; feel</button>
       </form>
 
-      <h2>🎟 Attendees ({e.attendees.length})</h2>
+      <h2><I n="ticket" /> Attendees ({e.attendees.length})</h2>
       {e.attendees.length === 0 && <div className="card muted">Nobody has registered yet. Share the QR above.</div>}
       {e.attendees.map((a) => (
         <div className="card" key={a.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <b>{a.name}</b> {a.checkedInAt && <span className="pill" style={{ background: "#e6f9ef", margin: 0 }}>✅ in at {time(a.checkedInAt)}</span>}
+            <b>{a.name}</b> {a.checkedInAt && <span className="pill good" style={{ margin: 0 }}><I n="check-circle" /> in at {time(a.checkedInAt)}</span>}
             <div className="muted">{a.email}{a.company ? ` · ${a.company}` : ""}</div>
-            {a.interested && <div>{a.interested.split(",").map((jid) => e.jobs.find((j) => j.id === jid)).filter(Boolean).map((j) => <span key={j!.id} className="pill">🎯 {j!.title}</span>)}</div>}
+            {a.interested && <div>{a.interested.split(",").map((jid) => e.jobs.find((j) => j.id === jid)).filter(Boolean).map((j) => <span key={j!.id} className="pill"><I n="briefcase" /> {j!.title}</span>)}</div>}
           </div>
           <form action={setCheckedIn}>
             <input type="hidden" name="eventId" value={e.id} /><input type="hidden" name="id" value={a.id} /><input type="hidden" name="on" value={a.checkedInAt ? "0" : "1"} />
             <button className={a.checkedInAt ? "ghost sm" : "sm"} style={{ width: "auto" }}>{a.checkedInAt ? "Undo" : "Check in"}</button>
           </form>
-          <form action={removeAttendee}><input type="hidden" name="eventId" value={e.id} /><input type="hidden" name="id" value={a.id} /><button className="ghost sm">✕</button></form>
+          <form action={removeAttendee}><input type="hidden" name="eventId" value={e.id} /><input type="hidden" name="id" value={a.id} /><button className="ghost sm" aria-label="Remove attendee"><I n="x" size={15} /></button></form>
         </div>
       ))}
 
-      <h2>🎯 Roles hiring here ({e.jobs.length})</h2>
+      <h2><I n="briefcase" /> Roles hiring here ({e.jobs.length})</h2>
       {e.jobs.length === 0 && <div className="card muted">No roles linked. When you post a role in Recruiter mode, choose this event to show it on the event page.</div>}
       {e.jobs.map((j) => {
         const interest = e.attendees.filter((a) => a.interested.split(",").includes(j.id)).length;
@@ -116,7 +117,7 @@ export default async function ManageEvent({ params, searchParams }: { params: Pr
       })}
       <Link href="/app/profile/jobs" className="btn ghost" style={{ marginBottom: 12 }}>+ Post a role for this event</Link>
 
-      <h2>💡 Projects ({e.projects.length})</h2>
+      <h2><I n="idea" /> Projects ({e.projects.length})</h2>
       {e.projects.length === 0 && <div className="card muted">No projects submitted yet.</div>}
       {e.projects.map((p) => (
         <div className="card" key={p.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
