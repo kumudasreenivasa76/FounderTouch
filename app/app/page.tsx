@@ -21,6 +21,7 @@ import DigitalCard, { CardLine } from "@/components/digital-card";
 import { SocialIcon } from "@/components/social-icon";
 import { uploadPhoto } from "./profile/actions";
 import I from "@/components/icon";
+import SegNav from "@/components/seg-nav";
 export const dynamic = "force-dynamic";
 
 async function unsaveCard(fd: FormData) {
@@ -111,11 +112,7 @@ export default async function Share({ searchParams }: { searchParams: Promise<{ 
           <Link className="btn ghost" href="/app?pane=wallet"><I n="wallet" /> Wallet</Link>
         </div>
 
-        <nav className="seg" aria-label="How to share">
-          <Link href="/app" className={via === "qr" ? "on" : ""}><I n="qr" size={16} /> QR code</Link>
-          <Link href="/app?via=tap" className={via === "tap" ? "on" : ""}><I n="nfc" size={16} /> Tap</Link>
-          <Link href="/app?via=scan" className={via === "scan" ? "on" : ""}><I n="scan" size={16} /> Scan</Link>
-        </nav>
+        <SegNav via={via} />
 
         {via === "tap" ? (
           <TapShare

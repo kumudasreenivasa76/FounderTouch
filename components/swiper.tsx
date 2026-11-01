@@ -24,9 +24,12 @@ export default function Swiper({ labels, children, initial = 0, onChange, select
     const t = setTimeout(() => go(initial, false), 150);
     return () => { cancelAnimationFrame(raf); clearTimeout(t); };
   }, [initial, go]);
+  // The indicator sits under the active tab and glides to the next one.
+  const [glide, setGlide] = useState<{ x: number; w: number } | null>(null);
   useEffect(() => { // keep the active tab in view
-    const t = tabs.current?.children[i] as HTMLElement | undefined;
+    const t = tabs.current?.querySelectorAll("button")[i] as HTMLElement | undefined;
     t?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    if (t) setGlide({ x: t.offsetLeft, w: t.offsetWidth });
   }, [i]);
 
   const onScroll = () => {
@@ -49,7 +52,8 @@ export default function Swiper({ labels, children, initial = 0, onChange, select
           </select>
         </div>
       ) : (
-        <div className="swiper-tabs" ref={tabs} role="tablist">
+        <div className={"swiper-tabs" + (glide ? " has-glide" : "")} ref={tabs} role="tablist">
+          {glide && <span className="glide" aria-hidden style={{ width: glide.w, transform: `translateX(${glide.x}px)` }} />}
           {labels.map((l, n) => (
             <button key={l} type="button" role="tab" aria-selected={n === i} className={n === i ? "on" : ""} onClick={() => go(n)}>{l}</button>
           ))}
