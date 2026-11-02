@@ -8,7 +8,7 @@ async function main() {
   const u = await db.user.create({ data: { email: "demo@founder.example", name: "Alex Rao", passwordHash: salt + ":" + scryptSync("demo1234", salt, 32).toString("hex") } });
   // FounderTouch team account for the admin dashboard at /admin (local test credentials).
   const adminSalt = randomBytes(16).toString("hex");
-  await db.user.create({ data: { email: "admin@foundertouch.example", name: "FounderTouch Team", firstName: "FounderTouch", lastName: "Team", role: "ADMIN", passwordHash: adminSalt + ":" + scryptSync("admin1234", adminSalt, 32).toString("hex") } });
+  await db.user.create({ data: { email: "admin@foundertouch.example", name: "FounderTouch Team", firstName: "FounderTouch", lastName: "Team", role: "ADMIN", passwordHash: adminSalt + ":" + scryptSync(process.env.ADMIN_PASSWORD || "admin1234", adminSalt, 32).toString("hex") } });
   const p = await db.profile.create({ data: { userId: u.id, company: "Lumen Labs", handle: "demo", name: "Alex Rao", headline: "Founder, Lumen Labs", bio: "Building AI tools for small manufacturers." } });
   const mk = (type: string, title: string, body: string, order: number) => db.section.create({ data: { profileId: p.id, type, title, body, order } });
   const s = {
