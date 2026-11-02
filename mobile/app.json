@@ -1,0 +1,62 @@
+{
+  "expo": {
+    "name": "FounderTouch",
+    "slug": "foundertouch",
+    "scheme": "foundertouch",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#15171a",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.foundertouch.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "FounderTouch uses the camera to scan business card and event ticket QR codes.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.foundertouch.app",
+      "permissions": [
+        "android.permission.CAMERA"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#15171a",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#15171a",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "FounderTouch uses the camera to scan business card and event ticket QR codes.",
+          "recordAudioAndroid": false,
+          "microphonePermission": false
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}

@@ -7,7 +7,8 @@
     "dev": "next dev -p 4400",
     "build": "next build",
     "seed": "tsx prisma/seed.ts",
-    "db": "prisma db push && npm run seed"
+    "db": "prisma db push && npm run seed",
+    "sample": "tsx prisma/sample.ts"
   },
   "keywords": [],
   "author": "",

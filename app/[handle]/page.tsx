@@ -99,8 +99,8 @@ async function requestAccess(fd: FormData) {
 export default async function Public({ params, searchParams }: { params: Promise<{ handle: string }>; searchParams: Promise<{ mode?: string; tag?: string; pane?: string; requested?: string; error?: string; saved?: string; invited?: string }> }) {
   const { handle } = await params;
   const sp = await searchParams;
-  const p = await db.profile.findUnique({ where: { handle }, include: { sections: true, modes: true, resources: { orderBy: { createdAt: "asc" } }, team: { orderBy: { order: "asc" } }, events: { orderBy: { startsAt: "asc" } }, projects: { where: { eventId: null }, orderBy: { createdAt: "desc" } }, career: true, jobs: { where: { open: true }, orderBy: { createdAt: "desc" } } } });
-  if (!p) notFound();
+  const p = await db.profile.findUnique({ where: { handle }, include: { sections: true, modes: true, resources: { orderBy: { createdAt: "asc" } }, team: { orderBy: { order: "asc" } }, events: { orderBy: { startsAt: "asc" } }, projects: { where: { eventId: null }, orderBy: { createdAt: "desc" } }, career: true, jobs: { where: { open: true }, orderBy: { createdAt: "desc" } }, user: { select: { status: true } } } });
+  if (!p || (p.user && p.user.status !== "ACTIVE")) notFound();
   const mode = (MODES as readonly string[]).includes(sp.mode ?? "") ? sp.mode! : "ALL";
   const cfg = p.modes.find((m) => m.mode === mode);
   if (!cfg || !cfg.isEnabled) notFound();

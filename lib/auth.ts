@@ -16,6 +16,7 @@ export function checkPassword(pw: string, stored: string) {
 export async function startSession(userId: string) {
   const token = randomBytes(24).toString("hex");
   await db.session.create({ data: { token, userId } });
+  await db.user.update({ where: { id: userId }, data: { lastSeenAt: new Date() } });
   (await cookies()).set("sid", token, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 30 });
 }
 export async function endSession() {
@@ -25,9 +26,28 @@ export async function endSession() {
 }
 export async function currentUser() {
   const t = (await cookies()).get("sid")?.value;
-  if (!t) return null;
-  const s = await db.session.findUnique({ where: { token: t }, include: { user: { include: { profile: true } } } });
-  return s?.user ?? null;
+  return t ? userForToken(t) : null;
+}
+
+/** The active user behind a session token (cookie or mobile bearer). Suspended accounts get nothing. */
+export async function userForToken(token: string) {
+  const s = await db.session.findUnique({ where: { token }, include: { user: { include: { profile: true } } } });
+  if (!s || s.user.status !== "ACTIVE") return null;
+  // Remember when people were last around, at most once every ten minutes.
+  if (Date.now() - s.lastUsedAt.getTime() > 10 * 60 * 1000) {
+    const now = new Date();
+    await db.session.update({ where: { token }, data: { lastUsedAt: now } });
+    await db.user.update({ where: { id: s.userId }, data: { lastSeenAt: now } });
+  }
+  return s.user;
+}
+
+/** A session for the mobile app; the token goes in the Authorization header. */
+export async function startMobileSession(userId: string, device: string) {
+  const token = randomBytes(32).toString("hex");
+  await db.session.create({ data: { token, userId, kind: "mobile", device: device.slice(0, 80) } });
+  await db.user.update({ where: { id: userId }, data: { lastSeenAt: new Date() } });
+  return token;
 }
 /** Older profiles are missing modes added later (e.g. Seller, Services). Create them, copying the "All" mode's sections. */
 async function ensureModes(profileId: string) {

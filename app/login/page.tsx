@@ -11,8 +11,9 @@ async function login(fd: FormData) {
   const next = String(fd.get("next") ?? "");
   const safe = next.startsWith("/") && !next.startsWith("//") ? next : "/app";
   if (!u || !checkPassword(String(fd.get("password")), u.passwordHash)) redirect(`/login?error=1${safe !== "/app" ? "&next=" + encodeURIComponent(safe) : ""}`);
+  if (u.status !== "ACTIVE") redirect("/login?error=suspended");
   await startSession(u.id);
-  redirect(safe);
+  redirect(safe === "/app" && u.role === "ADMIN" ? "/admin" : safe);
 }
 
 export default async function Login({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
@@ -24,7 +25,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
       <div className="wordmark"><span className="logo">ft</span>FounderTouch</div>
       <h1>Welcome back</h1>
       <p className="muted">Log in to manage your card and contacts.</p>
-      {sp.error && <div className="err"><I n="alert" size={16} /> Wrong email or password.</div>}
+      {sp.error && <div className="err"><I n="alert" size={16} /> {sp.error === "suspended" ? "This account is paused. Contact the FounderTouch team to restore it." : "Wrong email or password."}</div>}
       <form action={login}>
         <input type="hidden" name="next" value={next} />
         <label className="f" htmlFor="email">Email</label>

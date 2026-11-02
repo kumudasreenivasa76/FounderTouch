@@ -395,3 +395,4 @@ button.ghost:hover,.btn.ghost:hover{background:#fff;box-shadow:0 1px 2px rgba(16
 
 @media (prefers-reduced-motion:reduce){.shine{display:none}}
 .sk-wrap{padding:4px 0}.shell>.sk-wrap{padding:16px clamp(16px,4.5vw,24px)}
+.notice{display:flex;align-items:center;gap:8px;padding:9px clamp(16px,4.5vw,24px);background:var(--ink);color:#fff;font-size:13px;font-weight:550;flex-shrink:0}

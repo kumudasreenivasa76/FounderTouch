@@ -21,6 +21,24 @@ npm run dev                 # http://localhost:4400
 ```
 
 Demo login: `demo@founder.example` / `demo1234`
+FounderTouch team (admin) login: `admin@foundertouch.example` / `admin1234`
+
+Optional: `npm run sample` adds fictional people, scans, contacts, an event and a job so every screen has something to show.
+
+## Admin console (`/admin`)
+
+For the FounderTouch team. Only accounts with the admin role can open it; team members land there after logging in.
+
+- **Overview**: accounts, weekly actives, cards set up, scans and sign-ups over 30 days, most-scanned people, team activity.
+- **Users**: search and filter, then per user: card summary, modes, signed-in devices, suspend or restore, add to the team, sign out everywhere, delete (type the email to confirm). Suspending ends every session and hides their card.
+- **Onboarding**: invite one person or paste a list from a spreadsheet. Each invite carries the name, company, headline and pages to switch on, so the card is ready the moment they choose a password. Links (`/join/<token>`) work only for the invited email, expire after the set number of days, and can be withdrawn or re-opened.
+- **Events, Hiring, Content**: everything across the platform, with close, reopen and remove.
+- **Audit log**: every change the team makes.
+- **Settings**: open or invite-only sign-up, allowed email domains, invite lifetime, and a notice banner shown in the app and mobile app.
+
+## Mobile app (`mobile/`)
+
+An Expo (React Native) app for iOS and Android that talks to this server through the JSON API in `app/api/v1` (token auth). The contract is in [docs/mobile-api.md](docs/mobile-api.md); how to run and build it is in `mobile/README.md`.
 
 ## Stack
 

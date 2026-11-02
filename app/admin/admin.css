@@ -1,0 +1,107 @@
+/* ------------------------------------------------------------------
+   FounderTouch admin console. Same tokens as the app, desktop layout.
+   Classes are prefixed ad- so nothing leaks into the app.
+------------------------------------------------------------------- */
+body:has(.console){display:block;background:var(--bg);height:auto}
+html:has(.console){height:auto}
+.console{width:100%;min-height:100vh}
+.ad{display:grid;grid-template-columns:248px 1fr;min-height:100vh;font-size:14.5px}
+
+/* sidebar */
+.ad-side{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:20px;padding:20px 14px;background:#fff;border-right:1px solid var(--line)}
+.ad-brand{display:flex;align-items:center;gap:10px;color:var(--ink);padding:4px 8px}
+.ad-brand span{width:32px;height:32px;border-radius:9px;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px;letter-spacing:-.04em}
+.ad-brand b{display:block;font-size:15px;letter-spacing:-.01em}.ad-brand small{display:block;color:var(--ink-3);font-size:12px}
+.ad-nav{display:flex;flex-direction:column;gap:2px}
+.ad-nav a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;color:var(--ink-2);font-weight:550;transition:background .15s,color .15s}
+.ad-nav a:hover{background:var(--sunken);color:var(--ink)}
+.ad-nav a.on{background:var(--ink);color:#fff}
+.ad-me{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px 8px;border-top:1px solid var(--line)}
+.ad-me>div:nth-child(2){flex:1;min-width:0}
+.ad-me b{display:block;font-size:13.5px}.ad-me small{display:block;color:var(--ink-3);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ad-me-ava{width:32px;height:32px;border-radius:50%;background:var(--sunken);display:grid;place-items:center;font-weight:650;font-size:12px}
+.ad-icon-btn{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:var(--ink-2);border:1px solid var(--line);background:#fff}
+@media(max-width:900px){.ad{grid-template-columns:1fr}.ad-side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center}.ad-nav{flex-direction:row;flex-wrap:wrap}.ad-me{display:none}}
+
+/* main */
+.ad-main{padding:28px clamp(20px,3vw,40px) 60px;min-width:0;max-width:1320px;animation:rise .4s var(--ease)}
+.ad-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.ad-head h1{font-size:26px;margin:0;letter-spacing:-.025em}
+.ad-head p{margin:4px 0 0;color:var(--ink-3)}
+.ad-crumb{display:inline-flex;align-items:center;gap:6px;color:var(--ink-3);font-size:13px;font-weight:550;margin-bottom:8px}
+
+/* stat tiles */
+.ad-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.ad-stat{background:#fff;border:1px solid rgba(16,18,22,.07);border-radius:14px;padding:16px;box-shadow:var(--shadow-card)}
+.ad-stat small{display:block;color:var(--ink-3);font-weight:550;font-size:12.5px}
+.ad-stat b{display:block;font-size:26px;letter-spacing:-.03em;margin-top:6px;font-variant-numeric:tabular-nums}
+.ad-stat em{font-style:normal;font-size:12.5px;color:var(--good);font-weight:600}
+.ad-stat em.flat{color:var(--ink-3)}
+
+/* panels */
+.ad-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:1100px){.ad-grid{grid-template-columns:1fr}}
+.ad-panel{background:#fff;border:1px solid rgba(16,18,22,.07);border-radius:14px;box-shadow:var(--shadow-card);overflow:hidden;margin-bottom:16px}
+.ad-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.ad-panel-head h2{font-size:15px;margin:0;letter-spacing:-.01em}
+.ad-panel-head .muted{font-size:12.5px}
+.ad-panel-body{padding:16px 18px}
+
+/* chart */
+.ad-chart{display:flex;align-items:flex-end;gap:4px;height:150px;padding-top:8px}
+.ad-chart span{flex:1;background:var(--sunken);border-radius:4px 4px 2px 2px;min-height:2px;position:relative;transition:background .15s}
+.ad-chart span.hi{background:var(--ink)}
+.ad-chart span:hover{background:var(--accent)}
+.ad-chart-l{display:flex;justify-content:space-between;color:var(--ink-3);font-size:11.5px;margin-top:6px}
+
+/* tables */
+.ad-table{width:100%;border-collapse:collapse}
+.ad-table th{text-align:left;font-size:12px;font-weight:600;color:var(--ink-3);padding:10px 18px;border-bottom:1px solid var(--line);background:#fbfbfc;white-space:nowrap}
+.ad-table td{padding:11px 18px;border-bottom:1px solid var(--line);vertical-align:middle}
+.ad-table tr:last-child td{border-bottom:0}
+.ad-table tbody tr{transition:background .12s}
+.ad-table tbody tr:hover{background:#fbfbfc}
+.ad-table .num{text-align:right;font-variant-numeric:tabular-nums}
+.ad-who{display:flex;align-items:center;gap:10px;color:var(--ink)}
+.ad-who b{display:block;font-weight:600}.ad-who small{display:block;color:var(--ink-3);font-size:12.5px}
+.ad-ava{width:30px;height:30px;border-radius:50%;background:var(--sunken);display:grid;place-items:center;font-size:11px;font-weight:650;flex-shrink:0;object-fit:cover}
+.ad-empty{padding:28px 18px;text-align:center;color:var(--ink-3)}
+
+/* tags */
+.ad-tag{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;background:var(--sunken);color:var(--ink-2);white-space:nowrap}
+.ad-tag.good{background:var(--good-soft);color:var(--good)}
+.ad-tag.warn{background:var(--warn-soft);color:var(--warn)}
+.ad-tag.bad{background:var(--bad-soft);color:var(--bad)}
+.ad-tag.ink{background:var(--ink);color:#fff}
+.ad-tag.blue{background:var(--accent-soft);color:var(--accent)}
+
+/* toolbar + forms */
+.ad-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid var(--line)}
+.ad-bar input,.ad-bar select{margin:0;width:auto;min-width:0;padding:8px 12px;font-size:14px}
+.ad-bar input[type=search]{flex:1;min-width:200px}
+.ad-main button,.ad-main .btn{width:auto;min-height:38px;padding:8px 14px;font-size:14px;border-radius:10px}
+.ad-main button.sm,.ad-main .btn.sm{min-height:30px;padding:4px 10px;font-size:13px;border-radius:8px}
+.ad-main button.danger{background:var(--bad);box-shadow:none}
+.ad-form{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px}
+.ad-form .full{grid-column:1/-1}
+.ad-form input,.ad-form select,.ad-form textarea{margin:5px 0 8px}
+.ad-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ad-kv{display:grid;grid-template-columns:140px 1fr;gap:8px 16px;font-size:14px}
+.ad-kv dt{color:var(--ink-3)}.ad-kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.ad-link{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:var(--sunken);border-radius:8px;padding:6px 10px;overflow-wrap:anywhere;display:block}
+.ad-callout{display:flex;gap:12px;align-items:flex-start;background:var(--accent-soft);border:1px solid #d6e1fb;border-radius:12px;padding:14px 16px;margin-bottom:16px;color:#1b3fa8}
+.ad-danger{border:1px solid #f3c6c1;background:#fff8f7}
+.ad-main details summary{font-weight:600;cursor:pointer}
+.ad-feed{list-style:none;margin:0;padding:0}
+.ad-feed li{display:flex;gap:12px;padding:11px 18px;border-bottom:1px solid var(--line);align-items:flex-start}
+.ad-feed li:last-child{border-bottom:0}
+.ad-feed .ico{margin-top:2px;color:var(--ink-3)}
+.ad-feed small{display:block;color:var(--ink-3);font-size:12.5px}
+.ad-seg{display:inline-flex;background:var(--sunken);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.ad-seg a{padding:6px 12px;border-radius:8px;color:var(--ink-3);font-weight:600;font-size:13px}
+.ad-seg a.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(16,18,22,.08)}
+.ad-pager{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;color:var(--ink-3);font-size:13px;border-top:1px solid var(--line)}
+/* wide tables scroll inside their panel instead of being clipped */
+.ad-panel{overflow-x:auto}
+.ad-table{min-width:680px}
+.ad-grid .ad-table{min-width:0}

@@ -84,6 +84,13 @@ export default async function ProfileHub() {
       ))}
       </div>
 
+      {user.role === "ADMIN" && (
+        <Link href="/admin" className="menu-row" style={{ marginTop: 12 }}>
+          <span className="menu-ico" style={{ background: "var(--ink)", color: "#fff" }}><I n="layers" /></span>
+          <span style={{ flex: 1 }}><b>Admin console</b><span className="muted" style={{ display: "block" }}>Users, onboarding and platform settings</span></span>
+          <I n="chevron-right" size={18} />
+        </Link>
+      )}
       <form action={logout} style={{ marginTop: 16 }}><button className="ghost">Log out</button></form>
     </>
   );

@@ -13,6 +13,10 @@ model User {
   name         String
   firstName    String    @default("")
   lastName     String    @default("")
+  role         String    @default("USER")   // USER | ADMIN (FounderTouch team)
+  status       String    @default("ACTIVE") // ACTIVE | SUSPENDED
+  lastSeenAt   DateTime?
+  inviteId     String    @default("")       // the onboarding invite they joined with, if any
   createdAt    DateTime  @default(now())
   sessions     Session[]
   profile      Profile?
@@ -21,6 +25,9 @@ model User {
 model Session {
   token     String   @id
   userId    String
+  kind      String   @default("web") // web | mobile
+  device    String   @default("")    // e.g. "iPhone 16, iOS 26"
+  lastUsedAt DateTime @default(now())
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -304,4 +311,45 @@ model Invite {
   job                Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
   @@unique([jobId, candidateProfileId])
   @@index([candidateProfileId])
+}
+
+/** An invite the FounderTouch team sends so someone can join, with details filled in for them. */
+model OnboardingInvite {
+  id          String    @id @default(cuid())
+  token       String    @unique
+  email       String
+  name        String    @default("")
+  company     String    @default("")
+  headline    String    @default("")
+  modes       String    @default("")   // comma-separated modes to switch on
+  role        String    @default("USER")
+  note        String    @default("")   // internal, never shown to the invitee
+  batch       String    @default("")   // bulk import label
+  createdById String
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  acceptedUserId String @default("")
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  @@index([email])
+}
+
+/** Every change the FounderTouch team makes, newest first. */
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  actorEmail String
+  action     String   // e.g. user.suspend, invite.create
+  targetType String   @default("")
+  targetId   String   @default("")
+  detail     String   @default("")
+  createdAt  DateTime @default(now())
+  @@index([createdAt])
+}
+
+/** Platform settings the team can change: sign-up policy, a notice banner. */
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }
