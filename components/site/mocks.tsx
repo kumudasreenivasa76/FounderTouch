@@ -2,6 +2,8 @@ import I from "@/components/icon";
 
 /** Unsplash photo at a given width. */
 export const photo = (id: string, w = 800) => `https://images.unsplash.com/photo-${id}?w=${w}&q=80&auto=format&fit=crop`;
+/** A square crop centred on the person's face, for round avatars. */
+export const face = (id: string, w = 200) => `https://images.unsplash.com/photo-${id}?w=${w}&h=${w}&q=80&auto=format&fit=crop&crop=faces`;
 
 export type Persona = {
   name: string; role: string; face: string; theme: [string, string];
@@ -26,7 +28,7 @@ export function PageMock({ p }: { p: Persona }) {
   return (
     <div className="s-page">
       <div className="s-page-hero" style={{ background: `linear-gradient(150deg, ${p.theme[0]}, ${p.theme[1]})` }}>
-        <img className="s-page-face" src={photo(p.face, 200)} alt="" />
+        <img className="s-page-face" src={face(p.face, 200)} alt="" />
         <div className="s-page-name">{p.name}</div>
         <div className="s-page-role">{p.role}</div>
         <span className="s-page-mode"><I n={p.icon} size={12} /> {p.mode}</span>
@@ -51,7 +53,7 @@ export function CardMock({ p, qr }: { p: Persona; qr?: string }) {
     <div className="s-card" style={{ background: `linear-gradient(145deg, ${p.theme[0]}, ${p.theme[1]})` }}>
       <span className="s-card-light" aria-hidden />
       <div className="s-card-top">
-        <img src={photo(p.face, 160)} alt="" />
+        <img src={face(p.face, 160)} alt="" />
         <span className="s-card-brand">ft</span>
       </div>
       <div className="s-card-name">{p.name}</div>

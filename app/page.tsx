@@ -4,7 +4,7 @@ import QRCode from "qrcode";
 import I from "@/components/icon";
 import { currentUser } from "@/lib/auth";
 import { NavShell, Reveal, Tilt } from "@/components/site/motion";
-import { CardMock, PageMock, Phone, photo } from "@/components/site/mocks";
+import { CardMock, PageMock, Phone, face, photo } from "@/components/site/mocks";
 import ModeShowcase from "@/components/site/modes";
 import { PERSONAS } from "@/components/site/personas";
 import "./site.css";
@@ -48,7 +48,8 @@ export default async function Home() {
         </div>
       </NavShell>
 
-      {/* Hero */}
+      {/* Hero and the share strip together fill the first screen on a laptop */}
+      <div className="s-fold">
       <section className="s-hero">
         <div className="s-hero-bg" aria-hidden />
         <div className="s-wrap s-hero-grid">
@@ -90,6 +91,7 @@ export default async function Home() {
           ))}
         </div>
       </section>
+      </div>
 
       {/* Modes */}
       <section className="s-dark" id="modes">
@@ -210,7 +212,7 @@ export default async function Home() {
           <div className="s-hire">
             <Reveal className="s-hire-col">
               <div className="s-hire-card">
-                <div className="s-hire-who"><img src={photo(leah.face, 160)} alt="" /><div><b>{leah.name}</b><span>{leah.role}</span></div><span className="s-open"><span className="dot-live" /> Open to work</span></div>
+                <div className="s-hire-who"><img src={face(leah.face, 160)} alt="" /><div><b>{leah.name}</b><span>{leah.role}</span></div><span className="s-open"><span className="dot-live" /> Open to work</span></div>
                 <div className="s-hire-rows">
                   <div><I n="briefcase" size={15} /> Senior designer, Paysure <small>2021 to now</small></div>
                   <div><I n="school" size={15} /> NID Ahmedabad <small>Communication design</small></div>
@@ -222,7 +224,7 @@ export default async function Home() {
             </Reveal>
             <Reveal delay={100} className="s-hire-col">
               <div className="s-hire-card">
-                <div className="s-hire-who"><img src={photo(dev.face, 160)} alt="" /><div><b>Product designer</b><span>Lumen Labs · Hybrid, Bengaluru</span></div></div>
+                <div className="s-hire-who"><img src={face(dev.face, 160)} alt="" /><div><b>Product designer</b><span>Lumen Labs · Hybrid, Bengaluru</span></div></div>
                 <div className="s-pipe">
                   {[["New", 6, "#2350d8"], ["Shortlisted", 3, "#4b5059"], ["Interview", 2, "#b0661a"], ["Offer", 1, "#127a52"]].map(([l, c, col]) => (
                     <div key={l as string} className="s-pipe-col"><span style={{ background: col as string }} /><b>{c}</b><small>{l}</small></div>
@@ -250,7 +252,7 @@ export default async function Home() {
               <h3>Your brand</h3><p>Upload your logo and pick your own two colours. They carry across the card, QR and page.</p>
             </Reveal>
             <Reveal delay={140} className="s-tile">
-              <div className="s-faces" aria-hidden>{PERSONAS.slice(0, 4).map((p) => <img key={p.face} src={photo(p.face, 120)} alt="" />)}</div>
+              <div className="s-faces" aria-hidden>{PERSONAS.slice(0, 4).map((p) => <img key={p.face} src={face(p.face, 120)} alt="" />)}</div>
               <h3>Photo or avatar</h3><p>Use a photo, design an avatar, or both. Tap your picture to flip between them.</p>
             </Reveal>
             <Reveal delay={70} className="s-tile">

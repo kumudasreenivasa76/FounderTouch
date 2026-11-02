@@ -276,3 +276,31 @@ html:has(.site){height:auto;scroll-behavior:smooth;scroll-padding-top:84px}
 @media (prefers-reduced-motion:reduce){.s-reveal{opacity:1;transform:none;transition:none}.s-chip.in{animation:none}}
 .s-tile.full{grid-column:1/-1;display:flex;align-items:center;gap:20px}
 .s-tile.full .s-tile-ico{margin:0}
+
+/* first screen: hero + share strip fit one laptop viewport */
+@media(min-width:961px){
+  .s-fold{--nav:72px;--strip:132px;min-height:calc(100svh - var(--nav));display:flex;flex-direction:column}
+  .s-fold .s-hero{flex:1;display:flex;align-items:center;padding:clamp(16px,3vh,40px) 0}
+  .s-fold .s-hero-grid{width:100%}
+  .s-fold .s-hero-art{--art:clamp(400px,calc(100svh - var(--nav) - var(--strip) - 6vh),600px);height:var(--art)}
+  .s-fold .s-hero-phone{width:calc(var(--art) * .46)}
+  .s-fold .s-hero-card{width:calc(var(--art) * .66);bottom:calc(var(--art) * .11)}
+  .s-fold .s-hero h1{font-size:clamp(40px,min(5.3vw,9svh),76px)}
+  .s-fold .s-lead{margin-top:clamp(14px,2.4svh,24px)!important}
+  .s-fold .s-cta-row{margin-top:clamp(18px,3.4svh,32px)}
+  .s-fold .s-eyebrow{margin-bottom:clamp(10px,2svh,18px)}
+  .s-fold .s-way{padding:20px 20px 20px 0;align-items:center}
+  .s-fold .s-way+.s-way{padding-left:20px}
+  .s-fold .s-way p{font-size:13.5px;line-height:1.45}
+  .s-fold .s-way b{font-size:15px;margin-bottom:2px}
+  .s-fold .s-way-ico{width:38px;height:38px;border-radius:11px}
+}
+@media(min-width:961px) and (max-height:760px){
+  .s-fold .s-lead{font-size:16px}
+  .s-fold .s-fine{display:none}
+  .s-fold .s-btn.lg{height:48px}
+}
+
+/* round portraits: keep the top of the head in frame and clear the phone notch */
+.s-page-face,.s-card-top img,.s-hire-who img,.s-faces img{object-position:50% 22%}
+.s-page-hero{padding-top:58px}
