@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { MODES, MODE_INFO } from "@/lib/modes";
 import { currentUser } from "@/lib/auth";
 import Wizard from "./wizard";
+import { seededAvatar } from "@/lib/look";
 import { socialsFromForm } from "@/lib/socials";
 
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 30);
@@ -22,7 +23,7 @@ async function finish(fd: FormData) {
   const url = String(fd.get("url")).trim();
   const picked = new Set(fd.getAll("modes").map(String));
 
-  const p = await db.profile.create({ data: { userId: u.id, handle, name, firstName, lastName, headline, company, bio, phone: String(fd.get("phone")).trim(), socials: socialsFromForm(fd) } });
+  const p = await db.profile.create({ data: { userId: u.id, handle, name, firstName, lastName, headline, company, bio, phone: String(fd.get("phone")).trim(), socials: socialsFromForm(fd), avatar: JSON.stringify(seededAvatar(handle)) } });
   const ids: string[] = [];
   for (const m of MODES) {
     await db.modeConfig.create({ data: { profileId: p.id, mode: m, sectionIds: JSON.stringify(ids), bookingUrl: url, ctaLabel: MODE_INFO[m].cta, isEnabled: m === "ALL" || picked.has(m) } });

@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 /** Back link, title and an optional saved / error banner for the profile sub-screens. */
-export default function PageHead({ title, sub, back = "/app/profile", saved, error }: { title: string; sub?: string; back?: string; saved?: boolean; error?: string }) {
+export default function PageHead({ title, sub, back = "/app", saved, error }: { title: string; sub?: string; back?: string; saved?: boolean; error?: string }) {
   return (
     <>
       <Link href={back} className="muted">← Back</Link>

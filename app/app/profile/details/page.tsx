@@ -10,38 +10,41 @@ export default async function Details({ searchParams }: { searchParams: Promise<
   const { profile } = await requireOwner();
   return (
     <>
-      <PageHead title="Basic details" sub="Who you are. This is the top of your page and your card." saved={!!sp.saved}
+      <PageHead title="About you" sub="Your name, photo and headline, as they appear on your card." saved={!!sp.saved}
         error={sp.err === "photo" ? "Photo must be JPG, PNG or WebP under 5 MB." : undefined} />
 
-      <div className="card" style={{ textAlign: "center" }}>
+      <div className="ab-hero">
         <PhotoUpload action={uploadPhoto} size={96} center>
           <Avatar name={profile.name} handle={profile.handle} hasPhoto={!!profile.photo} avatar={profile.avatar} size={96} />
         </PhotoUpload>
-        <div className="muted">Tap your photo to upload one (JPG, PNG or WebP, up to 5 MB)</div>
+        <div className="ab-name">{profile.name}</div>
+        <div className="ab-sub">{profile.headline || "Add a headline below"}</div>
+        <div className="ab-hint">{profile.photo ? "Tap the photo to change it" : "Tap to add a photo"}</div>
         {profile.photo && <form action={removePhoto} style={{ marginTop: 10 }}><button className="ghost">Remove photo</button></form>}
       </div>
 
-      <div className="card">
-        <h3>Avatar</h3>
+      <div className="ab-avatar">
+        <h2>Avatar</h2>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <Avatar name={profile.name} handle={profile.handle} hasPhoto={!!profile.photo} avatar={profile.avatar} size={64} flip />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="muted" style={{ marginBottom: 8 }}>{profile.photo ? "Tap the picture to flip between your photo and your avatar." : "Shown on your card and page."}</div>
-            <a className="btn ghost" href="/app/profile/avatar">🎨 Design avatar</a>
+            <div className="muted" style={{ marginBottom: 8 }}>{profile.photo ? "Tap the picture to flip between photo and avatar." : "No photo? An avatar works just as well."}</div>
+            <a className="btn ghost" href="/app/profile/avatar">Design avatar</a>
           </div>
         </div>
       </div>
 
-      <form action={saveDetails} className="card">
+      <form action={saveDetails} className="card kit-form ab-form">
+        <h3>Details</h3>
         <div className="row">
           <div><label className="f">First name</label><input name="firstName" defaultValue={profile.firstName} required autoComplete="given-name" /></div>
           <div><label className="f">Last name</label><input name="lastName" defaultValue={profile.lastName} required autoComplete="family-name" /></div>
         </div>
         <label className="f">Headline</label>
-        <input name="headline" defaultValue={profile.headline} placeholder="e.g. Founder & CEO" />
+        <input className="ab-headline" name="headline" defaultValue={profile.headline} placeholder="e.g. Founder & CEO, Lumen Labs" />
         <label className="f">Bio</label>
-        <textarea name="bio" rows={4} defaultValue={profile.bio} placeholder="What are you building, and for whom?" />
-        <button>Save details</button>
+        <textarea name="bio" rows={4} defaultValue={profile.bio} placeholder="One or two lines about what you do and who it helps" />
+        <button>Save</button>
       </form>
     </>
   );

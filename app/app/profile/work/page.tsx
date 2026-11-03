@@ -5,6 +5,7 @@ import { OPEN_TO, byStartDesc, fmtRange } from "@/lib/career";
 import PageHead from "@/components/page-head";
 import { addResource, delResource } from "../actions";
 import { addCareer, delCareer, saveHire, setHireVisible, setOpenToWork } from "../hire-actions";
+import Icon from "@/components/icon";
 export const dynamic = "force-dynamic";
 
 const ERR: Record<string, string> = {
@@ -15,7 +16,7 @@ const ERR: Record<string, string> = {
   edu: "Add a degree or course and a school.",
 };
 const FILES = [
-  { kind: "RESUME", title: "Resume / CV", icon: "📄", hint: "Upload a PDF, or paste a Google Drive link. It shows right on your page.", ph: "Link to your resume (Google Drive, Notion, your site…)", eg: "My resume" },
+  { kind: "RESUME", title: "Resume / CV", icon: "file", hint: "Upload a PDF, or paste a Google Drive link. It shows right on your page.", ph: "Link to your resume (Google Drive, Notion, your site…)", eg: "My resume" },
 ] as const;
 
 export default async function Hire({ searchParams }: { searchParams: Promise<{ err?: string; saved?: string }> }) {
@@ -37,7 +38,7 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
     return (
       <form action={addCareer} className="card">
         <input type="hidden" name="type" value={type} />
-        <h3>{edu ? "Add education" : "Add experience"}</h3>
+        <h2 style={{ fontSize: 15 }}>{edu ? "Add education" : "Add experience"}</h2>
         <input name="title" placeholder={edu ? "Degree or course (e.g. B.Tech, Computer Science)" : "Job title (e.g. Product Designer)"} required />
         <input name="org" placeholder={edu ? "School or college" : "Company"} required />
         {!edu && <input name="location" placeholder="Location (optional)" />}
@@ -58,28 +59,28 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
 
       <div className="card">
         <form action={setOpenToWork} className="switch-row">
-          <div><b>🟢 Open to work</b><div className="muted">Adds a green ring to your photo and an Open to work badge on your Hire me page.</div></div>
+          <div><b>Open to work</b><div className="muted">Adds a green ring to your photo and an Open to work badge on your Hire me page.</div></div>
           <input type="hidden" name="on" value={openOn ? "0" : "1"} />
           <button type="submit" role="switch" aria-checked={openOn} aria-label="Open to work" className={"switch" + (openOn ? " on" : "")}><i /></button>
         </form>
         <form action={setHireVisible} className="switch-row">
-          <div><b>🙋 Show my Hire me page</b><div className="muted">Turn off to hide it from visitors and from Share. Nothing is deleted.</div></div>
+          <div><b>Show my Hire me page</b><div className="muted">Turn off to hide it from visitors and from Share. Nothing is deleted.</div></div>
           <input type="hidden" name="on" value={pageOn ? "0" : "1"} />
           <button type="submit" role="switch" aria-checked={pageOn} aria-label="Show my Hire me page" className={"switch" + (pageOn ? " on" : "")}><i /></button>
         </form>
       </div>
 
       <div className="card" style={{ background: "#f0f4ff", borderColor: "#d7defb" }}>
-        <b>🙋 Your Hire me page</b>
+        <b>Your Hire me page</b>
         <p className="muted" style={{ margin: "4px 0 10px" }}>This is what people see when you share your Hire me mode: a profile-style page built from everything below.</p>
         <div className="row">
           <a className="btn ghost" href={`/${profile.handle}?mode=HIRE`} target="_blank">Preview ↗</a>
-          <a className="btn" href="/app?mode=HIRE">Share it →</a>
+          <a className="btn" href="/app/card?mode=HIRE">Share it →</a>
         </div>
       </div>
 
       <form action={saveHire} className="card">
-        <h3>Status &amp; skills</h3>
+        <h2 style={{ fontSize: 15 }}>Status &amp; skills</h2>
         <label className="f">I am</label>
         <select name="openTo" defaultValue={profile.openTo}>
           <option value="">Not shown</option>
@@ -97,7 +98,7 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
         <button>Save</button>
       </form>
 
-      <h2>💼 Experience ({jobs.length})</h2>
+      <h2>Experience ({jobs.length})</h2>
       {jobs.length === 0 && <div className="card muted">No experience added yet.</div>}
       {jobs.map((c) => (
         <div className="card" key={c.id} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
@@ -112,7 +113,7 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
       ))}
       {careerForm("EXPERIENCE")}
 
-      <h2>🎓 Education ({schools.length})</h2>
+      <h2>Education ({schools.length})</h2>
       {schools.length === 0 && <div className="card muted">No education added yet.</div>}
       {schools.map((c) => (
         <div className="card" key={c.id} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
@@ -131,7 +132,7 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
         const mine = files.filter((r) => r.kind === s.kind);
         return (
           <div key={s.kind}>
-            <h2>{s.icon} {s.title} ({mine.length})</h2>
+            <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}><Icon name={s.icon} size={20} /> {s.title} ({mine.length})</h2>
             {mine.map((r) => (
               <div className="card" key={r.id} style={{ display: "flex", gap: 10, alignItems: "center" }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -144,7 +145,7 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
             ))}
             <form action={addResource} className="card">
               <input type="hidden" name="ret" value="work" /><input type="hidden" name="kind" value={s.kind} /><input type="hidden" name="kmode" value="FOUNDER" />
-              <h3>Add {s.title.toLowerCase()}</h3>
+              <h2 style={{ fontSize: 15 }}>Add {s.title.toLowerCase()}</h2>
               <p className="muted" style={{ marginTop: 0 }}>{s.hint}</p>
               <input name="title" placeholder={`Title (e.g. ${s.eg})`} />
               <input name="url" placeholder={s.ph} inputMode="url" autoCapitalize="none" />
@@ -156,7 +157,7 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
                   <label key={m} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={m} defaultChecked />{MODE_INFO[m].icon} {MODE_INFO[m].label}</label>
                 ))}
               </div>
-              <label style={{ display: "block", margin: "4px 0 10px" }}><input type="checkbox" name="gated" />🔒 Require my approval before people can open it</label>
+              <label style={{ display: "block", margin: "4px 0 10px" }}><input type="checkbox" name="gated" />Require my approval before people can open it</label>
               <button>Add {s.title.toLowerCase()}</button>
             </form>
           </div>

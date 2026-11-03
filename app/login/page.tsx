@@ -1,3 +1,4 @@
+import { ClearOfflineData } from "@/components/sw-register";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
@@ -14,12 +15,14 @@ async function login(fd: FormData) {
   redirect(safe);
 }
 
+export const metadata = { title: "Log in" };
 export default async function Login({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
   const sp = await searchParams;
   const next = sp.next && sp.next.startsWith("/") && !sp.next.startsWith("//") ? sp.next : "";
   if (await currentUser()) redirect(next || "/app");
   return (
-    <div className="screen center">
+    <div role="main" id="main" className="screen center">
+      <ClearOfflineData />
       <div className="logo">F</div>
       <h1 style={{ textAlign: "center" }}>Welcome back</h1>
       <p className="muted" style={{ textAlign: "center" }}>Log in to your FounderTouch</p>

@@ -79,8 +79,10 @@ export default function TapShare({ pages, avatar, peek, save }: {
   return (
     <div>
       <div className={"radar" + (live ? " live" : "") + (state === "found" ? " done" : "")} aria-live="polite">
-        <i className="ring" /><i className="ring" /><i className="ring" />
+        <i className="ring" /><i className="ring" /><i className="ring" /><i className="sweep" />
+        <i className="orbit"><b /></i><i className="orbit o2"><b /></i>
         <div className="radar-core">{avatar}</div>
+        <span className={"radar-chip" + (state === "found" ? " ok" : live ? " on" : "")}>{state === "found" ? "Connected" : live ? "Listening" : "Ready"}</span>
         {state === "found" && <div className="burst" key={bursts} aria-hidden>{Array.from({ length: 14 }).map((_, i) => <i key={i} style={{ ["--a" as string]: `${i * (360 / 14)}deg`, ["--h" as string]: `${(i * 47) % 360}` }} />)}</div>}
       </div>
 
@@ -88,26 +90,34 @@ export default function TapShare({ pages, avatar, peek, save }: {
         <div className="card found-card">
           <div className="found-ini">{found.initials}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="muted" style={{ fontSize: 12 }}>🎉 Found someone</div>
+            <div className="muted" style={{ fontSize: 12 }}>Found someone</div>
             <b style={{ fontSize: 18 }}>{found.name}</b>
             <div className="muted">{found.sub || found.modeLabel}</div>
           </div>
           <div style={{ display: "grid", gap: 6 }}>
-            <button type="button" onClick={doSave} disabled={saved} style={{ width: "auto", padding: "8px 14px" }}>{saved ? "✓ Saved" : "Save card"}</button>
+            <button type="button" onClick={doSave} disabled={saved} style={{ width: "auto", padding: "8px 14px" }}>{saved ? "Saved" : "Save card"}</button>
             <a className="btn ghost" style={{ width: "auto", padding: "8px 14px" }} href={`/${found.handle}?mode=${found.mode}`} target="_blank">Open</a>
           </div>
         </div>
       ) : (
         <div style={{ textAlign: "center", marginBottom: 12 }}>
           <h2 style={{ margin: "0 0 4px" }}>{live ? "Searching for people nearby…" : "Tap to share"}</h2>
-          <div className="muted">{live ? "Hold the back of your phone against an NFC card, sticker or phone." : "Meet someone? Start tapping, then touch phones or cards."}</div>
+          <div className="muted">{live ? "Hold the back of your phone against an NFC card, sticker or phone." : "Meet someone new? Tap, and your card lands in their hands."}</div>
         </div>
+      )}
+
+      {!found && (
+        <ol className="tap-steps" aria-label="How it works">
+          <li><b>1</b><span>Start tapping</span></li>
+          <li><b>2</b><span>Touch phones or a card</span></li>
+          <li><b>3</b><span>Save the connection</span></li>
+        </ol>
       )}
 
       <div style={{ margin: "0 0 10px" }}>
         {live
           ? <button type="button" className="ghost" onClick={stop}>Stop searching</button>
-          : <button type="button" className={state === "found" ? "ghost" : "pulse"} onClick={start} disabled={supported === null}>{state === "found" ? "Find someone else" : "📲 Start tapping"}</button>}
+          : <button type="button" className={state === "found" ? "ghost" : "pulse"} onClick={start} disabled={supported === null}>{state === "found" ? "Find someone else" : "Start tapping"}</button>}
       </div>
       {msg && <p className={state === "error" ? "err" : "muted"} style={{ textAlign: "center" }}>{msg}</p>}
 
@@ -115,12 +125,12 @@ export default function TapShare({ pages, avatar, peek, save }: {
         <b>What do you want to share?</b>
         <div className="chips" style={{ marginTop: 8 }}>
           {pages.map((p) => (
-            <button key={p.mode} type="button" onClick={() => setMode(p.mode)} className={"pill" + (p.mode === cur.mode ? " on" : "")} style={{ border: 0, width: "auto", fontWeight: 400, cursor: "pointer" }}>{p.icon} {p.label}</button>
+            <button key={p.mode} type="button" onClick={() => setMode(p.mode)} className={"pill" + (p.mode === cur.mode ? " on" : "")} style={{ border: 0, width: "auto", fontWeight: 400, cursor: "pointer" }}>{p.label}</button>
           ))}
         </div>
         <div className="row" style={{ marginTop: 6 }}>
-          <button type="button" className="ghost" onClick={shareSheet}>📤 Send to a phone</button>
-          {supported && <button type="button" className="ghost" onClick={writeTag}>🏷️ Write to a tag</button>}
+          <button type="button" className="ghost" onClick={shareSheet}>Send to a phone</button>
+          {supported && <button type="button" className="ghost" onClick={writeTag}>Write to a tag</button>}
         </div>
         <p className="muted" style={{ margin: "8px 0 0", fontSize: 12.5 }}>
           Searching works with NFC cards and stickers, and with phones that share a tap link. Sending to a phone uses your phone&apos;s own share sheet (Nearby Share or AirDrop). Browsers can&apos;t beam to another phone directly.

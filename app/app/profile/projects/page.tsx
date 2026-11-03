@@ -51,7 +51,7 @@ export default async function Projects({ searchParams }: { searchParams: Promise
         <label className="f">Show on</label>
         <div className="chips">
           {PAGES.map((m) => (
-            <label key={m} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={m} defaultChecked={m === "HIRE" || m === "HACKATHON"} />{MODE_INFO[m as Mode].icon} {MODE_INFO[m as Mode].label}</label>
+            <label key={m} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={m} defaultChecked={m === "HIRE"} />{MODE_INFO[m as Mode].icon} {MODE_INFO[m as Mode].label}</label>
           ))}
         </div>
         <button>Add project</button>

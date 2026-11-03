@@ -9,6 +9,7 @@ import { MODES, MODE_INFO, Mode } from "@/lib/modes";
 import { byline, gradient, parseAvatar } from "@/lib/look";
 import { AvatarArt } from "@/components/avatar";
 import { svgToString } from "@/lib/svg-string";
+import { getUpload } from "@/lib/storage";
 
 const MIME: Record<string, string> = { ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp" };
 
@@ -31,7 +32,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ hand
   let avatarSrc = "";
   if (p.photo) {
     try {
-      const buf = await readFile(path.join(process.cwd(), "uploads", path.basename(p.photo)));
+      const buf = await getUpload(p.photo);
       avatarSrc = `data:${MIME[path.extname(p.photo)] ?? "image/jpeg"};base64,${buf.toString("base64")}`;
     } catch { /* fall through */ }
   }
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ hand
   let logoSrc = "";
   if (p.logo) {
     try {
-      const lb = await readFile(path.join(process.cwd(), "uploads", path.basename(p.logo)));
+      const lb = await getUpload(p.logo);
       logoSrc = `data:${MIME[path.extname(p.logo)] ?? "image/png"};base64,${lb.toString("base64")}`;
     } catch { /* no logo */ }
   }

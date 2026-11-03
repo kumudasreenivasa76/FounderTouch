@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import jsQR from "jsqr";
 import type { Found } from "@/app/app/tap-actions";
+import { queueScan } from "./offline-sync";
 
 /** Scan someone else's QR code with the camera. A FounderTouch card shows who it is and can be saved. */
 export default function ScanOthers({ peek, save }: { peek: (raw: string) => Promise<Found>; save: (handle: string, mode: string) => Promise<{ ok: boolean; own?: boolean }> }) {
@@ -29,6 +30,12 @@ export default function ScanOthers({ peek, save }: { peek: (raw: string) => Prom
     if (busy.current) return;
     busy.current = true;
     setSaved(false);
+    if (!navigator.onLine) {
+      queueScan(raw); stop(); setFound(null); setOther("");
+      setErr("You are offline. The scan is saved and will be added to your wallet when you are back online.");
+      setTimeout(() => { busy.current = false; }, 1200);
+      return;
+    }
     const r = await peek(raw);
     if (r.ok) { setFound(r); setOther(""); stop(); try { navigator.vibrate?.([40, 60, 40]); } catch { /* ignore */ } }
     else { setFound(null); setOther(raw); }
@@ -70,17 +77,17 @@ export default function ScanOthers({ peek, save }: { peek: (raw: string) => Prom
       <div className="viewfinder">
         <video ref={video} playsInline muted style={{ display: on ? "block" : "none" }} />
         {on && <div className="vf-frame" />}
-        {!on && <div className="vf-empty">📷</div>}
+        {!on && <div className="vf-empty"></div>}
       </div>
       <canvas ref={canvas} style={{ display: "none" }} />
-      <div style={{ marginTop: 10 }}>{on ? <button type="button" className="ghost" onClick={stop}>Stop camera</button> : <button type="button" onClick={start}>📷 Start scanning</button>}</div>
+      <div style={{ marginTop: 10 }}>{on ? <button type="button" className="ghost" onClick={stop}>Stop camera</button> : <button type="button" onClick={start}>Start scanning</button>}</div>
       {err && <div className="err" style={{ marginTop: 10 }}>{err}</div>}
 
       {found && (
         <div className="card found-card" style={{ marginTop: 12 }}>
           <div className="found-ini">{found.initials}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="muted" style={{ fontSize: 12 }}>{found.own ? "That's you" : "🎉 Found a card"}</div>
+            <div className="muted" style={{ fontSize: 12 }}>{found.own ? "That's you" : "Found a card"}</div>
             <b style={{ fontSize: 18 }}>{found.name}</b>
             <div className="muted">{found.sub || found.modeLabel}</div>
           </div>

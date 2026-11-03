@@ -5,15 +5,19 @@ import { db } from "@/lib/db";
 import { requireOwner } from "@/lib/auth";
 import { MODES } from "@/lib/modes";
 import { THEMES } from "@/lib/look";
+import { brandLocked } from "@/lib/org";
 
 /** One of the preset card colours. */
 export async function setTheme(fd: FormData) {
-  const { profile } = await requireOwner();
+  const { user, profile } = await requireOwner();
+  const rr = String(fd.get("ret"));
+  const back = (qs: string) => /^kit:[A-Z]+$/.test(rr) ? `/app/profile/kit?mode=${rr.slice(4)}&tab=brand&${qs}` : `/app/settings?${qs}`;
+  if (await brandLocked(user.id)) redirect(back("err=locked"));
   const theme = String(fd.get("theme"));
   if (!(theme in THEMES)) return;
   await db.profile.update({ where: { id: profile.id }, data: { theme } });
   revalidatePath("/app", "layout");
-  redirect("/app/settings?saved=1");
+  redirect(back("saved=1"));
 }
 
 /** Approval, intro, button label, booking link and visibility for one mode. */
@@ -32,5 +36,6 @@ export async function saveMode(fd: FormData) {
     },
   });
   revalidatePath("/app", "layout");
+  if (fd.get("ret") === "kit") redirect(`/app/profile/kit?mode=${mode}&tab=actions&saved=1`);
   redirect(`/app/settings?mode=${mode}&saved=1`);
 }

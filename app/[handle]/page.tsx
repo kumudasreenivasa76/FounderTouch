@@ -7,18 +7,24 @@ import { db } from "@/lib/db";
 import { canView } from "@/lib/access";
 import { currentUser } from "@/lib/auth";
 import { modeHasContent } from "@/lib/mode-content";
+import PageLink from "@/components/page-link";
 import ModeSelect from "@/components/mode-select";
 import { bookingInfo } from "@/lib/booking";
 import { MODES, MODE_INFO, Mode, kindLabel, kindsOf, listItems, parseFields } from "@/lib/modes";
 import Avatar from "@/components/avatar";
-import { tagList } from "@/lib/tags";
+import { tagList, cleanTags } from "@/lib/tags";
 import { SocialBadge } from "@/components/social-icon";
 import { socialUrl } from "@/lib/socials";
-import { gradient, byline } from "@/lib/look";
+import { gradient, byline, themeOf } from "@/lib/look";
+import DigitalCard from "@/components/digital-card";
+import { SocialIcon } from "@/components/social-icon";
 import Swiper from "@/components/swiper";
 import ProjectCard from "@/components/project-card";
 import { byStartDesc, fmtRange } from "@/lib/career";
 import { SOCIALS, parseSocials } from "@/lib/socials";
+import { emit } from "@/lib/integrations";
+import { logActivity } from "@/lib/activity";
+import Icon from "@/components/icon";
 export const dynamic = "force-dynamic";
 
 async function exchange(fd: FormData) {
@@ -28,11 +34,17 @@ async function exchange(fd: FormData) {
   const email = String(fd.get("email")).trim().toLowerCase();
   const fullName = `${String(fd.get("firstName")).trim()} ${String(fd.get("lastName")).trim()}`.trim();
   if (!p || !email || !fullName) return;
-  await db.contact.upsert({
+  const prev = await db.contact.findUnique({ where: { profileId_email: { profileId: p.id, email } } });
+  if (prev?.status === "BLOCKED") return; // blocked people cannot re-request
+  const linkedin = socialUrl("linkedin", String(fd.get("linkedin") ?? ""));
+  // A scan or form fill is only a request. It becomes a connection when the owner accepts.
+  const saved = await db.contact.upsert({
     where: { profileId_email: { profileId: p.id, email } },
-    update: { name: fullName, company: String(fd.get("company")), mode, linkedin: socialUrl("linkedin", String(fd.get("linkedin") ?? "")) },
-    create: { profileId: p.id, email, name: fullName, company: String(fd.get("company")), mode, linkedin: socialUrl("linkedin", String(fd.get("linkedin") ?? "")) },
+    update: { lastInteractionAt: new Date(), interactions: { increment: 1 }, name: fullName, company: String(fd.get("company")), mode, linkedin },
+    create: { profileId: p.id, email, name: fullName, company: String(fd.get("company")), mode, linkedin, status: "PENDING", source: "qr" },
   });
+  await logActivity(saved.id, prev ? "visit" : "created", prev ? `Visited your ${mode.toLowerCase()} page again` : `Asked to connect from your ${mode === "ALL" ? "main" : mode.toLowerCase()} page`);
+  if (!prev) emit(p.id, "contact.created", { name: fullName, email, company: String(fd.get("company") ?? ""), mode, source: "qr" });
   revalidatePath(`/${handle}`);
 }
 
@@ -45,10 +57,33 @@ async function requestModeAccess(fd: FormData) {
   const cfg = p ? await db.modeConfig.findFirst({ where: { profileId: p.id, mode } }) : null;
   if (!p || !cfg?.requireApproval) redirect(`/${handle}?mode=${mode}`);
   if (!name || !/^\S+@\S+\.\S+$/.test(email)) redirect(`/${handle}?mode=${mode}&error=1`);
-  await db.contact.upsert({ where: { profileId_email: { profileId: p.id, email } }, update: { name, mode }, create: { profileId: p.id, email, name, mode } });
+  await db.contact.upsert({ where: { profileId_email: { profileId: p.id, email } }, update: { lastInteractionAt: new Date(), interactions: { increment: 1 }, name, mode }, create: { profileId: p.id, email, name, mode } });
   const open = await db.modeRequest.findFirst({ where: { profileId: p.id, mode, email, status: { in: ["PENDING", "APPROVED"] } } });
   if (!open) await db.modeRequest.create({ data: { profileId: p.id, mode, name, email, note: String(fd.get("note") ?? "").trim().slice(0, 300), token: randomBytes(16).toString("hex") } });
   redirect(`/${handle}?mode=${mode}&requested=1`);
+}
+
+/** Saves this person into the signed-in visitor's own Contacts, with the tags they typed. */
+async function saveContact(fd: FormData) {
+  "use server";
+  const handle = String(fd.get("handle")), mode = String(fd.get("mode"));
+  const here = `/${handle}?mode=${mode}`;
+  const me = await currentUser();
+  if (!me?.profile) redirect(`/login?next=${encodeURIComponent(here)}`);
+  const p = await db.profile.findUnique({ where: { handle } });
+  if (!p || p.id === me.profile.id) redirect(here);
+  const email = (p.email || `${p.handle}@card.foundertouch`).toLowerCase();
+  const tags = cleanTags(String(fd.get("tags") ?? ""));
+  const data = { name: p.name, company: p.company, jobTitle: p.headline, phone: p.phone, linkedin: parseSocials(p.socials).linkedin ?? "", mode, metAt: "Digital card" };
+  const prev = await db.contact.findUnique({ where: { profileId_email: { profileId: me.profile.id, email } } });
+  const merged = cleanTags([prev?.tags ?? "", tags].filter(Boolean).join(","));
+  const saved = await db.contact.upsert({
+    where: { profileId_email: { profileId: me.profile.id, email } },
+    update: { ...data, tags: merged, lastInteractionAt: new Date() },
+    create: { profileId: me.profile.id, email, ...data, tags: merged, status: "CONNECTED", source: "link" },
+  });
+  await logActivity(saved.id, prev ? "visit" : "created", prev ? "Saved their card again" : "Saved from their digital card");
+  redirect(`${here}&contact=1`);
 }
 
 /** Saves this person's card to the signed-in visitor's wallet (they sign in first if needed). */
@@ -87,7 +122,7 @@ async function requestAccess(fd: FormData) {
   if (!p || !r || r.profileId !== p.id || !r.gated || !name || !/^\S+@\S+\.\S+$/.test(email)) return;
   await db.contact.upsert({
     where: { profileId_email: { profileId: p.id, email } },
-    update: { name, mode },
+    update: { lastInteractionAt: new Date(), interactions: { increment: 1 }, name, mode },
     create: { profileId: p.id, email, name, mode },
   });
   const open = await db.deckRequest.findFirst({ where: { resourceId: r.id, email, status: { in: ["PENDING", "APPROVED"] } } });
@@ -95,7 +130,7 @@ async function requestAccess(fd: FormData) {
   revalidatePath(`/${handle}`);
 }
 
-export default async function Public({ params, searchParams }: { params: Promise<{ handle: string }>; searchParams: Promise<{ mode?: string; tag?: string; pane?: string; requested?: string; error?: string; saved?: string; invited?: string }> }) {
+export default async function Public({ params, searchParams }: { params: Promise<{ handle: string }>; searchParams: Promise<{ contact?: string; mode?: string; tag?: string; pane?: string; requested?: string; error?: string; saved?: string; invited?: string }> }) {
   const { handle } = await params;
   const sp = await searchParams;
   const p = await db.profile.findUnique({ where: { handle }, include: { sections: true, modes: true, resources: { orderBy: { createdAt: "asc" } }, team: { orderBy: { order: "asc" } }, events: { orderBy: { startsAt: "asc" } }, projects: { where: { eventId: null }, orderBy: { createdAt: "desc" } }, career: true, jobs: { where: { open: true }, orderBy: { createdAt: "desc" } } } });
@@ -109,13 +144,13 @@ export default async function Public({ params, searchParams }: { params: Promise
   if (!(await canView(p, mode, cfg.requireApproval))) {
     const info = MODE_INFO[mode as Mode];
     return (
-      <div className="screen">
+      <div role="main" id="main" className="screen">
         <div className="card hero hero-themed" style={{ background: gradient(p.theme), border: 0, position: "relative" }}>
         {p.logo && <img className="brand-logo" src={`/logo/${p.handle}?v=${encodeURIComponent(p.logo)}`} alt={p.company ? `${p.company} logo` : ""} />}
           <Avatar name={p.name} handle={p.handle} hasPhoto={!!p.photo} avatar={p.avatar} size={88} flip center />
           <h1>{p.name}</h1>
           <div>{byline(p.headline, p.company)}</div>
-          <span className="pill" style={{ marginTop: 8 }}>🔒 {info.label} · private</span>
+          <span className="pill" style={{ marginTop: 8 }}>{info.label} · private</span>
         </div>
         {sp.requested ? (
           <div className="ok">Request sent ✓ {p.name} will review it and send you a private link.</div>
@@ -164,7 +199,7 @@ export default async function Public({ params, searchParams }: { params: Promise
         <b style={{ display: "block", marginBottom: 6 }}>{r.title}</b>
         {src && <video src={src} controls playsInline preload="metadata" style={frame} />}
         {embed && <iframe src={embed} title={r.title} loading="lazy" allowFullScreen allow="autoplay; fullscreen; picture-in-picture" style={{ ...frame, aspectRatio: "16 / 9", border: 0 }} />}
-        {!src && !embed && <a className="btn ghost" href={href(r)} target="_blank" rel="noopener noreferrer">▶ Watch demo</a>}
+        {!src && !embed && <a className="btn ghost" href={href(r)} target="_blank" rel="noopener noreferrer">Watch demo</a>}
         {(src || embed) && r.url && <a className="muted" href={r.url} target="_blank" rel="noopener noreferrer">Open original ↗</a>}
       </div>
     );
@@ -178,13 +213,13 @@ export default async function Public({ params, searchParams }: { params: Promise
         {src
           ? <iframe src={src} title={r.title} loading="lazy" allowFullScreen style={{ width: "100%", height: 340, border: "1px solid #e3e6ec", borderRadius: 12, background: "#fff" }} />
           : ext && !isPublicOrigin(origin) && <p className="muted" style={{ margin: "0 0 6px" }}>Inline preview of PowerPoint/Word files works once the site is online. Upload a PDF to preview it anywhere.</p>}
-        <a className="btn ghost" style={{ marginTop: 8 }} href={href(r)} target="_blank">{src ? "Open full screen ↗" : "📄 Open " + r.title}</a>
+        <a className="btn ghost" style={{ marginTop: 8 }} href={href(r)} target="_blank">{src ? "Open full screen ↗" : "Open " + r.title}</a>
       </div>
     );
   };
   const locked = (r: Res) => (
     <details key={r.id} className="card" style={{ background: "#f6f7f9", padding: 10, marginBottom: 8 }}>
-      <summary>🔒 {r.title} <span className="muted">· request access</span></summary>
+      <summary>{r.title} <span className="muted">· request access</span></summary>
       <form action={requestAccess}>
         <input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value={mode} /><input type="hidden" name="resourceId" value={r.id} />
         <div className="row"><input name="firstName" placeholder="First name" required /><input name="lastName" placeholder="Last name" required /></div><input name="email" type="email" placeholder="Your email" required />
@@ -206,25 +241,25 @@ export default async function Public({ params, searchParams }: { params: Promise
         <h1>{p.name}</h1>
         <div>{byline(p.headline, p.company)}</div>
         <span className="pill" style={{ marginTop: 8 }}>{MODE_INFO[mode as Mode].icon} {MODE_INFO[mode as Mode].label}</span>
-        {mode === "RECRUITER" && p.jobs.length > 0 && <div><span className="pill on" style={{ background: "#fff", color: "#0b7a4b" }}>🟢 Hiring · {p.jobs.length} open role{p.jobs.length === 1 ? "" : "s"}</span></div>}
+        {mode === "RECRUITER" && p.jobs.length > 0 && <div><span className="pill on" style={{ background: "#fff", color: "#0b7a4b" }}>Hiring · {p.jobs.length} open role{p.jobs.length === 1 ? "" : "s"}</span></div>}
         {p.bio && <p className="muted" style={{ margin: "4px 0 12px" }}>{p.bio}</p>}
         {mode === "RECRUITER" && p.jobs.length > 0 && <a className="btn" style={{ marginBottom: 8 }} href={`/${handle}?mode=RECRUITER&pane=roles`}>See open roles ({p.jobs.length})</a>}
         {booking && (booking.embed
           ? <a className="btn" style={{ marginBottom: 8 }} href={`/${handle}?mode=${mode}&pane=book`}>{cfg.ctaLabel}</a>
           : <a className="btn" style={{ marginBottom: 8 }} href={cfg.bookingUrl} target="_blank" rel="noopener noreferrer">{cfg.ctaLabel}</a>)}
-        <a className="btn ghost" href={`/${handle}/vcard?mode=${mode}`}>⬇ Save contact</a>
+        <a className="btn ghost" href={`/${handle}/vcard?mode=${mode}`}>Save contact</a>
         {!isOwner && (alreadySaved || sp.saved
           ? <div className="pill" style={{ marginTop: 8, display: "block", textAlign: "center", padding: "10px 12px" }}>✓ Saved to your wallet</div>
-          : <form action={saveCard} style={{ marginTop: 8 }}><input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value={mode} /><button className="ghost">💾 Save card</button></form>)}
-        {resume && <a className="btn ghost" style={{ marginTop: 8 }} href={`/${handle}?mode=${mode}&pane=hire`}>📄 View resume</a>}
+          : <form action={saveCard} style={{ marginTop: 8 }}><input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value={mode} /><button className="ghost">Save card</button></form>)}
+        {resume && <a className="btn ghost" style={{ marginTop: 8 }} href={`/${handle}?mode=${mode}&pane=hire`}>View resume</a>}
         {socials.linkedin && <a className="btn ghost" style={{ marginTop: 8 }} href={socials.linkedin} target="_blank" rel="noopener noreferrer">in Connect on LinkedIn</a>}
       </div>
-      {cfg.intro && <div className="card" style={{ background: "#eef1ff", borderColor: "#d7defb" }}>👋 {cfg.intro}</div>}
+      {cfg.intro && <div className="card" style={{ background: "#eef1ff", borderColor: "#d7defb" }}>{cfg.intro}</div>}
       {enabled.length > 0 && (mode === "ALL" || enabled.length > 1) && (
         <div className="card"><b>I am a…</b>
           <div style={{ marginTop: 8 }}>
             <ModeSelect handle={handle} current={mode} placeholder={mode === "ALL" ? "Choose who you are" : "Switch to another view"}
-              options={[...enabled.map((m) => ({ value: m.mode, label: `${MODE_INFO[m.mode as Mode].icon} ${MODE_INFO[m.mode as Mode].label}` })), ...(mode !== "ALL" ? [{ value: "ALL", label: "✨ Everything" }] : [])]} />
+              options={[...enabled.map((m) => ({ value: m.mode, label: `${MODE_INFO[m.mode as Mode].icon} ${MODE_INFO[m.mode as Mode].label}` })), ...(mode !== "ALL" ? [{ value: "ALL", label: "Everything" }] : [])]} />
           </div>
         </div>
       )}
@@ -242,7 +277,7 @@ export default async function Public({ params, searchParams }: { params: Promise
         </div>
       ))}
       {fieldDefs.filter((f) => f.type === "url").map((f) => (
-        <a key={f.key} className="btn ghost" style={link} href={fv[f.key]} target="_blank" rel="noopener noreferrer">🔗 {f.label} ↗</a>
+        <a key={f.key} className="btn ghost" style={link} href={fv[f.key]} target="_blank" rel="noopener noreferrer">{f.label} ↗</a>
       ))}
     </div>
   );
@@ -274,7 +309,7 @@ export default async function Public({ params, searchParams }: { params: Promise
     <>
       {group("DOC").length > 0 && (
         <div className="card"><h3>{kindLabel(mode, "DOC")}</h3>
-          {group("DOC").map((r) => r.gated ? locked(r) : <a key={r.id} className="btn ghost" style={link} href={href(r)} target="_blank">📎 {r.title}</a>)}
+          {group("DOC").map((r) => r.gated ? locked(r) : <a key={r.id} className="btn ghost" style={link} href={href(r)} target="_blank">{r.title}</a>)}
         </div>
       )}
       {group("SUPPORT").length > 0 && (() => {
@@ -293,7 +328,7 @@ export default async function Public({ params, searchParams }: { params: Promise
             )}
             {shown.map((r) => r.gated ? locked(r) : (
               <a key={r.id} className="btn ghost" style={{ ...link, textAlign: "left" }} href={href(r)} target="_blank">
-                📎 {r.title}
+                {r.title}
                 {tagList(r.tags).length > 0 && <span style={{ display: "block", fontSize: 12, opacity: 0.7, fontWeight: 400 }}>{tagList(r.tags).map((t) => "#" + t).join("  ")}</span>}
               </a>
             ))}
@@ -323,7 +358,7 @@ export default async function Public({ params, searchParams }: { params: Promise
       {showCareer && myJobs.length > 0 && openTo !== "Not looking" && (
         <form action={inviteCandidate} className="card" style={{ background: "#eef1ff", borderColor: "#d7defb" }}>
           <input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value={mode} />
-          <b>🎯 Invite {p.firstName || p.name} to apply</b>
+          <b>Invite {p.firstName || p.name} to apply</b>
           {sp.invited && <div className="ok" style={{ marginTop: 8 }}>Invite sent ✓</div>}
           <select name="jobId" style={{ marginTop: 8 }}>{myJobs.map((j) => <option key={j.id} value={j.id}>{j.title}{invitedJobs.has(j.id) ? " (invited)" : ""}</option>)}</select>
           <button>Send invite</button>
@@ -331,15 +366,15 @@ export default async function Public({ params, searchParams }: { params: Promise
       )}
       {(openTo || skillList.length > 0) && (
         <div className="card">
-          {openTo && <div style={{ marginBottom: skillList.length ? 10 : 0 }}><span className="pill on" style={{ margin: 0 }}>{openTo === "Not looking" ? "⚪" : "🟢"} {openTo}</span></div>}
+          {openTo && <div style={{ marginBottom: skillList.length ? 10 : 0 }}><span className="pill on" style={{ margin: 0 }}>{openTo === "Not looking" ? "" : ""} {openTo}</span></div>}
           {skillList.length > 0 && <><h3>Skills</h3><div>{skillList.map((x) => <span key={x} className="pill">{x}</span>)}</div></>}
         </div>
       )}
-      {jobs.length > 0 && <div className="card"><h3>💼 Experience</h3>{jobs.map(timeline)}</div>}
-      {schools.length > 0 && <div className="card"><h3>🎓 Education</h3>{schools.map(timeline)}</div>}
-      {group("RESUME").length > 0 && <div className="card"><h3>📄 {kindLabel(mode, "RESUME")}</h3>{group("RESUME").map((r) => r.gated ? locked(r) : viewer(r))}</div>}
-      {portfolioLink && <div className="card"><h3>🗂️ Portfolio</h3><a className="btn ghost" href={portfolioLink} target="_blank" rel="noopener noreferrer">Open my portfolio ↗</a></div>}
-      {group("PORTFOLIO").length > 0 && <div className="card"><h3>🗂️ {kindLabel(mode, "PORTFOLIO")}</h3>{group("PORTFOLIO").map((r) => r.gated ? locked(r) : viewer(r))}</div>}
+      {jobs.length > 0 && <div className="card"><h3>Experience</h3>{jobs.map(timeline)}</div>}
+      {schools.length > 0 && <div className="card"><h3>Education</h3>{schools.map(timeline)}</div>}
+      {group("RESUME").length > 0 && <div className="card"><h3>{kindLabel(mode, "RESUME")}</h3>{group("RESUME").map((r) => r.gated ? locked(r) : viewer(r))}</div>}
+      {portfolioLink && <div className="card"><h3>Portfolio</h3><a className="btn ghost" href={portfolioLink} target="_blank" rel="noopener noreferrer">Open my portfolio ↗</a></div>}
+      {group("PORTFOLIO").length > 0 && <div className="card"><h3>{kindLabel(mode, "PORTFOLIO")}</h3>{group("PORTFOLIO").map((r) => r.gated ? locked(r) : viewer(r))}</div>}
     </>
   );
   const rolesP = (
@@ -348,7 +383,7 @@ export default async function Public({ params, searchParams }: { params: Promise
         <div className="card" key={j.id}>
           <b style={{ fontSize: 16 }}>{j.title}</b>
           <div className="muted">{[j.location, j.workType, j.employment].filter(Boolean).join(" · ")}</div>
-          {j.salary && <div style={{ marginTop: 4 }}>💰 {j.salary}</div>}
+          {j.salary && <div style={{ marginTop: 4 }}>{j.salary}</div>}
           {j.description && <p style={{ whiteSpace: "pre-wrap", margin: "8px 0" }}>{j.description.length > 220 ? j.description.slice(0, 220) + "…" : j.description}</p>}
           {listItems(j.skills).length > 0 && <div>{listItems(j.skills).map((x) => <span className="pill" key={x}>{x}</span>)}</div>}
           <a className="btn" style={{ marginTop: 8 }} href={`/${handle}/apply/${j.id}`}>Apply →</a>
@@ -356,14 +391,14 @@ export default async function Public({ params, searchParams }: { params: Promise
       ))}
     </>
   );
-  const hack = inModes("HACKATHON", "ALL");
+  const hack = inModes("ALL");
   const modeProjects = p.projects.filter((x) => mode === "ALL" || x.modes.split(",").includes(mode));
   const projectsP = <>{modeProjects.map((x) => <ProjectCard key={x.id} p={x} origin={origin} />)}</>;
   const eventsP = (
     <>
       {p.events.map((e) => (
         <a key={e.id} href={`/e/${e.slug}`} className="menu-row">
-          <span className="menu-ico">🏆</span>
+          <span className="menu-ico"><Icon name="trophy" /></span>
           <span style={{ flex: 1, minWidth: 0 }}><b>{e.name}</b><span className="muted" style={{ display: "block" }}>{[e.startsAt?.toLocaleDateString("en-IN", { dateStyle: "medium" }), e.location].filter(Boolean).join(" · ") || "Details soon"}</span></span>
           <span className={"pill" + (e.open ? " on" : "")} style={{ margin: 0 }}>{e.open ? "Open" : "Closed"}</span>
         </a>
@@ -381,10 +416,10 @@ export default async function Public({ params, searchParams }: { params: Promise
     <>
       {hasContact && (
         <div className="card"><h3>Contact</h3>
-          {p.company && <div>🏢 {p.company}</div>}
-          {p.phone && <div>📞 <a href={`tel:${p.phone.replace(/\s+/g, "")}`}>{p.phone}</a></div>}
-          {p.email && <div>✉ <a href={`mailto:${p.email}`}>{p.email}</a></div>}
-          {p.website && <div>🌐 <a href={p.website} target="_blank">{p.website.replace(/^https?:\/\//, "")}</a></div>}
+          {p.company && <div>{p.company}</div>}
+          {p.phone && <div><a href={`tel:${p.phone.replace(/\s+/g, "")}`}>{p.phone}</a></div>}
+          {p.email && <div><a href={`mailto:${p.email}`}>{p.email}</a></div>}
+          {p.website && <div><a href={p.website} target="_blank">{p.website.replace(/^https?:\/\//, "")}</a></div>}
           {Object.keys(socials).length > 0 && (
             <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 10 }}>
               {SOCIALS.filter((x) => socials[x.key]).map((x) => (
@@ -419,7 +454,7 @@ export default async function Public({ params, searchParams }: { params: Promise
     const li = (title: string, body: React.ReactNode) => (<div className="li"><h3>{title}</h3>{body}</div>);
     const entry = (c: (typeof p.career)[number]) => (
       <div key={c.id} style={{ display: "flex", gap: 12, marginBottom: 14 }}>
-        <div style={{ width: 46, height: 46, borderRadius: 6, background: "#eef1ff", color: "#3b5bdb", display: "grid", placeItems: "center", fontWeight: 700, flexShrink: 0 }}>{initials(c.org) || "•"}</div>
+        <div style={{ width: 46, height: 46, borderRadius: 6, background: "#eef1ff", color: "#0a66c2", display: "grid", placeItems: "center", fontWeight: 700, flexShrink: 0 }}>{initials(c.org) || "•"}</div>
         <div style={{ minWidth: 0 }}>
           <b>{c.title}</b>
           <div>{c.org}{c.location ? ` · ${c.location}` : ""}</div>
@@ -429,7 +464,7 @@ export default async function Public({ params, searchParams }: { params: Promise
       </div>
     );
     return (
-      <div className="screen li-page">
+      <div role="main" id="main" className="screen li-page">
         <div className="li" style={{ padding: 0 }}>
           <div style={{ height: 120, background: gradient(p.theme), position: "relative" }}>{p.logo && <img className="brand-logo" src={`/logo/${p.handle}?v=${encodeURIComponent(p.logo)}`} alt={p.company ? `${p.company} logo` : ""} />}</div>
           <div style={{ padding: "0 16px 16px" }}>
@@ -441,22 +476,22 @@ export default async function Public({ params, searchParams }: { params: Promise
             <h1 style={{ margin: 0, fontSize: 24 }}>{p.name}</h1>
             <div style={{ fontSize: 16 }}>{p.headline || byline(p.headline, p.company)}</div>
             <div className="muted">{[p.company, p.website && p.website.replace(/^https?:\/\//, "")].filter(Boolean).join(" · ")}</div>
-            {cfg.intro && <div className="muted" style={{ marginTop: 6 }}>👋 {cfg.intro}</div>}
+            {cfg.intro && <div className="muted" style={{ marginTop: 6 }}>{cfg.intro}</div>}
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
               {contactHref && <a className="btn" style={{ width: "auto", padding: "8px 18px", borderRadius: 99 }} href={contactHref}>{cfg.ctaLabel || "Contact me"}</a>}
               {socials.linkedin && <a className="btn ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }} href={socials.linkedin} target="_blank" rel="noopener noreferrer">in Connect</a>}
               <a className="btn ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }} href={`/${handle}/vcard?mode=HIRE`}>Save contact</a>
-              {firstResume && <a className="btn ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }} href={href(firstResume)} target="_blank" rel="noopener noreferrer">📄 Resume</a>}
+              {firstResume && <a className="btn ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }} href={href(firstResume)} target="_blank" rel="noopener noreferrer">Resume</a>}
               {!isOwner && (alreadySaved || sp.saved
                 ? <span className="pill" style={{ margin: 0, alignSelf: "center" }}>✓ Saved</span>
-                : <form action={saveCard}><input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value="HIRE" /><button className="ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }}>💾 Save card</button></form>)}
+                : <form action={saveCard}><input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value="HIRE" /><button className="ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }}>Save card</button></form>)}
             </div>
           </div>
         </div>
 
         {openTo && (
           <div className="li" style={{ background: openToWork ? "#f0fbf5" : "#fff", borderLeft: `4px solid ${openToWork ? "#0ca678" : "#cfd4dd"}` }}>
-            <b>{openToWork ? "🟢 " : "⚪ "}{openTo}</b>
+            <b>{openToWork ? "" : ""}{openTo}</b>
             {skillList.length > 0 && <div className="muted">{skillList.slice(0, 3).join(" · ")}</div>}
           </div>
         )}
@@ -470,13 +505,13 @@ export default async function Public({ params, searchParams }: { params: Promise
         ))}</>)}
         {(resumes.length > 0 || portfolios.length > 0 || portfolioLink) && li("Resume & portfolio", <>
           {resumes.map((r) => r.gated ? locked(r) : viewer(r))}
-          {portfolioLink && <a className="btn ghost" style={{ marginBottom: 8 }} href={portfolioLink} target="_blank" rel="noopener noreferrer">🗂️ Open my portfolio ↗</a>}
+          {portfolioLink && <a className="btn ghost" style={{ marginBottom: 8 }} href={portfolioLink} target="_blank" rel="noopener noreferrer">Open my portfolio ↗</a>}
           {portfolios.map((r) => r.gated ? locked(r) : viewer(r))}
         </>)}
         {hasContact && li("Contact info", <>
-          {p.phone && <div>📞 <a href={`tel:${p.phone.replace(/\s+/g, "")}`}>{p.phone}</a></div>}
-          {p.email && <div>✉ <a href={`mailto:${p.email}`}>{p.email}</a></div>}
-          {p.website && <div>🌐 <a href={p.website} target="_blank" rel="noopener noreferrer">{p.website.replace(/^https?:\/\//, "")}</a></div>}
+          {p.phone && <div><a href={`tel:${p.phone.replace(/\s+/g, "")}`}>{p.phone}</a></div>}
+          {p.email && <div><a href={`mailto:${p.email}`}>{p.email}</a></div>}
+          {p.website && <div><a href={p.website} target="_blank" rel="noopener noreferrer">{p.website.replace(/^https?:\/\//, "")}</a></div>}
           {Object.keys(socials).length > 0 && <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 10 }}>{SOCIALS.filter((x) => socials[x.key]).map((x) => (
             <a key={x.key} href={socials[x.key]} target="_blank" rel="noopener noreferrer" aria-label={x.label} title={x.label}><SocialBadge k={x.key} size={40} /></a>
           ))}</div>}
@@ -495,6 +530,135 @@ export default async function Public({ params, searchParams }: { params: Promise
     );
   }
 
+  // Founder: one profile-style page. Save the contact first, then everything a new contact should know.
+  if (mode === "FOUNDER") {
+    const pageUrl = `${origin}/${p.handle}?mode=FOUNDER`;
+    const initials = (t: string) => t.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
+    const decks = group("DECK"), demos = group("DEMO"), docs = [...group("DOC"), ...group("SUPPORT")];
+    const stage = fv.stage, traction = fv.traction, looking = listItems(fv.lookingFor ?? "");
+    // The "What we do" text may hold several titled parts (What we do, Products, Team). Show each with its own heading.
+    const aboutTitle = MODE_INFO.FOUNDER.about.toLowerCase();
+    const blocks = (kitText || "").split(/\n\s*\n/).map((chunk) => chunk.trim()).filter(Boolean).map((chunk) => {
+      const [first, ...rest] = chunk.split(/\r?\n/);
+      const isHead = rest.length > 0 && first.length <= 32 && !/[.:;!?]$/.test(first.trim());
+      if (!isHead) return { title: "", body: chunk };
+      return { title: first.trim().toLowerCase() === aboutTitle ? "" : first.trim(), body: rest.join("\n").trim() };
+    }).filter((b) => b.body);
+    const hasAny = !!(kitText || stage || traction || looking.length || decks.length || demos.length || docs.length || showTeam);
+    const sec = (title: string, body: React.ReactNode) => (<section className="fp-sec"><h2>{title}</h2>{body}</section>);
+    const cta = booking ? (booking.embed ? `/${handle}?mode=FOUNDER&pane=book` : cfg.bookingUrl) : p.email ? `mailto:${p.email}` : "";
+    return (
+      <div role="main" id="main" className="screen fp-page">
+        <div className="fp-cardwrap">
+          <DigitalCard
+            background={gradient(p.theme)} back={`linear-gradient(135deg, ${themeOf(p.theme).to}, ${themeOf(p.theme).from})`}
+            avatar={<Avatar name={p.name} handle={p.handle} hasPhoto={!!p.photo} avatar={p.avatar} size={56} />}
+            name={p.name} sub={p.headline || byline(p.headline, p.company)}
+            logo={p.logo ? `/logo/${p.handle}?v=${encodeURIComponent(p.logo)}` : undefined}
+            lines={[
+              ...(p.phone ? [{ icon: "phone", text: p.phone, href: `tel:${p.phone.replace(/\s+/g, "")}` }] : []),
+              ...(p.email ? [{ icon: "mail", text: p.email, href: `mailto:${p.email}` }] : []),
+              ...(p.website ? [{ icon: "globe", text: p.website.replace(/^https?:\/\//, ""), href: p.website }] : []),
+            ]}
+            social={SOCIALS.filter((x) => socials[x.key]).map((x) => (
+              <a key={x.key} href={socials[x.key]} target="_blank" rel="noopener noreferrer" title={x.label} aria-label={x.label}
+                style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(255,255,255,.22)", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center" }}><SocialIcon k={x.key} size={16} /></a>
+            ))}
+          />
+        </div>
+        <div className="fp-card fp-save">
+          {cfg.intro && <p className="fp-intro" style={{ marginTop: 0 }}>{cfg.intro}</p>}
+          <div className="fp-actions" style={{ marginTop: 0 }}>
+            {sp.contact ? (
+              <div className="fp-done"><b>Saved to your Contacts</b><a href="/app/contacts">Open Contacts</a></div>
+            ) : (
+              <details className="fp-savebox">
+                <summary className="fp-primary">Save contact</summary>
+                <div className="fp-savepane">
+                  <form action={saveContact}>
+                    <input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value="FOUNDER" />
+                    <label className="fp-lab" htmlFor="fp-tags">Add a tag (optional)</label>
+                    <input id="fp-tags" name="tags" placeholder="e.g. investor, met at summit" maxLength={80} list="fp-tag-ideas" autoComplete="off" />
+                    <datalist id="fp-tag-ideas"><option value="investor" /><option value="customer" /><option value="partner" /><option value="hire" /><option value="advisor" /></datalist>
+                    <button className="fp-go">Save to my Contacts</button>
+                  </form>
+                  <a className="fp-vcf" href={`/${handle}/vcard?mode=FOUNDER`}>Or download to your phone (.vcf)</a>
+                  {!me && <p className="muted" style={{ margin: "8px 0 0", fontSize: 12.5 }}>You will be asked to sign in so we can add it to your Contacts.</p>}
+                </div>
+              </details>
+            )}
+            {cta && <a className="fp-btn" href={cta} {...(booking && !booking.embed ? { target: "_blank", rel: "noopener noreferrer" } : {})}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 6h16v12H4zM4 7l8 6 8-6" /></svg>{cfg.ctaLabel || "Let's connect"}</a>}
+            {socials.linkedin && <a className="fp-btn" href={socials.linkedin} target="_blank" rel="noopener noreferrer"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.75h4V21H3zM9.5 9.75h3.8v1.6h.06c.53-1 1.84-2.05 3.8-2.05 4.06 0 4.84 2.67 4.84 6.14V21h-4v-4.9c0-1.17-.02-2.67-1.63-2.67-1.63 0-1.88 1.27-1.88 2.58V21h-4z" /></svg>LinkedIn</a>}
+            {!isOwner && (alreadySaved || sp.saved
+              ? <span className="fp-saved">Saved to your wallet</span>
+              : <form action={saveCard}><input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value="FOUNDER" /><button className="fp-btn">Save to wallet</button></form>)}
+          </div>
+          <PageLink url={pageUrl} title={`${p.name} · digital card`} />
+        </div>
+
+        <details className="fp-more" open={sp.pane === "book"}>
+          <summary><span className="fp-more-t">View full profile</span><span className="fp-more-s">About, documents, team and contact</span><i aria-hidden /></summary>
+          <div className="fp-ext">
+        {(stage || looking.length > 0) && (
+          <div className="fp-card fp-glance">
+            {stage && <div><span>Stage</span><b>{stage}</b></div>}
+            {looking.length > 0 && <div><span>Looking for</span><b>{looking.join(", ")}</b></div>}
+            {p.company && <div><span>Company</span><b>{p.company}</b></div>}
+          </div>
+        )}
+
+        {blocks.length > 0 && (
+          <div className="fp-card">{sec(MODE_INFO.FOUNDER.about, <div className="fp-blocks">{blocks.map((b, i) => (
+            <div key={i} className={"fp-block" + (b.title ? "" : " plain")}>
+              {b.title && <h3>{b.title}</h3>}
+              <p>{b.body}</p>
+            </div>
+          ))}</div>)}</div>
+        )}
+        {traction && <div className="fp-card">{sec("Traction", <div className="fp-text">{traction}</div>)}</div>}
+        {decks.length > 0 && <div className="fp-card">{sec(kindLabel(mode, "DECK"), <>{decks.map((r) => r.gated ? locked(r) : viewer(r))}</>)}</div>}
+        {demos.length > 0 && <div className="fp-card">{sec(kindLabel(mode, "DEMO"), <>{demos.map((r) => r.gated ? locked(r) : demo(r))}</>)}</div>}
+        {docs.length > 0 && <div className="fp-card">{sec("Documents", <>{docs.map((r) => r.gated ? locked(r) : <a key={r.id} className="fp-doc" href={href(r)} target="_blank" rel="noopener noreferrer"><span>{r.title}</span><em>Open</em></a>)}</>)}</div>}
+        {showTeam && (
+          <div className="fp-card">{sec(`Team${p.company ? ` at ${p.company}` : ""}`, <>{p.team.map((t) => {
+            const lp = linked.find((x) => x.handle === t.memberHandle);
+            const nm = lp?.name ?? t.name, role = t.role || lp?.headline || "";
+            const row = (<div className="fp-person"><div className="fp-ini">{initials(nm)}</div><div><b>{nm}</b><span>{role}</span></div></div>);
+            return t.link ? <a key={t.id} href={t.link} target={t.memberHandle ? undefined : "_blank"} rel="noopener noreferrer" className="fp-rowlink">{row}</a> : <div key={t.id}>{row}</div>;
+          })}<a className="fp-co" href={`/company/${p.handle}`}>View the shared company page</a></>)}</div>
+        )}
+        {!hasAny && <div className="fp-card">{sec("Welcome", <div className="fp-text">{p.name} has not added more to this page yet.</div>)}</div>}
+
+        {hasContact && (
+          <div className="fp-card">{sec("Contact", <>
+            {p.phone && <div className="fp-line"><span>Phone</span><a href={`tel:${p.phone.replace(/\s+/g, "")}`}>{p.phone}</a></div>}
+            {p.email && <div className="fp-line"><span>Email</span><a href={`mailto:${p.email}`}>{p.email}</a></div>}
+            {p.website && <div className="fp-line"><span>Website</span><a href={p.website} target="_blank" rel="noopener noreferrer">{p.website.replace(/^https?:\/\//, "")}</a></div>}
+            {Object.keys(socials).length > 0 && <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 10 }}>{SOCIALS.filter((x) => socials[x.key]).map((x) => (
+              <a key={x.key} href={socials[x.key]} target="_blank" rel="noopener noreferrer" aria-label={x.label} title={x.label}><SocialBadge k={x.key} size={40} /></a>
+            ))}</div>}
+          </>)}</div>
+        )}
+
+        {booking?.embed && sp.pane === "book" && bookP}
+
+        <div className="fp-card">{sec("Share your details back", (
+          <form action={exchange} className="fp-form">
+            <input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value="FOUNDER" />
+            <div className="row"><input name="firstName" placeholder="First name" required /><input name="lastName" placeholder="Last name" required /></div>
+            <input name="email" type="email" placeholder="Email" required />
+            <input name="company" placeholder="Company" />
+            <input name="linkedin" placeholder="Your LinkedIn (optional)" />
+            <button>Send</button>
+            <p className="muted">By sending, you agree {p.name} may contact you.</p>
+          </form>
+        ))}</div>
+          </div>
+        </details>
+      </div>
+    );
+  }
+
   const pages: { key: string; label: string; node: React.ReactNode }[] = [{ key: "me", label: "Me", node: meP }];
   if (mode === "RECRUITER" && p.jobs.length > 0) pages.push({ key: "roles", label: `Open roles (${p.jobs.length})`, node: rolesP });
   if (kitText || fieldDefs.length > 0 || group("DECK").length > 0) pages.push({ key: "product", label: MODE_INFO[mode as Mode].pane, node: productP });
@@ -509,7 +673,7 @@ export default async function Public({ params, searchParams }: { params: Promise
   const start = Math.max(0, pages.findIndex((x) => x.key === sp.pane));
 
   return (
-    <Swiper labels={pages.map((x) => x.label)} initial={start}>
+    <Swiper main labels={pages.map((x) => x.label)} initial={start}>
       {pages.map((x) => <div key={x.key}>{x.node}</div>)}
     </Swiper>
   );

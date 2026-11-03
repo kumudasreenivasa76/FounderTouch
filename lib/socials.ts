@@ -5,9 +5,9 @@ export const SOCIALS = [
   { key: "github", label: "GitHub", icon: "⌘", base: "https://github.com/", ph: "github.com/you" },
   { key: "youtube", label: "YouTube", icon: "▶", base: "https://youtube.com/@", ph: "youtube.com/@you" },
   { key: "facebook", label: "Facebook", icon: "f", base: "https://facebook.com/", ph: "facebook.com/you" },
-  { key: "telegram", label: "Telegram", icon: "✈", base: "https://t.me/", ph: "@you" },
-  { key: "portfolio", label: "Portfolio", icon: "🗂", base: "https://", ph: "yourportfolio.com" },
-  { key: "whatsapp", label: "WhatsApp", icon: "✆", base: "https://wa.me/", ph: "+91 98765 43210" },
+  { key: "telegram", label: "Telegram", icon: "", base: "https://t.me/", ph: "@you" },
+  { key: "portfolio", label: "Portfolio", icon: "", base: "https://", ph: "yourportfolio.com" },
+  { key: "whatsapp", label: "WhatsApp", icon: "", base: "https://wa.me/", ph: "+91 98765 43210" },
 ] as const;
 
 export type Socials = Partial<Record<(typeof SOCIALS)[number]["key"], string>>;

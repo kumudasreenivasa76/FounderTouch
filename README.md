@@ -11,6 +11,17 @@ A phone-style web app for sharing yourself with QR codes and NFC taps. You pick 
 - **Events**: branded event pages (colours, logo, cover), registration with a QR ticket, camera check-in, attendee list, project submissions, and hiring roles linked to an event.
 - **Controls**: per-mode "needs my approval" gate, per-file gating, booking links (Calendly, Cal.com, Google Calendar and more) embedded in the page.
 
+## Newer additions
+
+- **NFC tags** (`/app/nfc`): each tag holds a permanent `/n/{token}` link; change which mode it opens any time, set a fallback, disable or reset a lost tag.
+- **Connections**: a scan or form fill is a request; you accept, decline or block it. Private notes, follow-up dates and repeat-interaction counts on contacts.
+- **Access control**: revoke approved file or page access; set an expiry date on any file.
+- **Events**: ticket types, approval, waitlist, registration window, consent checkboxes, confirmation emails, calendar (.ics) download, staff roles, meal vouchers with vendor scanner, external links, recruiter panel that records consented conversations without creating applications.
+- **Email**: set `RESEND_API_KEY` and `MAIL_FROM` to send; otherwise messages are recorded as logged. Each message is sent once per trigger, recipient and reference.
+- **Flags**: `FLAGS=-event_vouchers,-transactional_email` in `.env` turns features off (all on by default).
+- **Tests**: `npm test` (runs against the local dev database and cleans up).
+- Not built: online payment for paid tickets, Google/Microsoft calendar sync, CRM/ATS connectors, SMS.
+
 ## Run it
 
 ```bash

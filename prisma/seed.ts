@@ -18,7 +18,7 @@ async function main() {
   };
   const sel: Record<string, string[]> = {
     FOUNDER: [s.about, s.products, s.team], SERVICES: [s.about, s.products, s.pricing], CUSTOMER: [s.products, s.pricing],
-    INVESTOR: [s.about, s.traction, s.team], HACKATHON: [s.about, s.project, s.team], ALL: Object.values(s),
+    INVESTOR: [s.about, s.traction, s.team], ALL: Object.values(s),
   } as any;
     for (const m of MODES) {
     await db.modeConfig.create({ data: { profileId: p.id, mode: m, sectionIds: JSON.stringify(sel[m].map((x: any) => x.id)), ctaLabel: MODE_INFO[m].cta } });

@@ -14,9 +14,9 @@ export default function ProjectCard({ p, origin, action }: { p: ProjectView; ori
       {direct && <video src={p.demoUrl} controls playsInline preload="metadata" style={frame} />}
       {embed && <iframe src={embed} title={p.name} loading="lazy" allowFullScreen allow="autoplay; fullscreen; picture-in-picture" style={{ ...frame, aspectRatio: "16 / 9", border: 0 }} />}
       {p.description && <p className="muted" style={{ whiteSpace: "pre-wrap", margin: "6px 0" }}>{p.description}</p>}
-      {(p.team || p.submitter) && <div className="muted">👥 {p.team || p.submitter}</div>}
+      {(p.team || p.submitter) && <div className="muted">{p.team || p.submitter}</div>}
       <div className="row" style={{ marginTop: 8 }}>
-        {p.demoUrl && !direct && !embed && <a className="btn ghost" href={p.demoUrl} target="_blank" rel="noopener noreferrer">▶ Open demo</a>}
+        {p.demoUrl && !direct && !embed && <a className="btn ghost" href={p.demoUrl} target="_blank" rel="noopener noreferrer">Open demo</a>}
         {p.repoUrl && <a className="btn ghost" href={p.repoUrl} target="_blank" rel="noopener noreferrer">⌘ Code</a>}
       </div>
       {action}

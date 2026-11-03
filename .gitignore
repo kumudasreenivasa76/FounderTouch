@@ -13,3 +13,4 @@ dev.log
 *.tmp.png
 .env.local
 .DS_Store
+dev.err

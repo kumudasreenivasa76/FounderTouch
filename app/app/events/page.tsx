@@ -4,7 +4,9 @@ import { requireOwner } from "@/lib/auth";
 import { themeOf, gradient } from "@/lib/look";
 import PageHead from "@/components/page-head";
 import { createEvent } from "./actions";
+import EventWizard from "@/components/event-wizard";
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Events" };
 
 const fmt = (d: Date | null) => (d ? d.toLocaleDateString("en-IN", { dateStyle: "medium" }) : "");
 
@@ -28,24 +30,13 @@ export default async function Events({ searchParams }: { searchParams: Promise<{
           <span style={{ flex: 1, minWidth: 0, padding: "12px 4px 12px 12px" }}>
             <b>{e.name}</b>
             <span className="muted" style={{ display: "block" }}>{[fmt(e.startsAt), e.location].filter(Boolean).join(" · ") || "No date yet"}</span>
-            <span className="muted" style={{ display: "block" }}>🎟 {e._count.attendees} registered · ✅ {e.attendees.length} checked in · 💡 {e._count.projects} projects</span>
+            <span className="muted" style={{ display: "block" }}>{e._count.attendees} registered · {e.attendees.length} checked in · {e._count.projects} projects</span>
           </span>
-          <span style={{ padding: 12 }}><span className={"pill" + (e.open ? " on" : "")} style={{ margin: 0 }}>{e.open ? "Open" : "Closed"}</span></span>
+          <span style={{ padding: 12 }}><span className={"pill" + (e.published && e.open ? " on" : "")} style={{ margin: 0 }}>{!e.published ? "Draft" : e.open ? "Open" : "Closed"}</span></span>
         </Link>
       ))}
 
-      <form action={createEvent} className="card">
-        <h3>Create an event</h3>
-        <input name="name" placeholder="Event name (e.g. Bengaluru AI Hackathon)" required />
-        <textarea name="description" rows={3} placeholder="What is it about? Theme, prizes, who it is for…" />
-        <input name="location" placeholder="Venue or Online" />
-        <div className="row">
-          <div><label className="f">Starts</label><input name="startsAt" type="datetime-local" /></div>
-          <div><label className="f">Ends</label><input name="endsAt" type="datetime-local" /></div>
-        </div>
-        <button>Create event</button>
-        <p className="muted" style={{ marginBottom: 0 }}>Next you can add the agenda, your colours, logo and cover image, and open registration.</p>
-      </form>
+      <EventWizard action={createEvent} />
       <span style={{ display: "none" }}>{t.from}</span>
     </>
   );

@@ -64,7 +64,7 @@ export default function BrandForm({ action, logoSrc, color1, color2, company, re
   return (
     <form action={action} className="card">
       {ret && <input type="hidden" name="ret" value={ret} />}
-      <h3>Company logo &amp; colours</h3>
+      <h2 style={{ fontSize: 15 }}>Company logo &amp; colours</h2>
       <p className="muted" style={{ marginTop: 0 }}>Your logo shows on your digital card and page, and your colours replace the preset theme everywhere.</p>
 
       <div style={{ height: 78, borderRadius: 14, background: `linear-gradient(135deg, ${c1}, ${c2})`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 14px", color: "#fff", marginBottom: 10 }}>

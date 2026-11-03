@@ -23,7 +23,7 @@ export default function PhotoUpload({ action, size, center, children }: { action
       <button type="button" aria-label="Upload a profile photo" title="Tap to upload a photo" onClick={() => input.current?.click()}
         style={{ width: size, height: size, padding: 0, background: "none", borderRadius: "50%", display: "block", position: "relative" }}>
         {children}
-        <span aria-hidden style={{ position: "absolute", right: -3, bottom: -3, width: badge, height: badge, borderRadius: "50%", background: "#3b5bdb", color: "#fff", fontSize: badge * 0.55, lineHeight: `${badge}px`, border: "2px solid #fff", textAlign: "center" }}>📷</span>
+        <span aria-hidden style={{ position: "absolute", right: -3, bottom: -3, width: badge, height: badge, borderRadius: "50%", background: "#0a66c2", color: "#fff", fontSize: badge * 0.55, lineHeight: `${badge}px`, border: "2px solid #fff", textAlign: "center" }}></span>
       </button>
     </form>
   );

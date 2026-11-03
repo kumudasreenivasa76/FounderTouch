@@ -6,6 +6,7 @@ import path from "path";
 import { db } from "@/lib/db";
 import { requireOwner } from "@/lib/auth";
 import { EMPLOYMENT, STATUSES, WORK_TYPES } from "@/lib/hiring";
+import { deleteUpload } from "@/lib/storage";
 
 const done = () => revalidatePath("/app", "layout");
 
@@ -48,7 +49,7 @@ export async function deleteJob(fd: FormData) {
   const { profile } = await requireOwner();
   const j = await db.job.findFirst({ where: { id: String(fd.get("id")), profileId: profile.id }, include: { applications: true } });
   if (!j) return;
-  for (const a of j.applications) if (a.resumeFile) await unlink(path.join(process.cwd(), "uploads", path.basename(a.resumeFile))).catch(() => {});
+  for (const a of j.applications) if (a.resumeFile) await deleteUpload(a.resumeFile).catch(() => {});
   await db.job.delete({ where: { id: j.id } });
   done();
 }
@@ -65,7 +66,7 @@ export async function deleteApplicant(fd: FormData) {
   const { profile } = await requireOwner();
   const a = await db.application.findFirst({ where: { id: String(fd.get("id")), profileId: profile.id } });
   if (!a) return;
-  if (a.resumeFile) await unlink(path.join(process.cwd(), "uploads", path.basename(a.resumeFile))).catch(() => {});
+  if (a.resumeFile) await deleteUpload(a.resumeFile).catch(() => {});
   await db.application.delete({ where: { id: a.id } });
   done();
 }

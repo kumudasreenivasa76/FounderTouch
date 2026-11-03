@@ -68,9 +68,9 @@ export default function QrScanner({ eventId, initialChecked, total, check }: { e
   useEffect(() => stop, [stop]);
 
   const banner = res && {
-    ok: { bg: "#e6f9ef", fg: "#0b7a4b", text: `✅ ${res.name} checked in` },
-    already: { bg: "#fff4e0", fg: "#a35a00", text: `⚠️ ${res.name} was already checked in${res.at ? " at " + new Date(res.at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : ""}` },
-    unknown: { bg: "#fde8e8", fg: "#a61b1b", text: "❌ Not a ticket for this event" },
+    ok: { bg: "#e6f9ef", fg: "#0b7a4b", text: `${res.name} checked in` },
+    already: { bg: "#fff4e0", fg: "#a35a00", text: `${res.name} was already checked in${res.at ? " at " + new Date(res.at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : ""}` },
+    unknown: { bg: "#fde8e8", fg: "#a61b1b", text: "Not a ticket for this event" },
     error: { bg: "#fde8e8", fg: "#a61b1b", text: "Something went wrong. Try again." },
   }[res.status];
 
@@ -81,7 +81,7 @@ export default function QrScanner({ eventId, initialChecked, total, check }: { e
       <div style={{ position: "relative", borderRadius: 18, overflow: "hidden", background: "#0b0d12", aspectRatio: "1 / 1" }}>
         <video ref={video} playsInline muted style={{ width: "100%", height: "100%", objectFit: "cover", display: on ? "block" : "none" }} />
         {on && <div style={{ position: "absolute", inset: "18%", border: "3px solid rgba(255,255,255,.9)", borderRadius: 18, boxShadow: "0 0 0 999px rgba(0,0,0,.35)" }} />}
-        {!on && <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#cfd4dd", fontSize: 44 }}>📷</div>}
+        {!on && <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#cfd4dd", fontSize: 44 }}></div>}
       </div>
       <canvas ref={canvas} style={{ display: "none" }} />
 

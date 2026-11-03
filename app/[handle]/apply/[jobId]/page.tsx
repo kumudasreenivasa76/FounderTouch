@@ -11,6 +11,7 @@ import { gradient, byline } from "@/lib/look";
 import { listItems } from "@/lib/modes";
 import { parseSocials, socialUrl } from "@/lib/socials";
 import Avatar from "@/components/avatar";
+import { putUpload } from "@/lib/storage";
 export const dynamic = "force-dynamic";
 
 const here = (handle: string, jobId: string) => `/${handle}/apply/${jobId}`;
@@ -41,7 +42,7 @@ async function applyWithProfile(fd: FormData) {
   await db.application.create({
     data: { jobId: job.id, profileId: p.id, name: mine.name, email, phone: mine.phone, linkedin: parseSocials(mine.socials).linkedin ?? "", resumeUrl, candidateHandle: mine.handle, eventId, note: String(fd.get("note") ?? "").trim().slice(0, 600) },
   });
-  await db.contact.upsert({ where: { profileId_email: { profileId: p.id, email } }, update: { mode: "RECRUITER" }, create: { profileId: p.id, email, name: mine.name, mode: "RECRUITER" } });
+  await db.contact.upsert({ where: { profileId_email: { profileId: p.id, email } }, update: { lastInteractionAt: new Date(), interactions: { increment: 1 }, mode: "RECRUITER" }, create: { profileId: p.id, email, name: mine.name, mode: "RECRUITER" } });
   redirect(`${here(handle, jobId)}?sent=1`);
 }
 
@@ -61,8 +62,7 @@ async function applyForm(fd: FormData) {
     const ext = path.extname(f.name).toLowerCase();
     if (![".pdf", ".doc", ".docx"].includes(ext) || f.size > 5 * 1024 * 1024) redirect(`${here(handle, jobId)}?err=file`);
     resumeFile = `resume-${randomBytes(10).toString("hex")}${ext}`;
-    await mkdir(path.join(process.cwd(), "uploads"), { recursive: true });
-    await writeFile(path.join(process.cwd(), "uploads", resumeFile), Buffer.from(await f.arrayBuffer()));
+    await putUpload(resumeFile, Buffer.from(await f.arrayBuffer()));
   }
   const url = String(fd.get("resumeUrl") ?? "").trim();
   await db.application.create({
@@ -71,7 +71,7 @@ async function applyForm(fd: FormData) {
       resumeUrl: url && !/^https?:\/\//i.test(url) ? "https://" + url : url, resumeFile, eventId, note: String(fd.get("note") ?? "").trim().slice(0, 600),
     },
   });
-  await db.contact.upsert({ where: { profileId_email: { profileId: p.id, email } }, update: { mode: "RECRUITER" }, create: { profileId: p.id, email, name, mode: "RECRUITER" } });
+  await db.contact.upsert({ where: { profileId_email: { profileId: p.id, email } }, update: { lastInteractionAt: new Date(), interactions: { increment: 1 }, mode: "RECRUITER" }, create: { profileId: p.id, email, name, mode: "RECRUITER" } });
   redirect(`${here(handle, jobId)}?sent=1`);
 }
 
@@ -99,12 +99,12 @@ export default async function Apply({ params, searchParams }: { params: Promise<
   const skills = listItems(job.skills);
 
   return (
-    <div className="screen">
+    <div role="main" id="main" className="screen">
       <div className="card hero hero-themed" style={{ background: gradient(p.theme), border: 0 }}>
-        <span className="pill">🎯 {p.company || p.name} is hiring</span>
+        <span className="pill">{p.company || p.name} is hiring</span>
         <h1 style={{ marginTop: 8 }}>{job.title}</h1>
         <div>{[job.location, job.workType, job.employment].filter(Boolean).join(" · ")}</div>
-        {job.salary && <div style={{ marginTop: 4 }}>💰 {job.salary}</div>}
+        {job.salary && <div style={{ marginTop: 4 }}>{job.salary}</div>}
       </div>
       {job.description && <div className="card" style={{ whiteSpace: "pre-wrap" }}>{job.description}</div>}
       {skills.length > 0 && <div className="card"><h3>Skills</h3>{skills.map((s) => <span key={s} className="pill">{s}</span>)}</div>}
@@ -118,7 +118,7 @@ export default async function Apply({ params, searchParams }: { params: Promise<
           {mine && mineStats && (
             <form action={applyWithProfile} className="card" style={{ borderColor: "#b2f2bb", background: "#f3fcf5" }}>
               <input type="hidden" name="handle" value={handle} /><input type="hidden" name="jobId" value={jobId} /><input type="hidden" name="event" value={sp.event ?? ""} />
-              <b>⚡ Apply with your FounderTouch profile</b>
+              <b>Apply with your FounderTouch profile</b>
               <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "10px 0" }}>
                 <Avatar name={mine.name} handle={mine.handle} hasPhoto={!!mine.photo} avatar={mine.avatar} size={44} />
                 <div style={{ minWidth: 0 }}><b>{mine.name}</b><div className="muted">{byline(mine.headline, mine.company)}</div></div>
@@ -128,7 +128,7 @@ export default async function Apply({ params, searchParams }: { params: Promise<
               <button>Apply in one tap</button>
             </form>
           )}
-          {!me && <Link href={`/login?next=${encodeURIComponent(here(handle, jobId))}`} className="btn ghost" style={{ marginBottom: 12 }}>⚡ Have a FounderTouch profile? Log in to apply in one tap</Link>}
+          {!me && <Link href={`/login?next=${encodeURIComponent(here(handle, jobId))}`} className="btn ghost" style={{ marginBottom: 12 }}>Have a FounderTouch profile? Log in to apply in one tap</Link>}
 
           <form action={applyForm} className="card">
             <input type="hidden" name="handle" value={handle} /><input type="hidden" name="jobId" value={jobId} /><input type="hidden" name="event" value={sp.event ?? ""} />

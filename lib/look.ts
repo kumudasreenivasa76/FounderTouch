@@ -70,6 +70,31 @@ export function parseAvatar(s: string): AvatarCfg | null {
   } catch { return null; }
 }
 
+
+/** Server-side guard for a saved avatar: bounds every number, checks every colour, returns clean JSON. */
+export function sanitizeAvatar(raw: string): string | null {
+  const cfg = parseAvatar(raw);
+  if (!cfg) return null;
+  const hex = /^#[0-9a-f]{6}$/i;
+  for (const k of ["bg", "skin", "hair", "eyes", "shirt"] as const) if (!hex.test(cfg[k])) cfg[k] = AVATAR_DEFAULT[k];
+  return JSON.stringify({ bg: cfg.bg, skin: cfg.skin, face: cfg.face, hair: cfg.hair, style: cfg.style, eyes: cfg.eyes, brows: cfg.brows, mouth: cfg.mouth, glasses: cfg.glasses, beard: cfg.beard, accessory: cfg.accessory, outfit: cfg.outfit, shirt: cfg.shirt });
+}
+
+/** A pleasant starter avatar derived from a seed (the handle), so every new profile begins with a face. */
+export function seededAvatar(seed: string): AvatarCfg {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+  const n = (salt: number, len: number) => { const x = Math.imul(h ^ (salt * 2654435761), 40503) >>> 16; return x % len; };
+  const pick = <T,>(a: readonly T[], salt: number) => a[n(salt, a.length)];
+  return {
+    bg: pick(AVATAR_OPTS.bg, 1), skin: pick(AVATAR_OPTS.skin, 2), face: n(3, 3),
+    hair: pick(AVATAR_OPTS.hair, 4), style: n(5, 8), eyes: pick(AVATAR_OPTS.eyes, 6),
+    brows: n(7, 4), mouth: n(8, 5) === 3 ? 0 : n(8, 5), // "Open" is an odd default
+    glasses: n(9, 10) < 3 ? 1 + n(9, 3) : 0, beard: n(10, 10) < 3 ? 1 + n(10, 3) : 0,
+    accessory: 0, outfit: n(11, 4), shirt: pick(AVATAR_OPTS.shirt, 12),
+  };
+}
+
 /** One-tap starting looks. */
 export const AVATAR_PRESETS: AvatarCfg[] = [
   { ...AVATAR_DEFAULT },
@@ -88,4 +113,14 @@ export function byline(headline: string, company: string): string {
   if (!c) return h;
   if (!h) return c;
   return h.toLowerCase().includes(c.toLowerCase()) ? h : `${h} · ${c}`;
+}
+
+/** Darkens a brand colour until text in it is readable on a white background (WCAG AA, 4.5:1). */
+export function readable(hex: string): string {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return "#3b5bdb";
+  const lum = (rgb: number[]) => { const c = rgb.map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+  let rgb = [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16));
+  for (let n = 0; n < 40 && 1.05 / (lum(rgb) + 0.05) < 4.5; n++) rgb = rgb.map((v) => Math.round(v * 0.92));
+  return "#" + rgb.map((v) => v.toString(16).padStart(2, "0")).join("");
 }

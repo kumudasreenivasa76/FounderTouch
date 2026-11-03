@@ -9,10 +9,11 @@ import { endSession, requireOwner } from "@/lib/auth";
 import { KINDS, MAX_UPLOAD } from "@/lib/kinds";
 import { MODES, MODE_INFO, Mode } from "@/lib/modes";
 import { customTheme } from "@/lib/look";
+import { brandLocked } from "@/lib/org";
 import { cleanTags } from "@/lib/tags";
 import { socialsFromForm, socialUrl } from "@/lib/socials";
+import { putUpload, deleteUpload } from "@/lib/storage";
 
-const UPLOADS = () => path.join(process.cwd(), "uploads");
 const ROUTES: Record<string, string> = { basic: "details", contact: "contact", company: "company", kit: "kit", work: "work" };
 /** Back to a profile screen, optionally with a banner flag like "&saved=1". */
 const go: (screen: string, extra?: string) => never = (screen, extra = "") => redirect(`/app/profile/${ROUTES[screen]}${extra ? "?" + extra.slice(1) : ""}`);
@@ -27,9 +28,8 @@ export async function saveDetails(fd: FormData) {
     const ext = path.extname(f.name).toLowerCase();
     if (![".jpg", ".jpeg", ".png", ".webp"].includes(ext) || f.size > 5 * 1024 * 1024) go("basic", "&err=photo");
     photo = "photo-" + randomBytes(8).toString("hex") + ext;
-    await mkdir(UPLOADS(), { recursive: true });
-    await writeFile(path.join(UPLOADS(), photo), Buffer.from(await f.arrayBuffer()));
-    if (profile.photo) await unlink(path.join(UPLOADS(), path.basename(profile.photo))).catch(() => {});
+    await putUpload(photo, Buffer.from(await f.arrayBuffer()));
+    if (profile.photo) await deleteUpload(profile.photo).catch(() => {});
   }
   const firstName = String(fd.get("firstName")).trim(), lastName = String(fd.get("lastName")).trim();
   await db.profile.update({
@@ -47,16 +47,15 @@ export async function uploadPhoto(fd: FormData) {
   const ext = path.extname(f.name).toLowerCase();
   if (![".jpg", ".jpeg", ".png", ".webp"].includes(ext) || f.size > 5 * 1024 * 1024) return;
   const photo = "photo-" + randomBytes(8).toString("hex") + ext;
-  await mkdir(UPLOADS(), { recursive: true });
-  await writeFile(path.join(UPLOADS(), photo), Buffer.from(await f.arrayBuffer()));
-  if (profile.photo) await unlink(path.join(UPLOADS(), path.basename(profile.photo))).catch(() => {});
+  await putUpload(photo, Buffer.from(await f.arrayBuffer()));
+  if (profile.photo) await deleteUpload(profile.photo).catch(() => {});
   await db.profile.update({ where: { id: profile.id }, data: { photo } });
   done();
 }
 
 export async function removePhoto() {
   const { profile } = await requireOwner();
-  if (profile.photo) await unlink(path.join(UPLOADS(), path.basename(profile.photo))).catch(() => {});
+  if (profile.photo) await deleteUpload(profile.photo).catch(() => {});
   await db.profile.update({ where: { id: profile.id }, data: { photo: "" } });
   done();
   go("basic", "&saved=1");
@@ -73,7 +72,8 @@ export async function saveContact(fd: FormData) {
 }
 
 export async function saveCompany(fd: FormData) {
-  const { profile } = await requireOwner();
+  const { user, profile } = await requireOwner();
+  if (await brandLocked(user.id)) go("company", "&err=locked");
   await db.profile.update({
     where: { id: profile.id },
     data: { company: String(fd.get("company")).trim() },
@@ -147,11 +147,10 @@ export async function addResource(fd: FormData) {
     const ext = path.extname(file.name).toLowerCase().replace(/[^.a-z0-9]/g, "").slice(0, 8);
     filePath = randomBytes(10).toString("hex") + ext;
     mime = file.type;
-    await mkdir(UPLOADS(), { recursive: true });
-    await writeFile(path.join(UPLOADS(), filePath), Buffer.from(await file.arrayBuffer()));
+    await putUpload(filePath, Buffer.from(await file.arrayBuffer()));
   }
   if (!url && !filePath) go(back, `&mode=${kmode}&err=empty&kind=${kind}`);
-  const title = String(fd.get("title")).trim() || (file?.name && file.size > 0 ? file.name : KINDS[kind]);
+  const title = String(fd.get("title") ?? "").trim() || (file?.name && file.size > 0 ? file.name : KINDS[kind]);
   await db.resource.create({ data: { profileId: profile.id, kind, title, url, filePath, mime, gated: fd.get("gated") === "on", modes: pickModes(fd, kmode), tags: cleanTags(String(fd.get("tags") ?? "")) } });
   done();
   go(back, `&mode=${kmode}&saved=1`);
@@ -165,12 +164,22 @@ export async function setResourceModes(fd: FormData) {
   go("kit", `&mode=${kmode}&saved=1`);
 }
 
+/** Sets or clears the date after which a file stops being available. */
+export async function setResourceExpiry(fd: FormData) {
+  const { profile } = await requireOwner();
+  const v = String(fd.get("expiresAt") ?? "");
+  const d = v ? new Date(v + "T23:59:59") : null;
+  await db.resource.updateMany({ where: { id: String(fd.get("id")), profileId: profile.id }, data: { expiresAt: d && !isNaN(d.getTime()) ? d : null } });
+  done();
+  go("kit", `&mode=${kitMode(fd.get("kmode"))}&saved=1`);
+}
+
 export async function delResource(fd: FormData) {
   const { profile } = await requireOwner();
   const r = await db.resource.findFirst({ where: { id: String(fd.get("id")), profileId: profile.id } });
   if (!r) return;
   await db.resource.delete({ where: { id: r.id } });
-  if (r.filePath) await unlink(path.join(UPLOADS(), path.basename(r.filePath))).catch(() => {});
+  if (r.filePath) await deleteUpload(r.filePath).catch(() => {});
   done();
 }
 
@@ -182,27 +191,64 @@ export async function logout() {
 
 /** Company logo and brand colours. Colours become the theme for the card, the page and the card image. */
 export async function saveBrand(fd: FormData) {
-  const { profile } = await requireOwner();
-  const home = String(fd.get("ret")) === "settings" ? "/app/settings" : "/app/profile/company";
+  const { user, profile } = await requireOwner();
+  const rr = String(fd.get("ret"));
+  const base = rr === "settings" ? "/app/settings" : /^kit:[A-Z]+$/.test(rr) ? `/app/profile/kit?mode=${rr.slice(4)}&tab=brand` : "/app/profile/company";
+  const home = (qs: string) => base + (base.includes("?") ? "&" : "?") + qs;
+  if (await brandLocked(user.id)) redirect(home("err=locked"));
   const hex = (v: FormDataEntryValue | null) => (/^#[0-9a-f]{6}$/i.test(String(v ?? "").trim()) ? String(v).trim().toLowerCase() : "");
   const c1 = hex(fd.get("color1")), c2 = hex(fd.get("color2")) || c1;
   let logo = profile.logo;
   if (fd.get("rm_logo") === "on") {
-    if (logo) await unlink(path.join(UPLOADS(), path.basename(logo))).catch(() => {});
+    if (logo) await deleteUpload(logo).catch(() => {});
     logo = "";
   }
   const f = fd.get("logo") as File | null;
   if (f && f.size > 0) {
     const ext = path.extname(f.name).toLowerCase();
-    if (![".png", ".jpg", ".jpeg", ".webp"].includes(ext) || f.size > 2 * 1024 * 1024) redirect(`${home}?err=logo`);
+    if (![".png", ".jpg", ".jpeg", ".webp"].includes(ext) || f.size > 2 * 1024 * 1024) redirect(home("err=logo"));
     const name = "logo-" + randomBytes(8).toString("hex") + ext;
-    await mkdir(UPLOADS(), { recursive: true });
-    await writeFile(path.join(UPLOADS(), name), Buffer.from(await f.arrayBuffer()));
-    if (logo) await unlink(path.join(UPLOADS(), path.basename(logo))).catch(() => {});
+    await putUpload(name, Buffer.from(await f.arrayBuffer()));
+    if (logo) await deleteUpload(logo).catch(() => {});
     logo = name;
   }
   const theme = fd.get("reset") === "on" ? "sunset" : c1 ? customTheme(c1, c2) : profile.theme;
   await db.profile.update({ where: { id: profile.id }, data: { logo, theme } });
   done();
-  redirect(`${home}?saved=1`);
+  redirect(home("saved=1"));
+}
+
+const kitBack = (fd: FormData, tab: string) => {
+  const m = String(fd.get("kmode") ?? "");
+  return `/app/profile/kit?mode=${/^[A-Z]+$/.test(m) ? m : "FOUNDER"}&tab=${tab}&saved=1`;
+};
+
+/** Lock or unlock one document: locked items need the visitor to ask for approval. */
+export async function setResourceLock(fd: FormData) {
+  const { profile } = await requireOwner();
+  await db.resource.updateMany({ where: { id: String(fd.get("id")), profileId: profile.id }, data: { gated: fd.get("gated") === "on" } });
+  done();
+  redirect(kitBack(fd, "docs"));
+}
+
+/** Another QR for the same page, for example one per event or per printed card. */
+export async function createQr(fd: FormData) {
+  const { profile } = await requireOwner();
+  const mode = String(fd.get("kmode"));
+  if (!(MODES as readonly string[]).includes(mode)) return;
+  await db.shareLink.create({ data: { profileId: profile.id, mode, token: randomBytes(6).toString("hex") } });
+  done();
+  redirect(kitBack(fd, "share"));
+}
+
+/** Remove an extra QR. The first QR of a page cannot be removed here. */
+export async function deleteQr(fd: FormData) {
+  const { profile } = await requireOwner();
+  const mode = String(fd.get("kmode"));
+  const all = await db.shareLink.findMany({ where: { profileId: profile.id, mode }, orderBy: { id: "asc" } });
+  const l = all.find((x) => x.id === String(fd.get("id")));
+  if (!l || all.length < 2 || all[0].id === l.id) return;
+  await db.shareLink.delete({ where: { id: l.id } });
+  done();
+  redirect(kitBack(fd, "share"));
 }

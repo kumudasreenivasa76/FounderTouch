@@ -1,6 +1,6 @@
 import { MODE_INFO, Mode, parseFields } from "./modes";
 
-type Cfg = { kitText: string; fields: string; intro: string } | undefined;
+type Cfg = { kitText: string; fields: string; intro: string; added?: boolean } | undefined;
 type Res = { modes: string };
 
 /**
@@ -10,12 +10,12 @@ type Res = { modes: string };
 export function modeHasContent(mode: string, cfg: Cfg, resources: Res[], extra: { projects: number; events: number; jobs?: number; career?: number; projectModes?: string[] }): boolean {
   if (mode === "ALL") return true;
   if (!MODE_INFO[mode as Mode] || !cfg) return false;
+  if (cfg.added) return true; // the owner chose this mode, so it shows even before it has content
   if (mode === "HIRE") return (extra.career ?? 0) > 0;
   if (cfg.kitText.trim() || cfg.intro.trim()) return true;
   if (Object.values(parseFields(cfg.fields)).some((v) => String(v).trim())) return true;
   if (resources.some((r) => r.modes.split(",").includes(mode))) return true;
   if ((extra.projectModes ?? []).includes(mode)) return true;
-  if (mode === "HACKATHON" && extra.events > 0) return true;
   if (mode === "RECRUITER" && (extra.jobs ?? 0) > 0) return true;
   return false;
 }

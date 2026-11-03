@@ -2,7 +2,7 @@
  * The modes (who you are when you share). Each mode asks for only what it needs:
  * its own fields and only the kinds of files that make sense for it.
  */
-export const MODES = ["FOUNDER", "INVESTOR", "SERVICES", "HIRE", "RECRUITER", "HACKATHON", "OTHER", "ALL"] as const;
+export const MODES = ["FOUNDER", "INVESTOR", "SERVICES", "HIRE", "RECRUITER", "OTHER", "ALL"] as const;
 export type Mode = (typeof MODES)[number];
 
 export type Kind = "DECK" | "DEMO" | "RESUME" | "PORTFOLIO" | "DOC" | "SUPPORT";
@@ -11,6 +11,7 @@ export type Field = { key: string; label: string; type: FieldType; hint?: string
 
 type Info = {
   label: string; icon: string; blurb: string; cta: string;
+  intro?: string;
   kit: string;         // name of this mode's kit
   about: string;       // heading of the main description
   aboutHint: string;   // placeholder for the main description
@@ -21,8 +22,9 @@ type Info = {
 
 export const MODE_INFO: Record<Mode, Info> = {
   FOUNDER: {
-    label: "Founder", icon: "🚀", blurb: "I run a startup", cta: "Let's connect",
-    kit: "Founder kit", about: "What we do", aboutHint: "What your product does, in one or two lines", pane: "Startup",
+    label: "Founder", icon: "", blurb: "I run a startup", cta: "Let's connect",
+    intro: "Everything investors, partners and future hires need to back you. Add only what fits.",
+    kit: "Founder", about: "What we do", aboutHint: "What your product does, in one or two lines", pane: "Startup",
     kinds: { RESUME: "Resume / CV", PORTFOLIO: "Portfolio", DECK: "Pitch deck", DEMO: "Product demo", DOC: "2-pager", SUPPORT: "Other documents" },
     fields: [
       { key: "stage", label: "Stage", type: "select", options: ["Idea", "Pre-seed", "Seed", "Series A", "Series B+", "Bootstrapped", "Profitable"] },
@@ -31,7 +33,7 @@ export const MODE_INFO: Record<Mode, Info> = {
     ],
   },
   INVESTOR: {
-    label: "Investor", icon: "💼", blurb: "I invest in startups", cta: "Pitch me",
+    label: "Investor", icon: "", blurb: "I invest in startups", cta: "Pitch me",
     kit: "Investor kit", about: "Investment thesis", aboutHint: "What you look for in a founder and a company", pane: "Portfolio",
     kinds: { RESUME: "Resume / CV", PORTFOLIO: "Portfolio document", DECK: "Fund deck", DOC: "Thesis & one-pager", SUPPORT: "Other documents" },
     fields: [
@@ -47,7 +49,7 @@ export const MODE_INFO: Record<Mode, Info> = {
     ],
   },
   SERVICES: {
-    label: "Business", icon: "🛠️", blurb: "I sell products or services", cta: "Get a quote",
+    label: "Business", icon: "", blurb: "I sell products or services", cta: "Get a quote",
     kit: "Business kit", about: "What we offer", aboutHint: "Your products or services and who they are for", pane: "Offerings",
     kinds: { RESUME: "Resume / CV", PORTFOLIO: "Portfolio & clients", DECK: "Company profile", DEMO: "Product or work video", DOC: "Catalog, rate card or brochure", SUPPORT: "Case studies & other documents" },
     fields: [
@@ -63,13 +65,13 @@ export const MODE_INFO: Record<Mode, Info> = {
     ],
   },
   HIRE: {
-    label: "Hire me", icon: "🙋", blurb: "I am looking for work", cta: "Contact me",
+    label: "Hire me", icon: "", blurb: "I am looking for work", cta: "Contact me",
     kit: "Hire me page", about: "About", aboutHint: "A short summary of who you are and what you are good at", pane: "Profile",
     kinds: { RESUME: "Resume / CV", PORTFOLIO: "Portfolio files", SUPPORT: "Certificates & documents" },
     fields: [],
   },
   RECRUITER: {
-    label: "Recruiter", icon: "🎯", blurb: "I hire talent", cta: "See open roles",
+    label: "Recruiter", icon: "", blurb: "I hire talent", cta: "See open roles",
     kit: "Recruiter kit", about: "Why join us", aboutHint: "What it is like to work with your company", pane: "Hiring",
     kinds: { DECK: "Company deck", DOC: "Job descriptions", SUPPORT: "Other documents" },
     fields: [
@@ -80,19 +82,8 @@ export const MODE_INFO: Record<Mode, Info> = {
       { key: "applyUrl", label: "Careers or apply link", type: "url" },
     ],
   },
-  HACKATHON: {
-    label: "Hackathon", icon: "🏆", blurb: "I hack and organize events", cta: "Team up",
-    kit: "Hackathon kit", about: "About me", aboutHint: "What you build and what you enjoy", pane: "Work",
-    kinds: { RESUME: "Resume / CV", PORTFOLIO: "Portfolio", DECK: "Pitch slides", DEMO: "Demo video", DOC: "Write-up", SUPPORT: "Other documents" },
-    fields: [
-      { key: "role", label: "I am a", type: "select", options: ["Participant", "Organizer", "Mentor", "Judge", "Sponsor"] },
-      { key: "skills", label: "Skills & stack", type: "list", hint: "e.g. React, Python, ML" },
-      { key: "team", label: "Looking for a team?", type: "select", options: ["Yes", "Maybe", "No"] },
-      { key: "wins", label: "Past hackathons & wins", type: "textarea" },
-    ],
-  },
   OTHER: {
-    label: "Other", icon: "📌", blurb: "Something else", cta: "Get in touch",
+    label: "Other", icon: "", blurb: "Something else", cta: "Get in touch",
     kit: "My kit", about: "About", aboutHint: "What this page is for", pane: "About",
     kinds: { DECK: "Slides", DEMO: "Videos", RESUME: "Resume / CV", PORTFOLIO: "Portfolio", DOC: "Documents", SUPPORT: "Other documents" },
     fields: [
@@ -102,7 +93,7 @@ export const MODE_INFO: Record<Mode, Info> = {
     ],
   },
   ALL: {
-    label: "All", icon: "✨", blurb: "Let visitors pick", cta: "Book a meeting",
+    label: "All", icon: "", blurb: "Let visitors pick", cta: "Book a meeting",
     kit: "Everything", about: "About", aboutHint: "A short overview", pane: "Overview",
     kinds: { RESUME: "Resume / CV", PORTFOLIO: "Portfolio", DECK: "Decks", DEMO: "Demos", DOC: "Documents", SUPPORT: "Supporting documents" },
     fields: [],

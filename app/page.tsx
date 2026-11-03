@@ -9,7 +9,7 @@ export default function Splash() {
     return () => clearTimeout(t);
   }, [router]);
   return (
-    <div className="screen center splash">
+    <div role="main" id="main" className="screen center splash">
       <div className="logo">F</div>
       <h1>FounderTouch</h1>
       <p className="muted">Scan. Share. Follow up.</p>

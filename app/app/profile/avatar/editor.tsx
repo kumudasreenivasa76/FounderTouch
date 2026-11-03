@@ -19,9 +19,9 @@ function Thumbs({ title, names, current, make, view, onPick }: { title: string; 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
         {names.map((n, i) => (
           <button key={n} type="button" onClick={() => onPick(i)} aria-pressed={current === i} aria-label={n}
-            style={{ width: 64, padding: 4, background: "#fff", borderRadius: 16, border: current === i ? "2px solid #3b5bdb" : "2px solid #e3e6ec", boxShadow: current === i ? "0 0 0 3px rgba(59,91,219,.15)" : "none" }}>
+            style={{ width: 64, padding: 4, background: "#fff", borderRadius: 16, border: current === i ? "2px solid #0a66c2" : "2px solid #e3e6ec", boxShadow: current === i ? "0 0 0 3px rgba(59,91,219,.15)" : "none" }}>
             <AvatarArt cfg={make(i)} size={52} view={view} />
-            <div style={{ fontSize: 10.5, marginTop: 2, color: current === i ? "#3b5bdb" : "#6b7587", fontWeight: current === i ? 600 : 400 }}>{n}</div>
+            <div style={{ fontSize: 10.5, marginTop: 2, color: current === i ? "#0a66c2" : "#566074", fontWeight: current === i ? 600 : 400 }}>{n}</div>
           </button>
         ))}
       </div>
@@ -36,7 +36,7 @@ function Swatches({ title, values, current, onPick }: { title: string; values: s
       <div style={{ display: "flex", gap: 9, flexWrap: "wrap", marginTop: 5 }}>
         {values.map((v) => (
           <button key={v} type="button" aria-label={v} onClick={() => onPick(v)}
-            style={{ width: 34, height: 34, padding: 0, borderRadius: "50%", background: `radial-gradient(circle at 35% 30%, ${v}, ${v} 60%, rgba(0,0,0,.25))`, border: current === v ? "3px solid #3b5bdb" : "2px solid #fff", boxShadow: "0 0 0 1px #cfd4dd" }} />
+            style={{ width: 34, height: 34, padding: 0, borderRadius: "50%", background: `radial-gradient(circle at 35% 30%, ${v}, ${v} 60%, rgba(0,0,0,.25))`, border: current === v ? "3px solid #0a66c2" : "2px solid #fff", boxShadow: "0 0 0 1px #cfd4dd" }} />
         ))}
       </div>
     </div>
@@ -50,14 +50,6 @@ export default function Editor({ initial, save }: { initial: AvatarCfg; save: (f
   const set = <K extends keyof AvatarCfg>(k: K, v: AvatarCfg[K]) => setC((p) => ({ ...p, [k]: v }));
   const with_ = <K extends keyof AvatarCfg>(k: K) => (i: number) => ({ ...c, [k]: i }) as AvatarCfg;
 
-  const random = () => {
-    const pick = <T,>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
-    const n = (len: number) => Math.floor(Math.random() * len);
-    setC({
-      bg: pick(AVATAR_OPTS.bg), skin: pick(AVATAR_OPTS.skin), face: n(3), hair: pick(AVATAR_OPTS.hair), style: n(8), eyes: pick(AVATAR_OPTS.eyes), brows: n(4), mouth: n(5),
-      glasses: Math.random() < 0.35 ? 1 + n(3) : 0, beard: Math.random() < 0.3 ? 1 + n(3) : 0, accessory: Math.random() < 0.3 ? 1 + n(3) : 0, outfit: n(4), shirt: pick(AVATAR_OPTS.shirt),
-    });
-  };
 
   return (
     <form action={save}>
@@ -75,16 +67,13 @@ export default function Editor({ initial, save }: { initial: AvatarCfg; save: (f
           </div>
         </div>
       </div>
-      <div className="row" style={{ marginBottom: 8 }}>
-        <button type="button" className="ghost" onClick={random}>🎲 Surprise me</button>
-        <button>Save avatar</button>
-      </div>
+      <div style={{ marginBottom: 10 }}><button className="av-save">Save</button></div>
 
-      <div className="swiper-tabs" style={{ margin: "0 -4px 10px", borderRadius: 14, border: "1px solid #e3e6ec" }}>
+      <div className="swiper-tabs kit-tabs" style={{ margin: "0 -4px 10px", border: 0 }}>
         {TABS.map((t) => <button key={t} type="button" className={t === tab ? "on" : ""} onClick={() => setTab(t)}>{t}</button>)}
       </div>
 
-      <div className="card" style={{ marginBottom: 12 }}>
+      <div className="card kit-form" style={{ marginBottom: 12 }}>
         {tab === "Looks" && (
           <>
             <label className="f" style={{ marginTop: 0 }}>Start from a look, then tweak it</label>

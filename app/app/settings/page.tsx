@@ -5,11 +5,13 @@ import { THEMES, isCustomTheme, themeOf } from "@/lib/look";
 import { bookingInfo } from "@/lib/booking";
 import PageHead from "@/components/page-head";
 import BrandForm from "@/components/brand-form";
+import ModeTabs from "@/components/mode-tabs";
 import ModePanels from "@/components/mode-panels";
 import { saveBrand } from "../profile/actions";
 import { saveMode, setTheme } from "./actions";
 import { headers } from "next/headers";
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Settings" };
 
 /** Everything that changes how your card and pages look and behave, in one place. */
 export default async function Settings({ searchParams }: { searchParams: Promise<{ saved?: string; mode?: string; err?: string }> }) {
@@ -22,10 +24,10 @@ export default async function Settings({ searchParams }: { searchParams: Promise
   const t = themeOf(profile.theme);
   return (
     <>
-      <PageHead title="Card settings" sub="Colours, logo and how each of your pages behaves." back="/app" saved={!!sp.saved} error={sp.err === "logo" ? "The logo must be a PNG, JPG or WebP under 2 MB." : undefined} />
+      <PageHead title="Card settings" sub="Colours, logo and how each of your pages behaves." back="/app" saved={!!sp.saved} error={sp.err === "logo" ? "The logo must be a PNG, JPG or WebP under 2 MB." : sp.err === "locked" ? "Your team has locked the brand, so colours, company and logo can only be changed by an admin." : undefined} />
 
       <div className="card">
-        <h3>Card colour</h3>
+        <h2 style={{ fontSize: 15 }}>Card colour</h2>
         <form action={setTheme} style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {Object.entries(THEMES).map(([k, th]) => (
             <button key={k} name="theme" value={k} aria-label={th.name} title={th.name}
@@ -46,8 +48,9 @@ export default async function Settings({ searchParams }: { searchParams: Promise
           return (
             <form key={m} action={saveMode} className="card">
               <input type="hidden" name="mode" value={m} />
-              <h3 style={{ marginTop: 0 }}>{info.icon} {info.label}</h3>
-              <label style={{ display: "block", margin: "6px 0 2px" }}><input type="checkbox" name="approval" defaultChecked={!!c?.requireApproval} /><b>🔒 Visitors need my approval</b></label>
+              <ModeTabs mode={m} handle={profile.handle} active="actions" />
+              <h2 style={{ marginTop: 0, fontSize: 15 }}>{info.icon} {info.label}</h2>
+              <label style={{ display: "block", margin: "6px 0 2px" }}><input type="checkbox" name="approval" defaultChecked={!!c?.requireApproval} /><b>Visitors need my approval</b></label>
               <p className="muted" style={{ margin: "0 0 8px" }}>People who scan see only your name and a request form until you approve them in Contacts.</p>
               <label className="f">Intro message</label>
               <textarea name="intro" rows={2} maxLength={240} defaultValue={c?.intro ?? ""} placeholder={`A short hello for ${info.label.toLowerCase()} visitors`} />

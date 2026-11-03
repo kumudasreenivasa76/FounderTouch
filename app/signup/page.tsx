@@ -20,11 +20,12 @@ const MSG: Record<string, string> = {
   exists: "That email already has an account. Log in instead.",
 };
 
+export const metadata = { title: "Sign up" };
 export default async function Signup({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   if (await currentUser()) redirect("/app");
   const sp = await searchParams;
   return (
-    <div className="screen center">
+    <div role="main" id="main" className="screen center">
       <div className="logo">F</div>
       <h1 style={{ textAlign: "center" }}>Create your account</h1>
       <p className="muted" style={{ textAlign: "center" }}>Takes under a minute</p>

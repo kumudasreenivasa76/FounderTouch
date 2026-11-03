@@ -48,7 +48,7 @@ export default async function Company({ searchParams }: { searchParams: Promise<
       })}
 
       <form action={addMember} className="card">
-        <h3>Add a team member</h3>
+        <h2 style={{ fontSize: 15 }}>Add a team member</h2>
         <label className="f">By FounderTouch username</label>
         <input name="username" placeholder="e.g. priya-nair" autoCapitalize="none" autoCorrect="off" />
         <p className="muted" style={{ margin: "0 0 4px" }}>This fills in their name and photo and links to their page.</p>

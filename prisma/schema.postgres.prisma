@@ -1,0 +1,582 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  firstName    String    @default("")
+  lastName     String    @default("")
+  createdAt    DateTime  @default(now())
+  sessions     Session[]
+  profile      Profile?
+  saved        SavedCard[]
+}
+model Session {
+  token     String   @id
+  userId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+model Profile {
+  id       String       @id @default(cuid())
+  userId   String?      @unique
+  user     User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company  String       @default("")
+  product  String       @default("")
+  photo    String       @default("")
+  theme    String       @default("indigo") // a preset key, or custom:#from:#to for company colours
+  logo     String       @default("")       // company logo file in uploads/
+  socials  String       @default("{}")
+  avatar   String       @default("")
+  website  String       @default("")
+  email    String       @default("")
+  phone    String       @default("")
+  resources Resource[]
+  team     TeamMember[]
+  events   Event[]
+  jobs     Job[]
+  projects Project[]
+  career   CareerItem[]
+  savedBy  SavedCard[]
+  openTo   String       @default("")   // Open to work, Hiringâ€¦
+  skills   String       @default("")   // comma or line separated
+  hireModes String      @default("SERVICES,FOUNDER") // pages that show the Hire me details
+  handle   String       @unique
+  name     String
+  firstName String      @default("")
+  lastName  String      @default("")
+  headline String       @default("")
+  bio      String       @default("")
+  sections Section[]
+  modes    ModeConfig[]
+  links    ShareLink[]
+  contacts Contact[]
+  nfcTags  NfcTag[]
+}
+model Section {
+  id        String  @id @default(cuid())
+  profileId String
+  type      String
+  title     String
+  body      String
+  order     Int     @default(0)
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+model ModeConfig {
+  id         String  @id @default(cuid())
+  profileId  String
+  mode       String
+  sectionIds String  @default("[]") // JSON array of Section ids
+  ctaLabel   String  @default("Book a meeting")
+  intro      String  @default("")
+  kitText    String  @default("") // main description for this mode
+  fields     String  @default("{}") // JSON of this mode's extra fields (portfolio, rates, skillsâ€¦)
+  requireApproval Boolean @default(false) // visitors must be approved before seeing this mode
+  bookingUrl String  @default("")
+  isEnabled  Boolean @default(true)
+  added      Boolean @default(false) // the owner chose to set this mode up
+  profile    Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  @@unique([profileId, mode])
+}
+model ShareLink {
+  id        String      @id @default(cuid())
+  profileId String
+  mode      String
+  token     String      @unique
+  scans     ScanEvent[]
+  profile   Profile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+model ScanEvent {
+  id          String    @id @default(cuid())
+  shareLinkId String
+  mode        String
+  source      String
+  visitorId   String
+  createdAt   DateTime  @default(now())
+  shareLink   ShareLink @relation(fields: [shareLinkId], references: [id], onDelete: Cascade)
+  @@index([shareLinkId, createdAt])
+}
+model Contact {
+  id        String   @id @default(cuid())
+  profileId String
+  name      String
+  email     String
+  company   String   @default("")
+  mode      String
+  linkedin  String   @default("")
+  source    String   @default("link")   // qr | nfc | event | manual | link
+  notes     String   @default("")      // private notes
+  followUpAt DateTime?
+  status    String   @default("CONNECTED") // PENDING | CONNECTED | BLOCKED
+  tags      String   @default("")   // comma-separated, lowercase
+  message   String   @default("")
+  lastInteractionAt DateTime @default(now())
+  interactions Int   @default(1)        // repeat scans bump this, never duplicate
+  phone     String   @default("")
+  jobTitle  String   @default("")
+  starred   Boolean  @default(false)
+  metAt     String   @default("")   // where or how you met
+  activity  ContactActivity[]
+  createdAt DateTime @default(now())
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  @@unique([profileId, email])
+}
+
+model Resource {
+  id        String   @id @default(cuid())
+  profileId String
+  kind      String   // DECK | DEMO | DOC
+  title     String
+  url       String   @default("")  // external link or Google Drive
+  filePath  String   @default("")  // uploaded file name in uploads/
+  mime      String   @default("")
+  gated     Boolean  @default(false)
+  tags      String   @default("")  // comma-separated, lowercase
+  expiresAt DateTime?
+  modes     String   @default("")  // comma-separated kits this item belongs to; "ALL" mode shows everything
+  requests  DeckRequest[]
+  createdAt DateTime @default(now())
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model DeckRequest {
+  id         String    @id @default(cuid())
+  resourceId String
+  profileId  String
+  name       String
+  email      String
+  status     String    @default("PENDING") // PENDING | APPROVED | DECLINED
+  token      String    @unique
+  createdAt  DateTime  @default(now())
+  decidedAt  DateTime?
+  resource   Resource  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  @@index([profileId, status])
+}
+
+model TeamMember {
+  id           String   @id @default(cuid())
+  profileId    String
+  name         String
+  role         String   @default("")
+  link         String   @default("")
+  memberHandle String   @default("") // FounderTouch username, if linked
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+  profile      Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  profileId   String
+  slug        String    @unique
+  name        String
+  description String    @default("")
+  location    String    @default("")
+  startsAt    DateTime?
+  endsAt      DateTime?
+  open        Boolean   @default(true) // accepting project submissions and registrations
+  agenda      String    @default("")
+  capacity    Int       @default(0) // 0 = unlimited
+  color1      String    @default("")
+  color2      String    @default("")
+  logo        String    @default("") // file in uploads/
+  cover       String    @default("") // file in uploads/
+  attendees   Attendee[]
+  staff       EventStaff[]
+  links       EventLink[]
+  voucherPlans VoucherPlan[]
+  tickets     TicketClass[]
+  encounters  RecruiterEncounter[]
+  format      String    @default("IN_PERSON") // IN_PERSON | ONLINE | HYBRID
+  visibility  String    @default("PUBLIC")    // PUBLIC | UNLISTED | INVITE
+  timezone    String    @default("Asia/Kolkata")
+  onlineUrl   String    @default("")
+  summary     String    @default("")
+  tags        String    @default("")
+  contactEmail String   @default("")
+  regOpensAt  DateTime?
+  regDeadline DateTime?
+  requireApproval Boolean @default(false)
+  waitlist    Boolean   @default(false)
+  refundPolicy String   @default("")
+  modules     String    @default("[]")        // enabled optional modules: vouchers, hackathon, recruiting, agenda
+  published   Boolean   @default(true)
+  plusOnes    Int       @default(0)   // extra guests each person may bring
+  questions   String    @default("[]") // custom registration questions (JSON list)
+  announcements EventAnnouncement[]
+  scans       EventScan[]
+  jobs        Job[]
+  createdAt   DateTime  @default(now())
+  profile     Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  projects    Project[]
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  profileId   String   // whose page/event this belongs to
+  eventId     String?  // null = the owner's own project
+  name        String
+  tagline     String   @default("")
+  description String   @default("")
+  demoUrl     String   @default("")
+  repoUrl     String   @default("")
+  team        String   @default("")
+  submitter   String   @default("")
+  email       String   @default("")
+  modes       String   @default("") // pages that show this project (your own projects only)
+  createdAt   DateTime @default(now())
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  event       Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  @@index([eventId])
+}
+
+model ModeRequest {
+  id        String    @id @default(cuid())
+  profileId String
+  mode      String
+  name      String
+  email     String
+  note      String    @default("")
+  status    String    @default("PENDING") // PENDING | APPROVED | DECLINED
+  token     String    @unique
+  createdAt DateTime  @default(now())
+  decidedAt DateTime?
+  @@index([profileId, status])
+}
+
+model CareerItem {
+  id          String   @id @default(cuid())
+  profileId   String
+  type        String   // EXPERIENCE | EDUCATION
+  title       String   // role, or degree
+  org         String   // company, or school
+  location    String   @default("")
+  start       String   @default("") // YYYY-MM (experience) or YYYY (education)
+  end         String   @default("") // empty = present
+  description String   @default("")
+  createdAt   DateTime @default(now())
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+/** A card the user saved to their in-app wallet. */
+model SavedCard {
+  id        String   @id @default(cuid())
+  userId    String
+  profileId String   // whose card
+  mode      String   @default("ALL") // which page they saved
+  note      String   @default("")
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  @@unique([userId, profileId])
+}
+
+/** Someone registered for an event. Their ticket QR holds `token`; the organizer scans it at the door. */
+model Attendee {
+  id          String    @id @default(cuid())
+  eventId     String
+  name        String
+  email       String
+  company     String    @default("")
+  token       String    @unique
+  interested  String    @default("") // comma-separated job ids they want to talk about
+  checkedInAt DateTime?
+  createdAt   DateTime  @default(now())
+  event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  vouchers    Voucher[]
+  status      String    @default("CONFIRMED") // CONFIRMED | PENDING | WAITLIST | CANCELLED
+  ticketClassId String  @default("")
+  consentComms Boolean  @default(false)
+  consentCard Boolean   @default(false)   // may share their card for networking
+  consentRecruiter Boolean @default(false) // may be contacted by recruiters
+  guests      Int       @default(0)
+  answers     String    @default("{}")
+  @@unique([eventId, email])
+}
+
+/** An open role posted in Recruiter mode. */
+model Job {
+  id           String        @id @default(cuid())
+  profileId    String
+  title        String
+  location     String        @default("")
+  workType     String        @default("") // On-site | Hybrid | Remote
+  employment   String        @default("Full-time")
+  salary       String        @default("")
+  description  String        @default("")
+  skills       String        @default("")
+  open         Boolean       @default(true)
+  eventId      String?       // a hiring event this role belongs to
+  createdAt    DateTime      @default(now())
+  profile      Profile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  event        Event?        @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  applications Application[]
+  invites      Invite[]
+}
+
+model Application {
+  id         String   @id @default(cuid())
+  jobId      String
+  profileId  String
+  name       String
+  email      String
+  phone      String   @default("")
+  linkedin   String   @default("")
+  resumeUrl  String   @default("")
+  resumeFile String   @default("") // file in uploads/
+  eventId    String   @default("") // set when they applied from an event page
+  candidateHandle String @default("") // set when they applied with their FounderTouch (Hire me) profile
+  note       String   @default("")
+  status     String   @default("NEW") // NEW | SHORTLISTED | INTERVIEW | OFFER | HIRED | REJECTED
+  rating     Int      @default(0)   // 0 = not rated, 1 to 5
+  notes      String   @default("")  // private notes from the recruiter
+  interviewAt DateTime?
+  createdAt  DateTime @default(now())
+  job        Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  @@unique([jobId, email])
+  @@index([profileId, status])
+}
+
+/** A recruiter inviting a candidate (someone with a Hire me profile) to apply for a role. */
+model Invite {
+  id                 String   @id @default(cuid())
+  jobId              String
+  recruiterProfileId String
+  candidateProfileId String
+  createdAt          DateTime @default(now())
+  job                Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  @@unique([jobId, candidateProfileId])
+  @@index([candidateProfileId])
+}
+
+/** A physical NFC tag. The tag holds /n/{token} forever; the owner changes which mode it opens. */
+model NfcTag {
+  id        String    @id @default(cuid())
+  profileId String
+  nickname  String    @default("My tag")
+  token     String    @unique   // random, unguessable
+  mode      String    @default("ALL") // currently assigned mode
+  fallback  String    @default("HUB") // HUB | UNAVAILABLE when the mode is hidden or deleted
+  enabled   Boolean   @default(true)
+  taps      Int       @default(0)
+  lastTapAt DateTime?
+  updatedAt DateTime  @default(now()) @updatedAt
+  createdAt DateTime  @default(now())
+  profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+/** Event staff with a scoped role. Roles gate scanning and redemption, never the card mode. */
+model EventStaff {
+  id        String   @id @default(cuid())
+  eventId   String
+  userId    String
+  role      String   // ORGANIZER | ADMIN | CHECKIN | VOLUNTEER | VENDOR | SPEAKER | SPONSOR | MENTOR | JUDGE | RECRUITER
+  scope     String   @default("")  // e.g. a voucher plan id for vendors
+  createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  @@unique([eventId, userId, role])
+}
+
+/** Outbound links an organizer adds (Devpost, Discord, schedule...). A link is not an API integration. */
+model EventLink {
+  id        String  @id @default(cuid())
+  eventId   String
+  purpose   String  @default("other") // registration | submission | schedule | community | judging | resources | other
+  label     String
+  url       String
+  order     Int     @default(0)
+  event     Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+}
+
+/** Every scan at an event. Attendance comes only from here, never from page views. */
+model EventScan {
+  id        String   @id @default(cuid())
+  eventId   String
+  actorId   String
+  subjectId String   // attendee id
+  scanType  String   // CHECKIN | VOUCHER
+  result    String   // ok | already | unknown | void
+  idempotencyKey String @default("")
+  createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  @@index([eventId, createdAt])
+}
+
+model VoucherPlan {
+  id        String   @id @default(cuid())
+  eventId   String
+  name      String   // Lunch, Dinner...
+  perPerson Int      @default(1)
+  validFrom DateTime?
+  validTo   DateTime?
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  vouchers  Voucher[]
+}
+
+/** One single-use entitlement. state flips ISSUED -> REDEEMED atomically. */
+model Voucher {
+  id          String    @id @default(cuid())
+  planId      String
+  attendeeId  String
+  token       String    @unique
+  state       String    @default("ISSUED") // ISSUED | REDEEMED | VOID
+  redeemedAt  DateTime?
+  redeemedBy  String    @default("")
+  seq         Int       @default(0) // 0..perPerson-1; unique per attendee and plan so concurrent scans cannot over-issue
+  plan        VoucherPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  attendee    Attendee  @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  @@unique([planId, attendeeId, seq])
+}
+
+model TicketClass {
+  id        String   @id @default(cuid())
+  eventId   String
+  name      String   // General, VIP, Student...
+  quota     Int      @default(0) // 0 = unlimited
+  price     Int      @default(0) // minor units; 0 = free. No payment processing yet.
+  currency  String   @default("INR")
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+}
+
+/** A recruiter at an event recording a consented conversation. Jobs and applications stay in Hire; this only references them. */
+model RecruiterEncounter {
+  id          String   @id @default(cuid())
+  eventId     String
+  recruiterId String   // user id
+  attendeeId  String
+  jobId       String   @default("")
+  notes       String   @default("")
+  consent     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  @@unique([eventId, recruiterId, attendeeId])
+}
+
+/** Every notification we try to send. The unique key makes retries idempotent. */
+model NotificationDelivery {
+  id        String   @id @default(cuid())
+  trigger   String
+  recipient String
+  ref       String
+  subject   String   @default("")
+  state     String   @default("QUEUED") // QUEUED | SENT | LOGGED | FAILED
+  error     String   @default("")
+  createdAt DateTime @default(now())
+  @@unique([trigger, recipient, ref])
+}
+
+/** A company or team. Members share a brand and a directory; admins manage people and see team-wide numbers. */
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  company   String   @default("")
+  color1    String   @default("")
+  color2    String   @default("")
+  logo      String   @default("")   // file in uploads/
+  brandLocked Boolean @default(false) // members cannot change colours, company or logo
+  bannerText String  @default("")   // campaign banner added to every member's email signature
+  bannerUrl String   @default("")
+  createdAt DateTime @default(now())
+  members   OrgMember[]
+  audit     OrgAudit[]
+  invites   OrgInvite[]
+}
+
+model OrgMember {
+  id        String   @id @default(cuid())
+  orgId     String
+  userId    String   @unique // one organization per person for now
+  role      String   @default("MEMBER") // OWNER | ADMIN | MEMBER
+  createdAt DateTime @default(now())
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+}
+
+model OrgInvite {
+  id        String   @id @default(cuid())
+  orgId     String
+  email     String
+  role      String   @default("MEMBER")
+  token     String   @unique
+  createdAt DateTime @default(now())
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  @@unique([orgId, email])
+}
+
+/** An outbound connection: sends events (new contact, accepted connection, registration) to a URL such as Zapier, Make, Slack or your CRM. */
+model Integration {
+  id        String   @id @default(cuid())
+  profileId String   @default("")  // a personal integration
+  orgId     String   @default("")  // or one for the whole team
+  kind      String   @default("WEBHOOK") // WEBHOOK | SLACK
+  label     String
+  url       String
+  secret    String   @default("")        // signs each request so the receiver can verify it came from us
+  events    String   @default("contact.created,contact.accepted,event.registered")
+  enabled   Boolean  @default(true)
+  lastStatus String  @default("")
+  lastAt    DateTime?
+  createdAt DateTime @default(now())
+  deliveries IntegrationDelivery[]
+}
+
+model IntegrationDelivery {
+  id            String   @id @default(cuid())
+  integrationId String
+  event         String
+  ok            Boolean
+  detail        String   @default("")
+  createdAt     DateTime @default(now())
+  integration   Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  @@index([integrationId, createdAt])
+}
+
+/** A personal key for reading your contacts through the API. Only a hash is stored. */
+model ApiToken {
+  id         String   @id @default(cuid())
+  profileId  String
+  label      String
+  tokenHash  String   @unique
+  lastUsedAt DateTime?
+  createdAt  DateTime @default(now())
+}
+
+/** Who did what in the admin console. */
+model OrgAudit {
+  id        String   @id @default(cuid())
+  orgId     String
+  actorId   String
+  action    String
+  detail    String   @default("")
+  createdAt DateTime @default(now())
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  @@index([orgId, createdAt])
+}
+
+/** A message the organizer sent to everyone registered. */
+model EventAnnouncement {
+  id        String   @id @default(cuid())
+  eventId   String
+  subject   String
+  body      String
+  sent      Int      @default(0)
+  createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+}
+
+/** One line in a contact's history: added, scanned again, note, follow-up set or done, accepted. */
+model ContactActivity {
+  id        String   @id @default(cuid())
+  contactId String
+  kind      String   // created | visit | accepted | note | followup | done | event | edited
+  text      String   @default("")
+  createdAt DateTime @default(now())
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  @@index([contactId, createdAt])
+}
