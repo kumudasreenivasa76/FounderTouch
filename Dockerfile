@@ -1,4 +1,4 @@
-# FounderTouch for AWS (App Runner / ECS). Uses Postgres (RDS) and S3; see infra/.
+# TapNodd for AWS (App Runner / ECS). Uses Postgres (RDS) and S3; see infra/.
 FROM node:22-slim AS deps
 WORKDIR /app
 RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*

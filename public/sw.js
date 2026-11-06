@@ -1,4 +1,4 @@
-/* FounderTouch service worker: installable app, offline card, cached pages. */
+/* TapNodd service worker: installable app, offline card, cached pages. */
 const V = "ft-v1";
 const NO_CACHE = ["/login", "/signup", "/onboarding", "/offline"];
 const IMAGES = ["/photo/", "/logo/", "/card/", "/event-img/"];

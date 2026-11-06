@@ -6,9 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { canView } from "@/lib/access";
 import { MODES, MODE_INFO, Mode } from "@/lib/modes";
-import { byline, gradient, parseAvatar } from "@/lib/look";
-import { AvatarArt } from "@/components/avatar";
-import { svgToString } from "@/lib/svg-string";
+import { byline, gradient } from "@/lib/look";
 import { getUpload } from "@/lib/storage";
 
 const MIME: Record<string, string> = { ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp" };
@@ -28,17 +26,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ hand
   const origin = req.nextUrl.origin;
   const qr = await QRCode.toDataURL(`${origin}/s/${link.token}?src=qr`, { margin: 1, width: 420 });
 
-  // Photo first, then the illustrated avatar, then initials.
+  // The photo, or initials below when there is none.
   let avatarSrc = "";
   if (p.photo) {
     try {
       const buf = await getUpload(p.photo);
       avatarSrc = `data:${MIME[path.extname(p.photo)] ?? "image/jpeg"};base64,${buf.toString("base64")}`;
     } catch { /* fall through */ }
-  }
-  if (!avatarSrc) {
-    const art = parseAvatar(p.avatar);
-    if (art) avatarSrc = "data:image/svg+xml;base64," + Buffer.from(svgToString(AvatarArt({ cfg: art, size: 200 }))).toString("base64");
   }
   let logoSrc = "";
   if (p.logo) {

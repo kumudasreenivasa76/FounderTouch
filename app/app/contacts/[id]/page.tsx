@@ -6,6 +6,7 @@ import { requireOwner } from "@/lib/auth";
 import { avatarBg } from "@/lib/avatar-color";
 import { MODE_INFO, Mode } from "@/lib/modes";
 import PageHead from "@/components/page-head";
+import PhoneField from "@/components/phone-field";
 import { toggleStar, saveDetails, addNote, setFollowUp, markFollowedUp, removeContact } from "../actions";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Contact" };
@@ -117,7 +118,7 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
           <div><label className="f" htmlFor="d-title">Job title</label><input id="d-title" name="jobTitle" defaultValue={c.jobTitle} /></div>
           <div><label className="f" htmlFor="d-co">Company</label><input id="d-co" name="company" defaultValue={c.company} /></div>
         </div>
-        <label className="f" htmlFor="d-phone">Phone</label><input id="d-phone" name="phone" type="tel" defaultValue={c.phone} />
+        <label className="f" htmlFor="d-phone">Phone</label><PhoneField id="d-phone" name="phone" defaultValue={c.phone} />
         <label className="f" htmlFor="d-li">LinkedIn</label><input id="d-li" name="linkedin" defaultValue={c.linkedin} inputMode="url" placeholder="linkedin.com/in/…" />
         <label className="f" htmlFor="d-met">Where did you meet?</label><input id="d-met" name="metAt" defaultValue={c.metAt} placeholder="e.g. Expo 2026, stand 14" />
         <label className="f" htmlFor="d-tags">Tags (comma separated)</label><input id="d-tags" name="tags" defaultValue={c.tags.split(",").filter(Boolean).join(", ")} placeholder="investor, hot lead" />

@@ -10,6 +10,9 @@ model User {
   id           String    @id @default(cuid())
   email        String    @unique
   passwordHash String
+  googleId     String    @default("")
+  microsoftId  String    @default("")
+  appleId      String    @default("")
   name         String
   firstName    String    @default("")
   lastName     String    @default("")
@@ -166,7 +169,7 @@ model TeamMember {
   name         String
   role         String   @default("")
   link         String   @default("")
-  memberHandle String   @default("") // FounderTouch username, if linked
+  memberHandle String   @default("") // TapNodd username, if linked
   order        Int      @default(0)
   createdAt    DateTime @default(now())
   profile      Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
@@ -332,7 +335,7 @@ model Application {
   resumeUrl  String   @default("")
   resumeFile String   @default("") // file in uploads/
   eventId    String   @default("") // set when they applied from an event page
-  candidateHandle String @default("") // set when they applied with their FounderTouch (Hire me) profile
+  candidateHandle String @default("") // set when they applied with their TapNodd (Hire me) profile
   note       String   @default("")
   status     String   @default("NEW") // NEW | SHORTLISTED | INTERVIEW | OFFER | HIRED | REJECTED
   rating     Int      @default(0)   // 0 = not rated, 1 to 5

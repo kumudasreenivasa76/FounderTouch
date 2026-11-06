@@ -17,7 +17,7 @@ export default function OfflineCard() {
   useEffect(() => { try { setCard(JSON.parse(localStorage.getItem("ft_card") ?? "null")); } catch { setCard(null); } }, []);
 
   if (card === undefined) return null;
-  if (!card) return <div className="card muted">No card is saved on this device yet. Open FounderTouch once while online and your card will be available here.</div>;
+  if (!card) return <div className="card muted">No card is saved on this device yet. Open TapNodd once while online and your card will be available here.</div>;
   const vcf = () => {
     const l = ["BEGIN:VCARD", "VERSION:3.0", `FN:${vesc(card.name)}`, card.company && `ORG:${vesc(card.company)}`, card.sub && `TITLE:${vesc(card.sub)}`, card.email && `EMAIL:${card.email}`, card.phone && `TEL;TYPE=CELL:${card.phone}`, card.website && `URL:${card.website}`, "END:VCARD"].filter(Boolean).join("\r\n") + "\r\n";
     const a = document.createElement("a");

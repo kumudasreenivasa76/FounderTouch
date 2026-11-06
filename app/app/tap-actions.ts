@@ -7,7 +7,7 @@ import { byline } from "@/lib/look";
 
 export type Found = { ok: true; name: string; sub: string; handle: string; mode: string; modeLabel: string; initials: string; own: boolean } | { ok: false };
 
-/** Reads what a tapped tag or phone sent (a FounderTouch link or its code) and says whose card it is. Public info only. */
+/** Reads what a tapped tag or phone sent (a TapNodd link or its code) and says whose card it is. Public info only. */
 export async function peekTap(raw: string): Promise<Found> {
   const { profile } = await requireOwner();
   const m = /\/(?:t|s)\/([a-z0-9]{6,})/i.exec(raw) ?? /^([a-z0-9]{6,})$/i.exec(raw.trim());

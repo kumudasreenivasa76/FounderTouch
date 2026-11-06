@@ -33,7 +33,7 @@ async function unsaveCard(fd: FormData) {
   revalidatePath("/app/card");
 }
 
-const label = (m: string) => `${MODE_INFO[m as Mode].icon} ${MODE_INFO[m as Mode].label}`;
+const label = (m: string) => MODE_INFO[m as Mode].label;
 
 export default async function MyCard({ searchParams }: { searchParams: Promise<{ mode?: string; pane?: string; via?: string }> }) {
   const { user, profile } = await requireOwner();
@@ -118,8 +118,8 @@ export default async function MyCard({ searchParams }: { searchParams: Promise<{
           <h1 style={{ fontSize: 17, margin: 0 }}>Hi, {profile.firstName || profile.name.split(" ")[0]} <span aria-hidden></span></h1>
           <div className="muted">{total} scans · {taps} taps · {contactCount} contacts</div>
         </div>
-        <Link href="/app/nfc" className="gear" aria-label="NFC tags" title="NFC tags" style={{ marginRight: 8 }}></Link>
-        <Link href="/app/settings" className="gear" aria-label="Card settings" title="Card colour, logo and settings"></Link>
+        <Link href="/app/nfc" className="gear" aria-label="NFC tags" title="NFC tags" style={{ marginRight: 8 }}><Icon name="nfc" size={19} /></Link>
+        <Link href="/app/settings" className="gear" aria-label="Card settings" title="Card colour, logo and settings"><Icon name="settings" size={19} /></Link>
       </div>
 
       <div style={{ flex: 1, overflowY: "auto", padding: "0 18px 18px", minHeight: 0 }}>
@@ -167,7 +167,7 @@ export default async function MyCard({ searchParams }: { searchParams: Promise<{
                   <details className="card" style={{ marginTop: 12 }}>
                     <summary>{todo.length ? `${todo.length} to finish · ` : "Ready · "}checklist and last 7 days</summary>
                   <div style={{ marginTop: 10, borderColor: todo.length ? "#ffd8a8" : "#b2f2bb", background: todo.length ? "#fff9f0" : "#f3fcf5" }}>
-                    <b>{info.icon} {todo.length ? `Finish your ${info.label} page` : `${info.label} page is ready ✓`}</b>
+                    <b>{todo.length ? `Finish your ${info.label} page` : `${info.label} page is ready`}</b>
                     <div className="muted" style={{ marginBottom: 6 }}>{info.blurb}</div>
                     {needs.map((n) => (
                       <Link key={n.label} href={n.href} style={{ display: "flex", gap: 8, padding: "5px 0", color: n.ok ? "#566074" : "#1c2330" }}>

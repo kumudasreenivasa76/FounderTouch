@@ -131,7 +131,7 @@ function applicantCard(a) {
   var j = S.jobs.filter(function (x) { return x.id === a.jobId; })[0], st = STATUSES.filter(function (x) { return x[0] === a.status; })[0];
   return '<div class="card" style="opacity:' + (a.status === "REJECTED" ? .6 : 1) + '"><div style="display:flex;justify-content:space-between;gap:8px"><div style="min-width:0"><b>' + esc(a.name) + '</b> <span class="muted">for</span> <b>' + esc(j ? j.title : "a role") + '</b></div><span class="pill" style="margin:0;background:' + st[2] + ';color:#fff;height:fit-content">' + st[1] + "</span></div>" +
     '<div class="muted">' + esc(a.email) + (a.phone ? " · " + esc(a.phone) : "") + " · " + new Date(a.at).toLocaleDateString() + "</div>" +
-    (a.via ? '<div style="margin:6px 0"><span class="pill on">⚡ FounderTouch profile</span><span class="pill">Open to work</span></div>' : "") + (a.note ? '<div style="margin:6px 0">"' + esc(a.note) + '"</div>' : "") +
+    (a.via ? '<div style="margin:6px 0"><span class="pill on">⚡ TapNodd profile</span><span class="pill">Open to work</span></div>' : "") + (a.note ? '<div style="margin:6px 0">"' + esc(a.note) + '"</div>' : "") +
     '<div class="row" style="margin:8px 0">' + (a.resume ? '<a class="btn ghost" href="' + esc(a.resume) + '" target="_blank" rel="noopener">📄 Resume link</a>' : "") + '<a class="btn ghost" href="mailto:' + esc(a.email) + '">✉ Email</a></div>' +
     '<div style="display:flex;gap:6px;flex-wrap:wrap">' + STATUSES.map(function (x) { return '<button class="' + (a.status === x[0] ? "" : "ghost") + '" data-act="appStatus" data-id="' + a.id + '" data-s="' + x[0] + '" style="width:auto;padding:6px 11px;font-size:13px;' + (a.status === x[0] ? "background:" + x[2] : "") + '">' + x[1] + "</button>"; }).join("") + "</div></div>";
 }

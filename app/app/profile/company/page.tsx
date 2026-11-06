@@ -8,9 +8,9 @@ import { themeOf } from "@/lib/look";
 export const dynamic = "force-dynamic";
 
 const ERR: Record<string, string> = {
-  nouser: "No FounderTouch user has that username.",
+  nouser: "No TapNodd user has that username.",
   self: "That is your own username.",
-  member: "Enter a name, or a FounderTouch username.",
+  member: "Enter a name, or a TapNodd username.",
   logo: "The logo must be a PNG, JPG or WebP under 2 MB.",
 };
 
@@ -49,7 +49,7 @@ export default async function Company({ searchParams }: { searchParams: Promise<
 
       <form action={addMember} className="card">
         <h2 style={{ fontSize: 15 }}>Add a team member</h2>
-        <label className="f">By FounderTouch username</label>
+        <label className="f">By TapNodd username</label>
         <input name="username" placeholder="e.g. priya-nair" autoCapitalize="none" autoCorrect="off" />
         <p className="muted" style={{ margin: "0 0 4px" }}>This fills in their name and photo and links to their page.</p>
         <label className="f">Or add manually</label>

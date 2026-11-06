@@ -14,7 +14,7 @@ import { STAFF_ROLES } from "@/lib/event-access";
 import { deleteEvent, removeAttendee, removeProject, saveBranding, setCheckedIn, toggleEvent, updateEvent, setPublished } from "../actions";
 export const dynamic = "force-dynamic";
 
-const ERR: Record<string, string> = { name: "Give the event a name.", link: "Add a label and an https:// link.", msg: "Add a subject and a message.", staff: "That email has no FounderTouch account yet.", img: "Images must be JPG, PNG or WebP under 5 MB." };
+const ERR: Record<string, string> = { name: "Give the event a name.", link: "Add a label and an https:// link.", msg: "Add a subject and a message.", staff: "That email has no TapNodd account yet.", img: "Images must be JPG, PNG or WebP under 5 MB." };
 const local = (d: Date | null) => (d ? new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16) : "");
 const time = (d: Date) => d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
 
@@ -167,7 +167,7 @@ export default async function ManageEvent({ params, searchParams }: { params: Pr
 
       <h2>Staff &amp; roles ({e.staff.length})</h2>
       <div className="card">
-        <p className="muted" style={{ marginTop: 0 }}>Staff need a FounderTouch account. Check-in staff can scan tickets; vendors can only redeem meals.</p>
+        <p className="muted" style={{ marginTop: 0 }}>Staff need a TapNodd account. Check-in staff can scan tickets; vendors can only redeem meals.</p>
         {e.staff.map((st) => (
           <form key={st.id} action={removeStaff} className="row" style={{ marginBottom: 6 }}>
             <input type="hidden" name="eventId" value={e.id} /><input type="hidden" name="id" value={st.id} />

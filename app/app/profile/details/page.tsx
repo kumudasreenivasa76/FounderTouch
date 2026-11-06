@@ -23,17 +23,6 @@ export default async function Details({ searchParams }: { searchParams: Promise<
         {profile.photo && <form action={removePhoto} style={{ marginTop: 10 }}><button className="ghost">Remove photo</button></form>}
       </div>
 
-      <div className="ab-avatar">
-        <h2>Avatar</h2>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <Avatar name={profile.name} handle={profile.handle} hasPhoto={!!profile.photo} avatar={profile.avatar} size={64} flip />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="muted" style={{ marginBottom: 8 }}>{profile.photo ? "Tap the picture to flip between photo and avatar." : "No photo? An avatar works just as well."}</div>
-            <a className="btn ghost" href="/app/profile/avatar">Design avatar</a>
-          </div>
-        </div>
-      </div>
-
       <form action={saveDetails} className="card kit-form ab-form">
         <h3>Details</h3>
         <div className="row">

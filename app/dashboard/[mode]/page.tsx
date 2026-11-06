@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireOwner } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { MODES, MODE_INFO, Mode } from "@/lib/modes";
+import Kiki from "@/components/kiki";
 
 const STAGES = [
   { key: "all", label: "All" },
@@ -48,8 +49,8 @@ export default async function ModeCrm({ params, searchParams }: { params: Promis
 
   return (
     <>
-      <h2>{info.icon} {info.label} CRM</h2>
-      <div className="dash-sub">{info.blurb}. People who reached you through this mode.</div>
+      <h2>{mode === "ALL" ? "Contacts" : `${info.label} · CRM`}</h2>
+      <div className="dash-sub">{info.blurb}. People who reached you through this {mode === "ALL" ? "card" : "mode"}.</div>
 
       <div className="stages">
         {STAGES.map((s, i) => (
@@ -79,9 +80,17 @@ export default async function ModeCrm({ params, searchParams }: { params: Promis
         </select>
         <button type="submit">Filter</button>
         <Link href="/app/contacts/new" className="btn ghost" style={{ marginLeft: "auto", padding: "8px 14px" }}>+ Add contact</Link>
+        <a href="/app/contacts/import" className="btn ghost" style={{ padding: "8px 14px" }}>Import</a>
+        <a href="/app/contacts/export?format=csv" className="btn ghost" style={{ padding: "8px 14px" }}>Export CSV</a>
+        <a href="/app/contacts/export?format=vcf" className="btn ghost" style={{ padding: "8px 14px" }}>vCard</a>
       </form>
 
-      {rows.length === 0 ? <div className="empty">No contacts match. Share your {info.label} card to start collecting them.</div> : (
+      {rows.length === 0 ? (
+        <div className="empty">
+          <Kiki pose="sleepy" width={180} style={{ display: "block", margin: "0 auto 8px" }} />
+          Nothing here yet. Share your {info.label} card to start collecting contacts.
+        </div>
+      ) : (
         <table className="crm">
           <thead><tr><th>Name</th><th>Company</th>{mode === "ALL" && <th>Mode</th>}<th>Status</th><th>Source</th><th>Last contact</th><th>Follow-up</th><th>Tags</th></tr></thead>
           <tbody>

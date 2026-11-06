@@ -15,10 +15,10 @@ export async function deliver(integ: { id: string; kind: string; url: string; se
     if (!url) throw new Error("Address is not allowed (must be a public https URL)");
     const payload = integ.kind === "SLACK"
       ? { text: `*${LABEL[event] ?? event}*\n${Object.entries(data).filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join("\n")}` }
-      : { event, createdAt: new Date().toISOString(), source: "foundertouch", data };
+      : { event, createdAt: new Date().toISOString(), source: "tapnodd", data };
     const body = JSON.stringify(payload);
-    const headers: Record<string, string> = { "Content-Type": "application/json", "User-Agent": "FounderTouch-Webhook/1", "X-FounderTouch-Event": event };
-    if (integ.secret) headers["X-FounderTouch-Signature"] = "sha256=" + createHmac("sha256", integ.secret).update(body).digest("hex");
+    const headers: Record<string, string> = { "Content-Type": "application/json", "User-Agent": "TapNodd-Webhook/1", "X-TapNodd-Event": event };
+    if (integ.secret) headers["X-TapNodd-Signature"] = "sha256=" + createHmac("sha256", integ.secret).update(body).digest("hex");
     // No redirects: a public address must not bounce us to an internal one.
     const r = await fetch(url, { method: "POST", headers, body, redirect: "manual", signal: AbortSignal.timeout(5000) });
     ok = r.status >= 200 && r.status < 300;

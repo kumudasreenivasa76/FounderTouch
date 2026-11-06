@@ -1,4 +1,4 @@
-# FounderTouch
+# TapNodd
 
 A phone-style web app for sharing yourself with QR codes and NFC taps. You pick a **mode** (Founder, Investor, Seller, Service Provider, Recruiter, Hackathon, Business, Other) and people who scan see only that page.
 
@@ -7,7 +7,7 @@ A phone-style web app for sharing yourself with QR codes and NFC taps. You pick 
 - **Share**: a flip-style digital card with QR for each mode, copy/share, card image download, NFC tap writer, 7-day scan chart, per-mode settings, and a wallet of cards you've saved from others.
 - **Modes and kits**: every mode has its own details and file types (decks, demos, resume, portfolio, documents). A mode is visible only once something is added to it.
 - **Hire me**: experience, education, skills, resume and portfolio; recruiters can invite candidates to roles.
-- **Recruiter**: post jobs, candidates apply (one tap with a FounderTouch profile, or a form), applicant pipeline, and per-job contacts.
+- **Recruiter**: post jobs, candidates apply (one tap with a TapNodd profile, or a form), applicant pipeline, and per-job contacts.
 - **Events**: branded event pages (colours, logo, cover), registration with a QR ticket, camera check-in, attendee list, project submissions, and hiring roles linked to an event.
 - **Controls**: per-mode "needs my approval" gate, per-file gating, booking links (Calendly, Cal.com, Google Calendar and more) embedded in the page.
 

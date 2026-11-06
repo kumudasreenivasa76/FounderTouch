@@ -49,7 +49,7 @@ export default function TapShare({ pages, avatar, peek, save }: {
         const text = rec ? new TextDecoder().decode(rec.data) : "";
         const res = await peek(text);
         if (res.ok) { setFound(res); setState("found"); setBursts((b) => b + 1); buzz([40, 60, 40, 60, 90]); abort.current?.abort(); }
-        else setMsg("That tag isn't a FounderTouch card. Keep searching…");
+        else setMsg("That tag isn't a TapNodd card. Keep searching…");
       };
     } catch (err) {
       setState("error");
@@ -66,7 +66,7 @@ export default function TapShare({ pages, avatar, peek, save }: {
     } catch { setMsg("Couldn't write to the tag. Hold it closer and try again."); }
   };
   const shareSheet = async () => {
-    if (navigator.share) { try { await navigator.share({ title: "My FounderTouch card", url: cur.tapUrl }); } catch { /* cancelled */ } }
+    if (navigator.share) { try { await navigator.share({ title: "My TapNodd card", url: cur.tapUrl }); } catch { /* cancelled */ } }
     else { try { await navigator.clipboard.writeText(cur.tapUrl); setMsg("Link copied. Paste it into any chat."); } catch { setMsg(cur.tapUrl); } }
   };
   const doSave = async () => {

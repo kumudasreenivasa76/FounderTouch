@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Icon from "@/components/icon";
 import { db } from "@/lib/db";
 import { requireOwner } from "@/lib/auth";
 import { avatarBg } from "@/lib/avatar-color";
@@ -60,7 +61,7 @@ export default async function Connections({ searchParams }: { searchParams: Prom
 
       {(pending.length > 0 || inboxCount > 0) && (
         <Link href="/app/contacts/inbox" className="menu-row" style={{ marginTop: 10 }}>
-          <span className="menu-ico" aria-hidden></span>
+          <span className="menu-ico" aria-hidden><Icon name="mail" /></span>
           <span style={{ flex: 1 }}><b>Inbox</b><span className="muted" style={{ display: "block" }}>{[pending.length ? `${pending.length} connection request${pending.length === 1 ? "" : "s"}` : "", inboxCount ? `${inboxCount} approval${inboxCount === 1 ? "" : "s"} or applicant${inboxCount === 1 ? "" : "s"}` : ""].filter(Boolean).join(" · ")}</span></span>
           <span className="pill on" style={{ margin: 0 }}>{pending.length + inboxCount}</span>
         </Link>

@@ -1,4 +1,5 @@
 import PageHead from "@/components/page-head";
+import PhoneField from "@/components/phone-field";
 import { requireOwner } from "@/lib/auth";
 import { addContactFull } from "../actions";
 export const dynamic = "force-dynamic";
@@ -18,7 +19,7 @@ export default async function NewContact({ searchParams }: { searchParams: Promi
           <div><label className="f" htmlFor="n-title">Job title</label><input id="n-title" name="jobTitle" /></div>
           <div><label className="f" htmlFor="n-co">Company</label><input id="n-co" name="company" /></div>
         </div>
-        <label className="f" htmlFor="n-phone">Phone</label><input id="n-phone" name="phone" type="tel" />
+        <label className="f" htmlFor="n-phone">Phone</label><PhoneField id="n-phone" name="phone" />
         <label className="f" htmlFor="n-met">Where did you meet?</label><input id="n-met" name="metAt" placeholder="e.g. Expo 2026" />
         <label className="f" htmlFor="n-tags">Tags (comma separated)</label><input id="n-tags" name="tags" placeholder="investor, hot lead" />
         <label className="f" htmlFor="n-fu">Follow up on (optional)</label><input id="n-fu" name="followUp" type="date" />

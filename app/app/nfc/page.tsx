@@ -25,7 +25,7 @@ export default async function Nfc({ searchParams }: { searchParams: Promise<{ sa
           <label className="f">Nickname</label>
           <input name="nickname" defaultValue={t.nickname} maxLength={40} />
           <label className="f">Opens</label>
-          <select name="mode" defaultValue={t.mode}>{MODES.map((m) => <option key={m} value={m}>{MODE_INFO[m].icon} {MODE_INFO[m].label}</option>)}</select>
+          <select name="mode" defaultValue={t.mode}>{MODES.map((m) => <option key={m} value={m}>{MODE_INFO[m].label}</option>)}</select>
           <label className="f">If that mode is hidden</label>
           <select name="fallback" defaultValue={t.fallback}><option value="HUB">Show my main card</option><option value="UNAVAILABLE">Show "unavailable"</option></select>
           <label style={{ display: "block", margin: "8px 0" }}><input type="checkbox" name="enabled" defaultChecked={t.enabled} />Active (untick if lost)</label>

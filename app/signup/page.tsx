@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentUser, hashPassword, startSession } from "@/lib/auth";
+import Logo from "@/components/logo";
+import SsoButtons from "@/components/sso-buttons";
 
 async function signup(fd: FormData) {
   "use server";
@@ -25,18 +27,23 @@ export default async function Signup({ searchParams }: { searchParams: Promise<{
   if (await currentUser()) redirect("/app");
   const sp = await searchParams;
   return (
-    <div role="main" id="main" className="screen center">
-      <div className="logo">F</div>
-      <h1 style={{ textAlign: "center" }}>Create your account</h1>
-      <p className="muted" style={{ textAlign: "center" }}>Takes under a minute</p>
+    <div role="main" id="main" className="screen center auth">
+      <div className="auth-hero">
+        <Logo size={78} className="auth-logo" />
+        <span className="auth-hi brand-word">Tap<span>Nodd</span></span>
+      </div>
+      <h1>Create your account</h1>
+      <p className="sub">Set up your account in a minute</p>
       {sp.error && <div className="err">{MSG[sp.error] ?? "Something went wrong."}</div>}
-      <form action={signup}>
+      <form action={signup} className="kit-form">
         <div className="row"><input name="firstName" placeholder="First name" required autoComplete="given-name" /><input name="lastName" placeholder="Last name" required autoComplete="family-name" /></div>
         <input name="email" type="email" placeholder="Email" required autoComplete="email" />
         <input name="password" type="password" placeholder="Password (8+ characters)" required autoComplete="new-password" />
         <button>Continue</button>
       </form>
-      <p className="muted" style={{ textAlign: "center", marginTop: 16 }}>Have an account? <Link href="/login">Log in</Link></p>
+      <p className="muted" style={{ textAlign: "center", marginTop: 14 }}>Have an account? <Link href="/login">Log in</Link></p>
+      <div className="or-div">or</div>
+      <SsoButtons />
     </div>
   );
 }

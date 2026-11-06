@@ -4,7 +4,7 @@ import jsQR from "jsqr";
 import type { Found } from "@/app/app/tap-actions";
 import { queueScan } from "./offline-sync";
 
-/** Scan someone else's QR code with the camera. A FounderTouch card shows who it is and can be saved. */
+/** Scan someone else's QR code with the camera. A TapNodd card shows who it is and can be saved. */
 export default function ScanOthers({ peek, save }: { peek: (raw: string) => Promise<Found>; save: (handle: string, mode: string) => Promise<{ ok: boolean; own?: boolean }> }) {
   const video = useRef<HTMLVideoElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -72,7 +72,7 @@ export default function ScanOthers({ peek, save }: { peek: (raw: string) => Prom
   return (
     <div>
       <h2 style={{ marginTop: 0 }}>Scan a QR code</h2>
-      <p className="muted" style={{ marginTop: 0 }}>Point your camera at someone&apos;s FounderTouch QR code to see their card and save it.</p>
+      <p className="muted" style={{ marginTop: 0 }}>Point your camera at someone&apos;s TapNodd QR code to see their card and save it.</p>
 
       <div className="viewfinder">
         <video ref={video} playsInline muted style={{ display: on ? "block" : "none" }} />
@@ -99,7 +99,7 @@ export default function ScanOthers({ peek, save }: { peek: (raw: string) => Prom
       )}
       {other && !found && (
         <div className="card" style={{ marginTop: 12 }}>
-          <b>That isn&apos;t a FounderTouch card</b>
+          <b>That isn&apos;t a TapNodd card</b>
           <div className="muted" style={{ wordBreak: "break-all", margin: "4px 0 8px" }}>{other}</div>
           {isUrl && <a className="btn ghost" href={other} target="_blank" rel="noopener noreferrer">Open link ↗</a>}
         </div>

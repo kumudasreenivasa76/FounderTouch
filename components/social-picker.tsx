@@ -22,7 +22,7 @@ export default function SocialPicker({ initial }: { initial: Record<string, stri
           return (
             <button key={s.key} type="button" title={s.label} aria-label={`${s.label}${filled ? " (added)" : ""}`} aria-pressed={on}
               onClick={() => setActive(on ? null : s.key)}
-              style={{ width: 48, height: 48, padding: 0, background: "none", position: "relative", borderRadius: "50%", outline: on ? "3px solid #0a66c2" : "none", outlineOffset: 2, opacity: filled || on ? 1 : 0.4, filter: filled || on ? "none" : "grayscale(1)" }}>
+              style={{ width: 48, height: 48, padding: 0, background: "none", position: "relative", borderRadius: "50%", outline: on ? "3px solid #3b5bdb" : "none", outlineOffset: 2, opacity: filled || on ? 1 : 0.4, filter: filled || on ? "none" : "grayscale(1)" }}>
               <SocialBadge k={s.key} size={48} />
               {filled && <span style={{ position: "absolute", right: -2, top: -2, width: 16, height: 16, borderRadius: "50%", background: "#0ca678", color: "#fff", fontSize: 10, lineHeight: "16px", border: "2px solid #fff" }}>✓</span>}
             </button>

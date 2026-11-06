@@ -44,7 +44,7 @@ export async function inviteMany(fd: FormData) {
     const existing = await db.user.findUnique({ where: { email } });
     if (existing && (await db.orgMember.findUnique({ where: { userId: existing.id } }))) continue; // already on a team
     const inv = await db.orgInvite.upsert({ where: { orgId_email: { orgId: a.org.id, email } }, update: { role }, create: { orgId: a.org.id, email, role, token: randomBytes(16).toString("hex") } });
-    await notify("org_invite", email, inv.id, `Join ${a.org.name} on FounderTouch`, `${a.profile.name} invited you to join ${a.org.name}. Accept here: ${origin}/join/${inv.token}`);
+    await notify("org_invite", email, inv.id, `Join ${a.org.name} on TapNodd`, `${a.profile.name} invited you to join ${a.org.name}. Accept here: ${origin}/join/${inv.token}`);
   }
   await audit(a.org.id, a.user.id, "members.invited", `${emails.length} invited`);
   done("/app/org/people?saved=1");

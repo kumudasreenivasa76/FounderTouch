@@ -1,4 +1,4 @@
-/* FounderTouch (in-browser version): static data and small helpers. */
+/* TapNodd (in-browser version): static data and small helpers. */
 "use strict";
 
 var MODES = ["FOUNDER", "INVESTOR", "SELLER", "SERVICES", "RECRUITER", "HACKATHON", "BUSINESS", "OTHER", "ALL"];

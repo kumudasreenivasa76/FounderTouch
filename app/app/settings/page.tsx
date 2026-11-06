@@ -40,7 +40,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
       <BrandForm action={saveBrand} ret="settings" company={profile.company} logoSrc={profile.logo ? `/logo/${profile.handle}?v=${encodeURIComponent(profile.logo)}` : ""} color1={t.from} color2={t.to} />
 
       <h2>Page settings</h2>
-      <ModePanels title="Choose a mode" initial={start} labels={MODES.map((m) => `${MODE_INFO[m].icon} ${MODE_INFO[m].label}`)}>
+      <ModePanels title="Choose a mode" initial={start} labels={MODES.map((m) => MODE_INFO[m].label)}>
         {MODES.map((m) => {
           const c = cfgs.find((x) => x.mode === m);
           const info = MODE_INFO[m];
@@ -49,7 +49,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
             <form key={m} action={saveMode} className="card">
               <input type="hidden" name="mode" value={m} />
               <ModeTabs mode={m} handle={profile.handle} active="actions" />
-              <h2 style={{ marginTop: 0, fontSize: 15 }}>{info.icon} {info.label}</h2>
+              <h2 style={{ marginTop: 0, fontSize: 15 }}>{info.label}</h2>
               <label style={{ display: "block", margin: "6px 0 2px" }}><input type="checkbox" name="approval" defaultChecked={!!c?.requireApproval} /><b>Visitors need my approval</b></label>
               <p className="muted" style={{ margin: "0 0 8px" }}>People who scan see only your name and a request form until you approve them in Contacts.</p>
               <label className="f">Intro message</label>

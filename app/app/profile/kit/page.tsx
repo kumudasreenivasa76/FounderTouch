@@ -24,7 +24,7 @@ import { peekTap, saveTapCard } from "../../tap-actions";
 import { addTag, saveTag, resetTag, deleteTag } from "../../nfc/actions";
 import { addResource, delResource, saveKitText, setResourceModes, setResourceExpiry } from "../actions";
 export const dynamic = "force-dynamic";
-const ic = (m: Mode) => (m === "FOUNDER" ? "" : MODE_INFO[m].icon + " ");
+const ic = (_m: Mode) => "";
 
 const ERR: Record<string, string> = {
   url: "Links must start with http:// or https://",
@@ -165,7 +165,7 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
                         <button className="ghost sm" style={{ width: "auto" }}>Set</button>
                       </form>
                       <details style={{ marginTop: 8 }}>
-                        <summary className="muted">Also on: {r.modes.split(",").filter((x) => x && x !== m).map((x) => MODE_INFO[x as Mode]?.label).filter(Boolean).join(", ") || "only this page"} · <span style={{ color: "#0a66c2" }}>change</span></summary>
+                        <summary className="muted">Also on: {r.modes.split(",").filter((x) => x && x !== m).map((x) => MODE_INFO[x as Mode]?.label).filter(Boolean).join(", ") || "only this page"} · <span style={{ color: "#3b5bdb" }}>change</span></summary>
                         <form action={setResourceModes}>
                           <input type="hidden" name="id" value={r.id} /><input type="hidden" name="kmode" value={m} />
                           <div className="chips">

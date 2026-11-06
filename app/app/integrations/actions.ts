@@ -51,7 +51,7 @@ export async function deleteIntegration(fd: FormData) {
 export async function testIntegration(fd: FormData) {
   const s = await scope(fd);
   const i = await db.integration.findFirst({ where: { id: String(fd.get("id")), ...s.where } });
-  if (i) await deliver(i, "contact.created", { name: "Test Person", email: "test@example.com", company: "Example Co", note: "This is a test from FounderTouch" });
+  if (i) await deliver(i, "contact.created", { name: "Test Person", email: "test@example.com", company: "Example Co", note: "This is a test from TapNodd" });
   done(s.back);
 }
 

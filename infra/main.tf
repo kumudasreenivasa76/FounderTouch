@@ -9,7 +9,7 @@ terraform {
 provider "aws" { region = var.region }
 
 variable "region" { default = "ap-south-1" }
-variable "name" { default = "foundertouch" }
+variable "name" { default = "tapnodd" }
 variable "image_tag" { default = "latest" }
 
 data "aws_caller_identity" "me" {}
@@ -79,8 +79,8 @@ resource "aws_db_instance" "db" {
   instance_class          = "db.t4g.micro"
   allocated_storage       = 20
   storage_encrypted       = true
-  db_name                 = "foundertouch"
-  username                = "foundertouch"
+  db_name                 = "tapnodd"
+  username                = "tapnodd"
   password                = random_password.db.result
   db_subnet_group_name    = aws_db_subnet_group.db.name
   vpc_security_group_ids  = [aws_security_group.db.id]
@@ -122,7 +122,7 @@ resource "aws_apprunner_service" "app" {
       image_configuration {
         port = "8080"
         runtime_environment_variables = {
-          DATABASE_URL = "postgresql://foundertouch:${random_password.db.result}@${aws_db_instance.db.address}:5432/foundertouch"
+          DATABASE_URL = "postgresql://tapnodd:${random_password.db.result}@${aws_db_instance.db.address}:5432/tapnodd"
           S3_BUCKET    = aws_s3_bucket.uploads.bucket
           AWS_REGION   = var.region
         }

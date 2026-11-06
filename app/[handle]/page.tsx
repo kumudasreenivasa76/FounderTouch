@@ -12,6 +12,7 @@ import ModeSelect from "@/components/mode-select";
 import { bookingInfo } from "@/lib/booking";
 import { MODES, MODE_INFO, Mode, kindLabel, kindsOf, listItems, parseFields } from "@/lib/modes";
 import Avatar from "@/components/avatar";
+import Kiki from "@/components/kiki";
 import { tagList, cleanTags } from "@/lib/tags";
 import { SocialBadge } from "@/components/social-icon";
 import { socialUrl } from "@/lib/socials";
@@ -72,7 +73,7 @@ async function saveContact(fd: FormData) {
   if (!me?.profile) redirect(`/login?next=${encodeURIComponent(here)}`);
   const p = await db.profile.findUnique({ where: { handle } });
   if (!p || p.id === me.profile.id) redirect(here);
-  const email = (p.email || `${p.handle}@card.foundertouch`).toLowerCase();
+  const email = (p.email || `${p.handle}@card.tapnodd`).toLowerCase();
   const tags = cleanTags(String(fd.get("tags") ?? ""));
   const data = { name: p.name, company: p.company, jobTitle: p.headline, phone: p.phone, linkedin: parseSocials(p.socials).linkedin ?? "", mode, metAt: "Digital card" };
   const prev = await db.contact.findUnique({ where: { profileId_email: { profileId: me.profile.id, email } } });
@@ -153,7 +154,10 @@ export default async function Public({ params, searchParams }: { params: Promise
           <span className="pill" style={{ marginTop: 8 }}>{info.label} · private</span>
         </div>
         {sp.requested ? (
-          <div className="ok">Request sent ✓ {p.name} will review it and send you a private link.</div>
+          <div style={{ textAlign: "center" }}>
+            <Kiki pose="zoomies" width={190} style={{ margin: "10px auto 0" }} />
+            <div className="ok">Request sent. {p.name} will review it and send you a private link.</div>
+          </div>
         ) : (
           <form action={requestModeAccess} className="card">
             <h3>Request access</h3>
@@ -240,7 +244,7 @@ export default async function Public({ params, searchParams }: { params: Promise
         <Avatar name={p.name} handle={p.handle} hasPhoto={!!p.photo} avatar={p.avatar} size={88} flip center />
         <h1>{p.name}</h1>
         <div>{byline(p.headline, p.company)}</div>
-        <span className="pill" style={{ marginTop: 8 }}>{MODE_INFO[mode as Mode].icon} {MODE_INFO[mode as Mode].label}</span>
+        <span className="pill" style={{ marginTop: 8 }}>{MODE_INFO[mode as Mode].label}</span>
         {mode === "RECRUITER" && p.jobs.length > 0 && <div><span className="pill on" style={{ background: "#fff", color: "#0b7a4b" }}>Hiring · {p.jobs.length} open role{p.jobs.length === 1 ? "" : "s"}</span></div>}
         {p.bio && <p className="muted" style={{ margin: "4px 0 12px" }}>{p.bio}</p>}
         {mode === "RECRUITER" && p.jobs.length > 0 && <a className="btn" style={{ marginBottom: 8 }} href={`/${handle}?mode=RECRUITER&pane=roles`}>See open roles ({p.jobs.length})</a>}
@@ -259,7 +263,7 @@ export default async function Public({ params, searchParams }: { params: Promise
         <div className="card"><b>I am a…</b>
           <div style={{ marginTop: 8 }}>
             <ModeSelect handle={handle} current={mode} placeholder={mode === "ALL" ? "Choose who you are" : "Switch to another view"}
-              options={[...enabled.map((m) => ({ value: m.mode, label: `${MODE_INFO[m.mode as Mode].icon} ${MODE_INFO[m.mode as Mode].label}` })), ...(mode !== "ALL" ? [{ value: "ALL", label: "Everything" }] : [])]} />
+              options={[...enabled.map((m) => ({ value: m.mode, label: MODE_INFO[m.mode as Mode].label })), ...(mode !== "ALL" ? [{ value: "ALL", label: "Everything" }] : [])]} />
           </div>
         </div>
       )}
@@ -454,7 +458,7 @@ export default async function Public({ params, searchParams }: { params: Promise
     const li = (title: string, body: React.ReactNode) => (<div className="li"><h3>{title}</h3>{body}</div>);
     const entry = (c: (typeof p.career)[number]) => (
       <div key={c.id} style={{ display: "flex", gap: 12, marginBottom: 14 }}>
-        <div style={{ width: 46, height: 46, borderRadius: 6, background: "#eef1ff", color: "#0a66c2", display: "grid", placeItems: "center", fontWeight: 700, flexShrink: 0 }}>{initials(c.org) || "•"}</div>
+        <div style={{ width: 46, height: 46, borderRadius: 6, background: "#eef1ff", color: "#3b5bdb", display: "grid", placeItems: "center", fontWeight: 700, flexShrink: 0 }}>{initials(c.org) || "•"}</div>
         <div style={{ minWidth: 0 }}>
           <b>{c.title}</b>
           <div>{c.org}{c.location ? ` · ${c.location}` : ""}</div>

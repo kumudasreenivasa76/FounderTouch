@@ -91,7 +91,7 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
         <label className="f">Show these details on</label>
         <div className="chips">
           {MODES.filter((m) => m !== "ALL").map((m) => (
-            <label key={m} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={m} defaultChecked={shownOn.has(m)} />{MODE_INFO[m].icon} {MODE_INFO[m].label}</label>
+            <label key={m} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={m} defaultChecked={shownOn.has(m)} />{MODE_INFO[m].label}</label>
           ))}
         </div>
         <p className="muted" style={{ margin: "0 0 8px" }}>The "All" page always shows them.</p>
@@ -154,7 +154,7 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
               <label className="f">Show on these pages</label>
               <div className="chips">
                 {MODES.filter((m) => m !== "ALL").map((m) => (
-                  <label key={m} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={m} defaultChecked />{MODE_INFO[m].icon} {MODE_INFO[m].label}</label>
+                  <label key={m} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={m} defaultChecked />{MODE_INFO[m].label}</label>
                 ))}
               </div>
               <label style={{ display: "block", margin: "4px 0 10px" }}><input type="checkbox" name="gated" />Require my approval before people can open it</label>

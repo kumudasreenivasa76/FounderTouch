@@ -2,6 +2,7 @@ import { requireOwner } from "@/lib/auth";
 import { parseSocials } from "@/lib/socials";
 import PageHead from "@/components/page-head";
 import SocialPicker from "@/components/social-picker";
+import PhoneField from "@/components/phone-field";
 import { saveContact } from "../actions";
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ export default async function Contact({ searchParams }: { searchParams: Promise<
       <PageHead title="Contact & socials" sub="How people reach you: phone, email, website, portfolio and socials. Shown on every mode of your page." saved={!!sp.saved} />
       <form action={saveContact} className="card">
         <label className="f">Phone / WhatsApp</label>
-        <input name="phone" type="tel" defaultValue={profile.phone} placeholder="+91 98765 43210" autoComplete="tel" />
+        <PhoneField name="phone" defaultValue={profile.phone} />
         <label className="f">Email</label>
         <input name="email" type="email" defaultValue={profile.email} placeholder="you@company.com" autoComplete="email" />
         <label className="f">Personal website</label>

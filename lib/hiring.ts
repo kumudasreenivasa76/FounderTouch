@@ -1,5 +1,5 @@
 export const STATUSES = [
-  { key: "NEW", label: "New", color: "#0a66c2" },
+  { key: "NEW", label: "New", color: "#3b5bdb" },
   { key: "SHORTLISTED", label: "Shortlisted", color: "#7048e8" },
   { key: "INTERVIEW", label: "Interview", color: "#c2410c" },
   { key: "OFFER", label: "Offer", color: "#047857" },

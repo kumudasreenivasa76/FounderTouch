@@ -19,7 +19,7 @@ export default async function IntegrationsPanel({ scope, where }: { scope: "me" 
           </div>
           <div className="muted" style={{ overflowWrap: "anywhere" }}>{new URL(i.url).host}</div>
           <div className="muted">{i.events.split(",").map((e) => EV_LABEL[e] ?? e).join(" · ")}</div>
-          {i.kind === "WEBHOOK" && i.secret && <details><summary>Signing secret</summary><code style={{ overflowWrap: "anywhere" }}>{i.secret}</code><p className="muted" style={{ marginBottom: 0 }}>Each request carries <code>X-FounderTouch-Signature: sha256=…</code>, an HMAC of the body with this secret.</p></details>}
+          {i.kind === "WEBHOOK" && i.secret && <details><summary>Signing secret</summary><code style={{ overflowWrap: "anywhere" }}>{i.secret}</code><p className="muted" style={{ marginBottom: 0 }}>Each request carries <code>X-TapNodd-Signature: sha256=…</code>, an HMAC of the body with this secret.</p></details>}
           <p className="muted" style={{ margin: "6px 0" }}>{i.lastAt ? `Last sent ${i.lastAt.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}: ${i.lastStatus === "ok" ? "delivered" : i.lastStatus}` : "Not sent yet"}</p>
           {i.deliveries.length > 0 && <div className="muted">{i.deliveries.map((d) => `${d.ok ? "✓" : ""} ${EV_LABEL[d.event] ?? d.event}`).join("  ")}</div>}
           <div className="row" style={{ marginTop: 8, flexWrap: "wrap" }}>

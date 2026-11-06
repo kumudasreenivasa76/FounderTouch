@@ -95,7 +95,7 @@ export default async function Inbox({ searchParams }: { searchParams: Promise<{ 
                 <div className="muted">{a.email}{a.phone ? ` · ${a.phone}` : ""} · {a.createdAt.toLocaleDateString("en-IN", { dateStyle: "medium" })}</div>
                 {c && (
                   <div style={{ margin: "6px 0" }}>
-                    <span className="pill on" style={{ margin: "0 6px 6px 0" }}>FounderTouch profile</span>
+                    <span className="pill on" style={{ margin: "0 6px 6px 0" }}>TapNodd profile</span>
                     {c.openTo && <span className="pill">{c.openTo}</span>}
                     {last && <span className="pill">{last.title}, {last.org}</span>}
                     {listItems(c.skills).slice(0, 4).map((x) => <span key={x} className="pill">{x}</span>)}
@@ -124,7 +124,7 @@ export default async function Inbox({ searchParams }: { searchParams: Promise<{ 
           <h2>Page access {mPending.length > 0 && <span className="pill on">{mPending.length}</span>}</h2>
           {mPending.map((r) => (
             <div className="card" key={r.id}>
-              <b>{r.name}</b> <span className="muted">wants to view your</span> <b>{MODE_INFO[r.mode as Mode]?.icon} {MODE_INFO[r.mode as Mode]?.label ?? r.mode}</b> <span className="muted">page</span>
+              <b>{r.name}</b> <span className="muted">wants to view your</span> <b>{MODE_INFO[r.mode as Mode]?.label ?? r.mode}</b> <span className="muted">page</span>
               <div className="muted">{r.email}</div>
               {r.note && <div style={{ marginTop: 4 }}>"{r.note}"</div>}
               <form action={decideMode} className="row" style={{ marginTop: 10 }}>

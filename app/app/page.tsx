@@ -49,7 +49,7 @@ export default async function Home() {
   const n = (k: string) => resources.filter((r) => r.kind === k).length;
   const socialCount = Object.values(socials).filter(Boolean).length;
   const steps = [
-    { ok: !!profile.photo || !!profile.avatar, label: "Add a photo or avatar", href: "/app/profile/avatar" },
+    { ok: !!profile.photo, label: "Add a photo", href: "/app/profile/details" },
     { ok: !!profile.headline, label: "Write a headline", href: "/app/profile/details" },
     { ok: !!profile.bio, label: "Write a short bio", href: "/app/profile/details" },
     { ok: !!(profile.phone || profile.email), label: "Add a phone or email", href: "/app/profile/contact" },
@@ -95,15 +95,15 @@ export default async function Home() {
       <SaveOfflineCard data={offline} />
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h1 style={{ fontSize: 20, margin: 0 }}>Hi, {profile.firstName || profile.name.split(" ")[0]} <span aria-hidden></span></h1>
+          <h1 style={{ fontSize: 20, margin: 0 }}>Hi, {profile.firstName || profile.name.split(" ")[0]}</h1>
           <div className="muted">{pct}% of your profile is complete{next ? ` · next: ${next.label.toLowerCase()}` : ""}</div>
         </div>
-        <Link href="/app/settings" className="gear" aria-label="Card settings"></Link>
+        <Link href="/app/settings" className="gear" aria-label="Card settings"><Icon name="settings" size={19} /></Link>
       </div>
       <div style={{ height: 8, borderRadius: 8, background: "#e8ebf2", overflow: "hidden", marginBottom: 14 }} role="progressbar" aria-label="Profile completion" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
         <div style={{ width: `${pct}%`, height: "100%", background: gradient(profile.theme) }} />
       </div>
-      {next && <Link href={next.href} className="menu-row"><span className="menu-ico"><Icon name="check" /></span><span style={{ flex: 1 }}><b>{next.label}</b><span className="muted" style={{ display: "block" }}>Finish your profile</span></span><span className="muted">›</span></Link>}
+      {next && <Link href={next.href} className="menu-row" style={{ borderColor: "rgba(59,91,219,.35)", background: "linear-gradient(135deg,rgba(59,91,219,.06),rgba(112,72,232,.06))" }}><span className="menu-ico"><Icon name="check" /></span><span style={{ flex: 1 }}><b>{next.label}</b><span className="muted" style={{ display: "block" }}>Finish your profile</span></span><span className="muted">›</span></Link>}
 
       <CardWithShare key={profile.theme}
         card={{ background: gradient(profile.theme), back: `linear-gradient(135deg, ${t.to}, ${t.from})`, avatar, name: profile.name, sub: byline(profile.headline, profile.company), logo, lines, social: icons }}
@@ -111,16 +111,17 @@ export default async function Home() {
 
       <div className="row" style={{ margin: "12px 0" }}>
         <a className="btn ghost" href="#profile">Edit profile</a>
+        <a className="btn ghost" href={`/${profile.handle}`} target="_blank" rel="noopener">View my page</a>
       </div>
 
       <h2 style={{ fontSize: 15, margin: "16px 0 8px" }}>Your modes</h2>
       {visible.length === 0
         ? <div className="card muted">No mode is set up yet. <Link href="/app/card?pane=add">Add one</Link>.</div>
-        : <ModeDropdown options={visible.map((m) => ({ value: m, label: `${MODE_INFO[m as Mode].icon} ${MODE_INFO[m as Mode].label}` }))} />}
+        : <ModeDropdown options={visible.map((m) => ({ value: m, label: MODE_INFO[m as Mode].label }))} />}
 
       {dueCount + pendingCount > 0 && (
         <Link href="/app/contacts" className="menu-row" style={{ marginTop: 14, borderColor: "#f5c26b", background: "#fffaf0" }}>
-          <span className="menu-ico" aria-hidden></span>
+          <span className="menu-ico" aria-hidden style={{ color: "#b87b1f", background: "#fdf1dc" }}><Icon name="chat" /></span>
           <span style={{ flex: 1 }}><b>{dueCount ? `Follow up with ${dueCount} ${dueCount === 1 ? "person" : "people"} today` : `${pendingCount} connection ${pendingCount === 1 ? "request" : "requests"}`}</b><span className="muted" style={{ display: "block" }}>{dueCount && pendingCount ? `Plus ${pendingCount} connection request${pendingCount === 1 ? "" : "s"}` : "Open Connections"}</span></span>
           <span className="muted" aria-hidden>›</span>
         </Link>
@@ -143,7 +144,7 @@ export default async function Home() {
       {upcoming.length === 0 && <div className="card muted">No events planned. <Link href="/app/events">Create one</Link>.</div>}
       {upcoming.map((e) => (
         <Link key={e.id} href={`/app/events/${e.id}`} className="menu-row">
-          <span className="menu-ico">◈</span>
+          <span className="menu-ico"><Icon name="calendar" /></span>
           <span style={{ flex: 1, minWidth: 0 }}><b>{e.name}</b><span className="muted" style={{ display: "block" }}>{fmt(e.startsAt)} · {e._count.attendees} registered</span></span>
           <span className="muted">›</span>
         </Link>

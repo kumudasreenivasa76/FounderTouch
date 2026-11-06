@@ -1,7 +1,7 @@
 /* State, saving and the rules that decide what shows. */
 "use strict";
 
-var KEY = "foundertouch.app.v1";
+var KEY = "tapnodd.app.v1";
 var S = null;          // the whole app state
 var DB = null;         // { db, id } once the artifact database answers
 var saveTimer = null, dbBusy = false, dbDirty = false;

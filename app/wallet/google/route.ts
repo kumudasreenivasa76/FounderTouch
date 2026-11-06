@@ -33,11 +33,11 @@ GOOGLE_WALLET_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KE
   }
 
   const p = u.profile, origin = req.nextUrl.origin, theme = themeOf(p.theme);
-  const classId = `${issuer}.foundertouch_card`;
+  const classId = `${issuer}.tapnodd_card`;
   const text = (header: string, body: string) => ({ header, body });
   const generic = {
     id: `${issuer}.${p.id}_${mode}`, classId, state: "ACTIVE",
-    cardTitle: { defaultValue: { language: "en", value: "FounderTouch" } },
+    cardTitle: { defaultValue: { language: "en", value: "TapNodd" } },
     header: { defaultValue: { language: "en", value: p.name } },
     subheader: { defaultValue: { language: "en", value: byline(p.headline, p.company) || MODE_INFO[mode].label } },
     hexBackgroundColor: theme.from,

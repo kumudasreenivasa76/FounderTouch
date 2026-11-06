@@ -23,7 +23,7 @@ async function load(handle: string, jobId: string) {
   return { p, job };
 }
 
-/** One tap: apply using the signed-in visitor's own FounderTouch profile (their Hire me details travel with it). */
+/** One tap: apply using the signed-in visitor's own TapNodd profile (their Hire me details travel with it). */
 async function applyWithProfile(fd: FormData) {
   "use server";
   const handle = String(fd.get("handle")), jobId = String(fd.get("jobId"));
@@ -118,7 +118,7 @@ export default async function Apply({ params, searchParams }: { params: Promise<
           {mine && mineStats && (
             <form action={applyWithProfile} className="card" style={{ borderColor: "#b2f2bb", background: "#f3fcf5" }}>
               <input type="hidden" name="handle" value={handle} /><input type="hidden" name="jobId" value={jobId} /><input type="hidden" name="event" value={sp.event ?? ""} />
-              <b>Apply with your FounderTouch profile</b>
+              <b>Apply with your TapNodd profile</b>
               <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "10px 0" }}>
                 <Avatar name={mine.name} handle={mine.handle} hasPhoto={!!mine.photo} avatar={mine.avatar} size={44} />
                 <div style={{ minWidth: 0 }}><b>{mine.name}</b><div className="muted">{byline(mine.headline, mine.company)}</div></div>
@@ -128,7 +128,7 @@ export default async function Apply({ params, searchParams }: { params: Promise<
               <button>Apply in one tap</button>
             </form>
           )}
-          {!me && <Link href={`/login?next=${encodeURIComponent(here(handle, jobId))}`} className="btn ghost" style={{ marginBottom: 12 }}>Have a FounderTouch profile? Log in to apply in one tap</Link>}
+          {!me && <Link href={`/login?next=${encodeURIComponent(here(handle, jobId))}`} className="btn ghost" style={{ marginBottom: 12 }}>Have a TapNodd profile? Log in to apply in one tap</Link>}
 
           <form action={applyForm} className="card">
             <input type="hidden" name="handle" value={handle} /><input type="hidden" name="jobId" value={jobId} /><input type="hidden" name="event" value={sp.event ?? ""} />
