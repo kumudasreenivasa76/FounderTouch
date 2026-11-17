@@ -62,7 +62,7 @@ export default function BrandForm({ action, logoSrc, color1, color2, company, re
   const light = luminance(c1) > 0.6 && luminance(c2) > 0.6;
 
   const PRESETS: [string, string, string][] = [
-    ["Violet", "#7c3aed", "#a855f7"], ["Ocean", "#1d4ed8", "#0ea5e9"], ["Forest", "#047857", "#10b981"],
+    ["Violet", "#1f4fd8", "#3d6bea"], ["Ocean", "#1d4ed8", "#0ea5e9"], ["Forest", "#047857", "#10b981"],
     ["Sunset", "#ea580c", "#dc2626"], ["Rose", "#be185d", "#ec4899"], ["Slate", "#1f2937", "#475569"],
   ];
 

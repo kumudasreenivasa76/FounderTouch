@@ -105,7 +105,7 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
                 <h1>{ic(m)}{info.kit}</h1>
                 <p>{info.intro ?? `${info.blurb}. Fill in only what applies to you.`}</p>
               </header>
-              {active && sp.saved && <div className="ok">Saved ✓</div>}
+              {active && sp.saved && <div className="ok">Saved</div>}
               {active && sp.err && <div className="err">{ERR[sp.err] ?? "Something went wrong."}</div>}
 
               <KitPanels mode={m} handle={profile.handle} initial={(sp.tab === "actions" || sp.tab === "share" || sp.tab === "brand") && active ? sp.tab : active && sp.kind ? "docs" : "details"}
@@ -118,7 +118,7 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
                 <div className="kit-bar"><i style={{ width: `${needs.length ? ((needs.length - todo.length) / needs.length) * 100 : 100}%` }} /></div>
                 {needs.map((n) => (
                   <Link key={n.label} href={n.href} className={"kit-step" + (n.ok ? " ok" : "")}>
-                    <span className="dot" aria-hidden>{n.ok ? "✓" : "+"}</span><span className="t">{n.label}</span>
+                    <span className="dot" aria-hidden>{n.ok ? "" : "+"}</span><span className="t">{n.label}</span>
                   </Link>
                 ))}
               </div>

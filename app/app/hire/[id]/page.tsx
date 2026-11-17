@@ -37,7 +37,7 @@ export default async function Role({ params, searchParams }: { params: Promise<{
 
       <div className="row" style={{ marginBottom: 10 }}>
         <Link className="btn ghost" href={`/app/hire/talent?job=${job.id}`}>Talent</Link>
-        <a className="btn ghost" href={`/${profile.handle}/apply/${job.id}`} target="_blank" rel="noopener noreferrer">Posting ↗</a>
+        <a className="btn ghost" href={`/${profile.handle}/apply/${job.id}`} target="_blank" rel="noopener noreferrer">Posting</a>
       </div>
 
       <nav className="chips" aria-label="Pipeline stage" style={{ overflowX: "auto", flexWrap: "nowrap", margin: "0 0 10px" }}>

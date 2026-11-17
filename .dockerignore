@@ -6,3 +6,6 @@ uploads
 dev.log
 dev.err
 .git
+mobile
+*.db-journal
+.env*

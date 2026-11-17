@@ -101,17 +101,17 @@ export default async function Home() {
         </div>
         <Link href="/app/settings" className="gear" aria-label="Card settings"><Icon name="settings" size={19} /></Link>
       </div>
-      <div style={{ height: 8, borderRadius: 8, background: "#e8ebf2", overflow: "hidden", marginBottom: 14 }} role="progressbar" aria-label="Profile completion" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-        <div style={{ width: `${pct}%`, height: "100%", background: gradient(profile.theme) }} />
+      <div style={{ height: 8, borderRadius: 8, background: "#e3e6ea", overflow: "hidden", marginBottom: 14 }} role="progressbar" aria-label="Profile completion" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+        <div style={{ width: `${pct}%`, height: "100%", borderRadius: 8, background: "var(--ink)", transition: "width .6s var(--spring)" }} />
       </div>
-      {next && <Link href={next.href} className="menu-row" style={{ borderColor: "rgba(124,58,237,.35)", background: "linear-gradient(135deg,rgba(124,58,237,.06),rgba(168,85,247,.06))" }}><span className="menu-ico"><Icon name="check" /></span><span style={{ flex: 1 }}><b>{next.label}</b><span className="muted" style={{ display: "block" }}>Finish your profile</span></span><span className="muted">›</span></Link>}
+      {next && <Link href={next.href} className="menu-row next-step"><span className="menu-ico"><Icon name="check" /></span><span style={{ flex: 1 }}><b>{next.label}</b><span className="muted" style={{ display: "block" }}>Finish your profile</span></span><span className="muted">›</span></Link>}
 
       <CardWithShare key={profile.theme}
         card={{ background: gradient(profile.theme), back: `linear-gradient(135deg, ${t.to}, ${t.from})`, avatar, name: profile.name, sub: byline(profile.headline, profile.company), logo, lines, social: icons }}
         share={{ name: profile.name, handle: profile.handle, url: hubUrl, qr: offline.qr, vcf, imageUrl: `/card/${profile.handle}/image?mode=ALL` }} />
 
       <div className="row" style={{ margin: "12px 0" }}>
-        <a className="btn ghost" href="#profile">Edit profile</a>
+        <Link className="btn" href="/app/card"><Icon name="qr" size={18} /> Share card</Link>
         <PreviewLink className="btn ghost" href={`/${profile.handle}`} title="My public page">View my page</PreviewLink>
       </div>
 
@@ -127,8 +127,8 @@ export default async function Home() {
         : <ModeDropdown options={visible.map((m) => ({ value: m, label: MODE_INFO[m as Mode].label }))} />}
 
       {dueCount + pendingCount > 0 && (
-        <Link href="/app/contacts" className="menu-row" style={{ marginTop: 14, borderColor: "#f5c26b", background: "#fffaf0" }}>
-          <span className="menu-ico" aria-hidden style={{ color: "#b87b1f", background: "#fdf1dc" }}><Icon name="chat" /></span>
+        <Link href="/app/contacts" className="menu-row" style={{ marginTop: 14 }}>
+          <span className="menu-ico" aria-hidden style={{ color: "var(--warn)" }}><Icon name="chat" /></span>
           <span style={{ flex: 1 }}><b>{dueCount ? `Follow up with ${dueCount} ${dueCount === 1 ? "person" : "people"} today` : `${pendingCount} connection ${pendingCount === 1 ? "request" : "requests"}`}</b><span className="muted" style={{ display: "block" }}>{dueCount && pendingCount ? `Plus ${pendingCount} connection request${pendingCount === 1 ? "" : "s"}` : "Open Connections"}</span></span>
           <span className="muted" aria-hidden>›</span>
         </Link>

@@ -7,7 +7,7 @@ export default function PageHead({ title, sub, back = "/app", saved, error }: { 
       <Link href={back} className="muted">← Back</Link>
       <h1 style={{ marginTop: 4 }}>{title}</h1>
       {sub && <p className="muted" style={{ marginTop: 0 }}>{sub}</p>}
-      {saved && <div className="ok">Saved ✓</div>}
+      {saved && <div className="ok">Saved</div>}
       {error && <div className="err">{error}</div>}
     </>
   );

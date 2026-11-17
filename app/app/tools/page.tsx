@@ -29,13 +29,13 @@ export default async function Tools() {
 
       <h2 style={{ fontSize: 16 }}>Email signature</h2>
       <EmailSignature html={sig} />
-      <Link className="btn ghost" style={{ marginTop: 8 }} href="/dashboard/signature" target="_blank" rel="noopener noreferrer">Change the design ↗</Link>
+      <Link className="btn ghost" style={{ marginTop: 8 }} href="/dashboard/signature" target="_blank" rel="noopener noreferrer">Change the design</Link>
 
       <h2 style={{ fontSize: 16 }}>Video-call background</h2>
       <div className="card">
         <p className="muted" style={{ marginTop: 0 }}>A 1920×1080 background with your name and QR code at the sides. Set it in Zoom, Meet or Teams so people can scan you on screen.</p>
         <a className="btn" href={`/card/${profile.handle}/background`} download={`${profile.handle}-background.png`}>Download background</a>
-        <Link className="btn ghost" style={{ marginTop: 8 }} href="/dashboard/backgrounds" target="_blank" rel="noopener noreferrer">Change the design ↗</Link>
+        <Link className="btn ghost" style={{ marginTop: 8 }} href="/dashboard/backgrounds" target="_blank" rel="noopener noreferrer">Change the design</Link>
       </div>
 
       <h2 style={{ fontSize: 16 }}>Send my card</h2>

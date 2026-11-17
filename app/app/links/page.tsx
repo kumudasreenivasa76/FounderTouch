@@ -36,7 +36,7 @@ export default async function Links({ searchParams }: { searchParams: Promise<{ 
   const h = await headers();
   const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`;
   const pageUrl = `${origin}/${profile.handle}`;
-  const qr = await QRCode.toDataURL(pageUrl, { errorCorrectionLevel: "M", margin: 1, width: 600, color: { dark: "#241a4d", light: "#ffffff" } });
+  const qr = await QRCode.toDataURL(pageUrl, { errorCorrectionLevel: "M", margin: 1, width: 600, color: { dark: "#0e1116", light: "#ffffff" } });
   const hidden = hiddenAuto(profile.linkHidden);
   const own = new Set(links.map((l) => normUrl(l.url)));
   const auto = (await autoLinks(profile.id, profile.handle)).filter((x) => !own.has(normUrl(x.href)));

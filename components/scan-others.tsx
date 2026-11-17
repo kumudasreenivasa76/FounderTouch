@@ -92,7 +92,7 @@ export default function ScanOthers({ peek, save }: { peek: (raw: string) => Prom
             <div className="muted">{found.sub || found.modeLabel}</div>
           </div>
           <div style={{ display: "grid", gap: 6 }}>
-            {!found.own && <button type="button" onClick={doSave} disabled={saved} style={{ width: "auto", padding: "8px 14px" }}>{saved ? "✓ Saved" : "Save card"}</button>}
+            {!found.own && <button type="button" onClick={doSave} disabled={saved} style={{ width: "auto", padding: "8px 14px" }}>{saved ? "Saved" : "Save card"}</button>}
             <a className="btn ghost" style={{ width: "auto", padding: "8px 14px" }} href={`/${found.handle}?mode=${found.mode}`} target="_blank">Open</a>
           </div>
         </div>
@@ -101,7 +101,7 @@ export default function ScanOthers({ peek, save }: { peek: (raw: string) => Prom
         <div className="card" style={{ marginTop: 12 }}>
           <b>That isn&apos;t a TapNodd card</b>
           <div className="muted" style={{ wordBreak: "break-all", margin: "4px 0 8px" }}>{other}</div>
-          {isUrl && <a className="btn ghost" href={other} target="_blank" rel="noopener noreferrer">Open link ↗</a>}
+          {isUrl && <a className="btn ghost" href={other} target="_blank" rel="noopener noreferrer">Open link</a>}
         </div>
       )}
 

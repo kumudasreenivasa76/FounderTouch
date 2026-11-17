@@ -133,7 +133,7 @@ export default async function Connections({ searchParams }: { searchParams: Prom
 
       {people.length === 0 && (
         <div className="card" style={{ textAlign: "center", padding: "26px 16px" }}>
-          <span style={{ display: "inline-flex", width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg,rgba(124,58,237,.12),rgba(168,85,247,.12))", color: "#7c3aed", alignItems: "center", justifyContent: "center", marginBottom: 10 }} aria-hidden><Icon name="users" size={26} /></span>
+          <span style={{ display: "inline-flex", width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg,rgba(31,79,216,.12),rgba(61,107,234,.12))", color: "#1f4fd8", alignItems: "center", justifyContent: "center", marginBottom: 10 }} aria-hidden><Icon name="users" size={26} /></span>
           <b style={{ display: "block" }}>{view === "events" ? "No event contacts yet" : view === "jobs" ? "No applicants yet" : "No connections yet"}</b>
           <p className="muted">{view === "events" ? "People who register for or check in at your events appear here." : view === "jobs" ? "People who apply to your open roles appear here." : "Share your card, scan someone else's, or bring in a list you already have."}</p>
           {view === "people"

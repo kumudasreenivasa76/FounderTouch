@@ -39,7 +39,7 @@ export default async function Hire() {
           {count("NEW") > 0 && <div style={{ padding: "4px 0" }}><b>{count("NEW")}</b> new {count("NEW") === 1 ? "candidate is" : "candidates are"} waiting for a decision</div>}
           {interviews.slice(0, 4).map((a) => (
             <Link key={a.id} href={`/app/hire/candidate/${a.id}`} style={{ display: "flex", gap: 8, padding: "6px 0", borderTop: "1px solid var(--line)", color: "inherit" }}>
-              <span aria-hidden style={{ display: "inline-flex", alignItems: "center", color: "#7c3aed" }}><Icon name="calendar" size={17} /></span><span style={{ flex: 1 }}><b>{a.name}</b><span className="muted" style={{ display: "block" }}>{a.jobTitle}</span></span><span className="muted">{day(a.interviewAt!)}, {time(a.interviewAt!)}</span>
+              <span aria-hidden style={{ display: "inline-flex", alignItems: "center", color: "#1f4fd8" }}><Icon name="calendar" size={17} /></span><span style={{ flex: 1 }}><b>{a.name}</b><span className="muted" style={{ display: "block" }}>{a.jobTitle}</span></span><span className="muted">{day(a.interviewAt!)}, {time(a.interviewAt!)}</span>
             </Link>
           ))}
         </section>

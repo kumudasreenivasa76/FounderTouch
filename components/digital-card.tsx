@@ -24,7 +24,7 @@ export default function DigitalCard({
             <div className="face-top">{avatar}{logo && <img className="face-logo" src={logo} alt="" />}</div>
             <div className="face-name">{name}</div>
             {sub && <div className="face-sub">{sub}</div>}
-            {qr ? <div className="face-qr"><img src={qr} alt="QR code to open this card" /></div> : <div className="face-hint">{onTap ? "Tap for QR & share ▦" : "Tap to flip ↻"}</div>}
+            {qr ? <div className="face-qr"><img src={qr} alt="QR code to open this card" /></div> : <div className="face-hint">{onTap ? "Tap for QR and share" : "Tap to flip"}</div>}
           </div>
           <div className="face backside" style={{ background: back }} inert={!flipped}>
             <div className="face-name" style={{ fontSize: 17 }}>{name}</div>
@@ -38,7 +38,7 @@ export default function DigitalCard({
           </div>
         </div>
       </div>
-      <button type="button" className="ghost" onClick={() => setFlipped((f) => !f)} aria-pressed={flipped} style={{ marginTop: 10 }}>↻ Flip card</button>
+      <button type="button" className="ghost" onClick={() => setFlipped((f) => !f)} aria-pressed={flipped} style={{ marginTop: 10 }}>Flip card</button>
     </div>
   );
 }

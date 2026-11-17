@@ -12,7 +12,7 @@ export default function ShareButtons({ url, title }: { url: string; title: strin
   };
   return (
     <div className="row" style={{ marginTop: 12 }}>
-      <button type="button" className="ghost" onClick={copy}>{done ? "Copied ✓" : "Copy link"}</button>
+      <button type="button" className="ghost" onClick={copy}>{done ? "Copied" : "Copy link"}</button>
       <button type="button" onClick={share}>Share</button>
     </div>
   );

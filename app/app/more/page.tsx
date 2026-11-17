@@ -51,7 +51,7 @@ export default async function More() {
             <Link key={i.href} href={i.href} className="menu-row" {...(i.href.startsWith("/dashboard") ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
               <span className="menu-ico" aria-hidden><Icon name={i.icon} /></span>
               <span style={{ flex: 1, minWidth: 0 }}><b>{i.title}</b><span className="muted" style={{ display: "block" }}>{i.sub}</span></span>
-              <span className="muted" aria-hidden>{i.href.startsWith("/dashboard") ? "↗" : "›"}</span>
+              <span className="muted" aria-hidden>{i.href.startsWith("/dashboard") ? "" : "›"}</span>
             </Link>
           ))}
         </section>

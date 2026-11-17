@@ -110,7 +110,7 @@ export default async function Apply({ params, searchParams }: { params: Promise<
       {skills.length > 0 && <div className="card"><h3>Skills</h3>{skills.map((s) => <span key={s} className="pill">{s}</span>)}</div>}
 
       {sp.sent ? (
-        <div className="ok">Application sent ✓ {p.company || p.name} will get in touch if there is a fit.</div>
+        <div className="ok">Application sent {p.company || p.name} will get in touch if there is a fit.</div>
       ) : (
         <>
           {sp.err && <div className="err">{ERR[sp.err] ?? "Something went wrong."}</div>}

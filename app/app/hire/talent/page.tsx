@@ -63,7 +63,7 @@ export default async function Talent({ searchParams }: { searchParams: Promise<{
               </div>
             </div>
             {job && (done
-              ? <div className="muted" style={{ marginTop: 6 }}>✓ Invited to apply for {job.title}</div>
+              ? <div className="muted" style={{ marginTop: 6 }}>Invited to apply for {job.title}</div>
               : <form action={inviteTalent} style={{ marginTop: 8 }}><input type="hidden" name="jobId" value={job.id} /><input type="hidden" name="profileId" value={p.id} /><input type="hidden" name="back" value={back} /><button aria-label={`Invite to apply: ${p.name}, ${job.title}`}>Invite to apply</button></form>)}
           </article>
         );

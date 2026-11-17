@@ -58,7 +58,7 @@ export default function ShareSheet({ name, handle, url, qr, vcf, imageUrl, openS
   const copy = async () => { try { await navigator.clipboard.writeText(url); say("Link copied."); } catch { prompt("Copy this link", url); } };
 
   const rows: Row[] = [
-    { icon: "▦", label: "QR code", run: () => { setOpen(false); setShowQr(true); } },
+    { icon: "", label: "QR code", run: () => { setOpen(false); setShowQr(true); } },
     { icon: "chat", label: "Text message", online: true, href: `sms:?&body=${encodeURIComponent(text)}` },
     { icon: "mail", label: "Email", online: true, href: `mailto:?subject=${encodeURIComponent(`${name}'s digital card`)}&body=${encodeURIComponent(text)}` },
     { icon: "copy", label: "Copy link", run: copy },

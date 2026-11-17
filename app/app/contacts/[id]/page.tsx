@@ -77,7 +77,7 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
         </form>
         {c.followUpAt && (
           <div className="row" style={{ marginTop: 8 }}>
-            <form action={markFollowedUp}><input type="hidden" name="id" value={c.id} /><button>✓ I followed up</button></form>
+            <form action={markFollowedUp}><input type="hidden" name="id" value={c.id} /><button>I followed up</button></form>
             <form action={setFollowUp}><input type="hidden" name="id" value={c.id} /><button className="ghost">Clear reminder</button></form>
           </div>
         )}

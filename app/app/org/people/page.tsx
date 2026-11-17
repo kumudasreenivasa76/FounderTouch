@@ -54,7 +54,7 @@ export default async function People({ searchParams }: { searchParams: Promise<{
           <div className="row" style={{ marginTop: 10, flexWrap: "wrap" }}>
             <a className="btn ghost" href={`/${p.handle}`} target="_blank" rel="noopener noreferrer">View card</a>
             {p.id !== profile.id && (have.has(email)
-              ? <span className="muted" style={{ alignSelf: "center", textAlign: "center" }}>✓ Connected</span>
+              ? <span className="muted" style={{ alignSelf: "center", textAlign: "center" }}>Connected</span>
               : <form action={connectColleague}><input type="hidden" name="profileId" value={p.id} /><button>Connect</button></form>)}
           </div>
           {m.isAdmin && mem.role !== "OWNER" && mem.userId !== user.id && (

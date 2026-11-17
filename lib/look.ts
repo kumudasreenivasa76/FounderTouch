@@ -1,10 +1,11 @@
+/** Card colours: deep, solid tones. `to` is a slightly lighter shade used for depth on the card. Keys stay for saved profiles. */
 export const THEMES: Record<string, { name: string; from: string; to: string }> = {
-  indigo: { name: "Indigo", from: "#3b5bdb", to: "#7048e8" },
-  sunset: { name: "Sunset", from: "#f76707", to: "#e03131" },
-  emerald: { name: "Emerald", from: "#0ca678", to: "#1098ad" },
-  ocean: { name: "Ocean", from: "#1c7ed6", to: "#0b7285" },
-  rose: { name: "Rose", from: "#d6336c", to: "#9c36b5" },
-  midnight: { name: "Midnight", from: "#212529", to: "#495057" },
+  indigo: { name: "Navy", from: "#1b2a44", to: "#2a3d5f" },
+  sunset: { name: "Ember", from: "#7a3417", to: "#984522" },
+  emerald: { name: "Forest", from: "#1d5546", to: "#286a58" },
+  ocean: { name: "Cobalt", from: "#1a43bd", to: "#2f5fe3" },
+  rose: { name: "Wine", from: "#5e2236", to: "#7a2f47" },
+  midnight: { name: "Graphite", from: "#15181d", to: "#2a2f37" },
 };
 const CUSTOM = /^custom:(#[0-9a-f]{6}):(#[0-9a-f]{6})$/i;
 export const isCustomTheme = (k: string) => CUSTOM.test(k);
@@ -14,7 +15,8 @@ export const themeOf = (k: string) => {
   const m = CUSTOM.exec(k);
   return m ? { name: "Company", from: m[1], to: m[2] } : THEMES[k] ?? THEMES.indigo;
 };
-export const gradient = (k: string) => `linear-gradient(135deg, ${themeOf(k).from}, ${themeOf(k).to})`;
+/** The card surface: one colour with a soft light from the top left, so it reads as a physical card, not a wash. */
+export const gradient = (k: string) => `linear-gradient(150deg, ${themeOf(k).to} 0%, ${themeOf(k).from} 62%)`;
 
 /** Lighten (amt > 0) or darken (amt < 0) a #rrggbb colour. */
 export function shade(hex: string, amt: number): string {

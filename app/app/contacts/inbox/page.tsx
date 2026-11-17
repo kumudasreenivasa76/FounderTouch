@@ -63,7 +63,7 @@ export default async function Inbox({ searchParams }: { searchParams: Promise<{ 
         <>
           <h2>Job invites ({invites.length})</h2>
           {invites.map((i) => (
-            <div className="card" key={i.id} style={{ borderColor: "#d7defb", background: "#eef1ff" }}>
+            <div className="card" key={i.id} style={{ borderColor: "#d7defb", background: "#eef2fb" }}>
               <b>{i.job.profile.company || i.job.profile.name}</b> invited you to apply
               <div style={{ fontSize: 16, fontWeight: 600 }}>{i.job.title}</div>
               <div className="muted">{[i.job.location, i.job.workType, i.job.employment, i.job.salary].filter(Boolean).join(" · ")}</div>

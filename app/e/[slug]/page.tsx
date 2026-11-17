@@ -152,7 +152,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
         )}
       </div>
       {ev.description && <div className="card" style={{ whiteSpace: "pre-wrap" }}>{ev.description}</div>}
-      {ev.links.length > 0 && <div className="card"><h2 style={{ fontSize: 15 }}>Links</h2>{ev.links.map((l) => <a key={l.id} className="btn ghost" style={{ marginRight: 8 }} href={l.url} target="_blank" rel="noopener noreferrer">{l.label} ↗</a>)}</div>}
+      {ev.links.length > 0 && <div className="card"><h2 style={{ fontSize: 15 }}>Links</h2>{ev.links.map((l) => <a key={l.id} className="btn ghost" style={{ marginRight: 8 }} href={l.url} target="_blank" rel="noopener noreferrer">{l.label}</a>)}</div>}
       {ev.agenda && <div className="card"><h2 style={{ fontSize: 15 }}>Agenda</h2><div style={{ whiteSpace: "pre-wrap" }}>{ev.agenda}</div></div>}
       <div className="card" style={{ textAlign: "center" }}>
         <img className="qr" src={qr} alt={`QR code for ${ev.name}`} />

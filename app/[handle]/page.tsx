@@ -240,7 +240,7 @@ export default async function Public({ params, searchParams }: { params: Promise
         {src && <video src={src} controls playsInline preload="metadata" style={frame} />}
         {embed && <iframe src={embed} title={r.title} loading="lazy" allowFullScreen allow="autoplay; fullscreen; picture-in-picture" style={{ ...frame, aspectRatio: "16 / 9", border: 0 }} />}
         {!src && !embed && <a className="btn ghost" href={href(r)} target="_blank" rel="noopener noreferrer">Watch demo</a>}
-        {(src || embed) && r.url && <a className="muted" href={r.url} target="_blank" rel="noopener noreferrer">Open original ↗</a>}
+        {(src || embed) && r.url && <a className="muted" href={r.url} target="_blank" rel="noopener noreferrer">Open original</a>}
       </div>
     );
   };
@@ -253,7 +253,7 @@ export default async function Public({ params, searchParams }: { params: Promise
         {src
           ? <iframe src={src} title={r.title} loading="lazy" allowFullScreen style={{ width: "100%", height: 340, border: "1px solid #e3e6ec", borderRadius: 12, background: "#fff" }} />
           : ext && !isPublicOrigin(origin) && <p className="muted" style={{ margin: "0 0 6px" }}>Inline preview of PowerPoint/Word files works once the site is online. Upload a PDF to preview it anywhere.</p>}
-        <a className="btn ghost" style={{ marginTop: 8 }} href={href(r)} target="_blank">{src ? "Open full screen ↗" : "Open " + r.title}</a>
+        <a className="btn ghost" style={{ marginTop: 8 }} href={href(r)} target="_blank">{src ? "Open full screen" : "Open " + r.title}</a>
       </div>
     );
   };
@@ -292,12 +292,12 @@ export default async function Public({ params, searchParams }: { params: Promise
         ))}
         <a className="btn ghost" href={`/${handle}/vcard?mode=${mode}`}>Save contact</a>
         {!isOwner && (alreadySaved || sp.saved
-          ? <div className="pill" style={{ marginTop: 8, display: "block", textAlign: "center", padding: "10px 12px" }}>✓ Saved to your wallet</div>
+          ? <div className="pill" style={{ marginTop: 8, display: "block", textAlign: "center", padding: "10px 12px" }}>Saved to your wallet</div>
           : <form action={saveCard} style={{ marginTop: 8 }}><input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value={mode} /><button className="ghost">Save card</button></form>)}
         {resume && <a className="btn ghost" style={{ marginTop: 8 }} href={`/${handle}?mode=${mode}&pane=hire`}>View resume</a>}
         {socials.linkedin && <a className="btn ghost" style={{ marginTop: 8 }} href={socials.linkedin} target="_blank" rel="noopener noreferrer">in Connect on LinkedIn</a>}
       </div>
-      {cfg.intro && <div className="card" style={{ background: "#f1ebff", borderColor: "#d7defb" }}>{cfg.intro}</div>}
+      {cfg.intro && <div className="card" style={{ background: "#eef2fb", borderColor: "#d7defb" }}>{cfg.intro}</div>}
       {enabled.length > 0 && (mode === "ALL" || enabled.length > 1) && (
         <div className="card"><b>I am a…</b>
           <div style={{ marginTop: 8 }}>
@@ -320,7 +320,7 @@ export default async function Public({ params, searchParams }: { params: Promise
         </div>
       ))}
       {fieldDefs.filter((f) => f.type === "url").map((f) => (
-        <a key={f.key} className="btn ghost" style={link} href={fv[f.key]} target="_blank" rel="noopener noreferrer">{f.label} ↗</a>
+        <a key={f.key} className="btn ghost" style={link} href={fv[f.key]} target="_blank" rel="noopener noreferrer">{f.label}</a>
       ))}
     </div>
   );
@@ -341,7 +341,7 @@ export default async function Public({ params, searchParams }: { params: Promise
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0" }}>
             <Avatar name={nm} handle={lp?.handle ?? ""} hasPhoto={!!lp?.photo} avatar={lp?.avatar ?? ""} size={44} />
             <div style={{ flex: 1 }}><b>{nm}</b><div className="muted">{role}</div></div>
-            {t.link && <span className="pill" style={{ margin: 0 }}>View ↗</span>}
+            {t.link && <span className="pill" style={{ margin: 0 }}>View</span>}
           </div>
         );
         return t.link ? <a key={t.id} href={t.link} target={t.memberHandle ? undefined : "_blank"} rel="noopener noreferrer" style={{ color: "inherit", display: "block" }}>{row}</a> : <div key={t.id}>{row}</div>;
@@ -399,10 +399,10 @@ export default async function Public({ params, searchParams }: { params: Promise
   const hireP = (
     <>
       {showCareer && myJobs.length > 0 && openTo !== "Not looking" && (
-        <form action={inviteCandidate} className="card" style={{ background: "#f1ebff", borderColor: "#d7defb" }}>
+        <form action={inviteCandidate} className="card" style={{ background: "#eef2fb", borderColor: "#d7defb" }}>
           <input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value={mode} />
           <b>Invite {p.firstName || p.name} to apply</b>
-          {sp.invited && <div className="ok" style={{ marginTop: 8 }}>Invite sent ✓</div>}
+          {sp.invited && <div className="ok" style={{ marginTop: 8 }}>Invite sent</div>}
           <select name="jobId" style={{ marginTop: 8 }}>{myJobs.map((j) => <option key={j.id} value={j.id}>{j.title}{invitedJobs.has(j.id) ? " (invited)" : ""}</option>)}</select>
           <button>Send invite</button>
         </form>
@@ -416,7 +416,7 @@ export default async function Public({ params, searchParams }: { params: Promise
       {jobs.length > 0 && <div className="card"><h3>Experience</h3>{jobs.map(timeline)}</div>}
       {schools.length > 0 && <div className="card"><h3>Education</h3>{schools.map(timeline)}</div>}
       {group("RESUME").length > 0 && <div className="card"><h3>{kindLabel(mode, "RESUME")}</h3>{group("RESUME").map((r) => r.gated ? locked(r) : viewer(r))}</div>}
-      {portfolioLink && <div className="card"><h3>Portfolio</h3><a className="btn ghost" href={portfolioLink} target="_blank" rel="noopener noreferrer">Open my portfolio ↗</a></div>}
+      {portfolioLink && <div className="card"><h3>Portfolio</h3><a className="btn ghost" href={portfolioLink} target="_blank" rel="noopener noreferrer">Open my portfolio</a></div>}
       {group("PORTFOLIO").length > 0 && <div className="card"><h3>{kindLabel(mode, "PORTFOLIO")}</h3>{group("PORTFOLIO").map((r) => r.gated ? locked(r) : viewer(r))}</div>}
     </>
   );
@@ -452,7 +452,7 @@ export default async function Public({ params, searchParams }: { params: Promise
     <div className="card"><h3>{booking.icon} {cfg.ctaLabel}</h3>
       <p className="muted" style={{ marginTop: 0 }}>Booking with {p.name} via {booking.provider}.</p>
       {booking.embed && <iframe src={booking.embed} title={`Book with ${p.name}`} loading="lazy" allow="payment" style={{ width: "100%", height: 560, border: "1px solid #e3e6ec", borderRadius: 12, background: "#fff" }} />}
-      <a className="btn ghost" style={{ marginTop: 8 }} href={cfg.bookingUrl} target="_blank" rel="noopener noreferrer">Open the booking page ↗</a>
+      <a className="btn ghost" style={{ marginTop: 8 }} href={cfg.bookingUrl} target="_blank" rel="noopener noreferrer">Open the booking page</a>
     </div>
   );
   const connectP = (
@@ -494,7 +494,7 @@ export default async function Public({ params, searchParams }: { params: Promise
     const li = (title: string, body: React.ReactNode) => (<div className="li"><h3>{title}</h3>{body}</div>);
     const entry = (c: (typeof p.career)[number]) => (
       <div key={c.id} style={{ display: "flex", gap: 12, marginBottom: 14 }}>
-        <div style={{ width: 46, height: 46, borderRadius: 6, background: "#f1ebff", color: "#7c3aed", display: "grid", placeItems: "center", fontWeight: 700, flexShrink: 0 }}>{initials(c.org) || "•"}</div>
+        <div style={{ width: 46, height: 46, borderRadius: 6, background: "#eef2fb", color: "#1f4fd8", display: "grid", placeItems: "center", fontWeight: 700, flexShrink: 0 }}>{initials(c.org) || "•"}</div>
         <div style={{ minWidth: 0 }}>
           <b>{c.title}</b>
           <div>{c.org}{c.location ? ` · ${c.location}` : ""}</div>
@@ -523,7 +523,7 @@ export default async function Public({ params, searchParams }: { params: Promise
               <a className="btn ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }} href={`/${handle}/vcard?mode=HIRE`}>Save contact</a>
               {firstResume && <a className="btn ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }} href={href(firstResume)} target="_blank" rel="noopener noreferrer">Resume</a>}
               {!isOwner && (alreadySaved || sp.saved
-                ? <span className="pill" style={{ margin: 0, alignSelf: "center" }}>✓ Saved</span>
+                ? <span className="pill" style={{ margin: 0, alignSelf: "center" }}>Saved</span>
                 : <form action={saveCard}><input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value="HIRE" /><button className="ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }}>Save card</button></form>)}
             </div>
           </div>
@@ -541,11 +541,11 @@ export default async function Public({ params, searchParams }: { params: Promise
         {schools.length > 0 && li("Education", <>{schools.map(entry)}</>)}
         {skillList.length > 0 && li("Skills", <div>{skillList.map((x) => <span key={x} className="pill">{x}</span>)}</div>)}
         {modeProjects.length > 0 && li("Projects", <>{modeProjects.map((x) => (
-          <div key={x.id} style={{ marginBottom: 10 }}><b>{x.name}</b>{x.tagline && <div>{x.tagline}</div>}{x.demoUrl && <a href={x.demoUrl} target="_blank" rel="noopener noreferrer">Open demo ↗</a>}</div>
+          <div key={x.id} style={{ marginBottom: 10 }}><b>{x.name}</b>{x.tagline && <div>{x.tagline}</div>}{x.demoUrl && <a href={x.demoUrl} target="_blank" rel="noopener noreferrer">Open demo</a>}</div>
         ))}</>)}
         {(resumes.length > 0 || portfolios.length > 0 || portfolioLink) && li("Resume & portfolio", <>
           {resumes.map((r) => r.gated ? locked(r) : viewer(r))}
-          {portfolioLink && <a className="btn ghost" style={{ marginBottom: 8 }} href={portfolioLink} target="_blank" rel="noopener noreferrer">Open my portfolio ↗</a>}
+          {portfolioLink && <a className="btn ghost" style={{ marginBottom: 8 }} href={portfolioLink} target="_blank" rel="noopener noreferrer">Open my portfolio</a>}
           {portfolios.map((r) => r.gated ? locked(r) : viewer(r))}
         </>)}
         {hasContact && li("Contact info", <>
