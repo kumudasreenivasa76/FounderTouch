@@ -79,7 +79,7 @@ export default async function Org({ searchParams }: { searchParams: Promise<{ er
       </div>
 
       <div className="card">
-        <b>Top people</b>
+        <b>Top people</b> <Link href="/app/org/leaderboard" style={{ float: "right", fontSize: 13, fontWeight: 600 }}>Full leaderboard</Link>
         {board.length === 0 && <div className="muted">Nothing yet.</div>}
         <ol style={{ margin: "6px 0 0", paddingLeft: 20 }}>
           {board.map((b) => <li key={b.name}>{b.name} <span className="muted">· {b.scans} views · {b.leads} contacts</span></li>)}

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireOwner } from "@/lib/auth";
-import { MODES } from "@/lib/modes";
+import { MODES, MAX_MODE_LINKS, cleanLink } from "@/lib/modes";
 import { THEMES } from "@/lib/look";
 import { brandLocked } from "@/lib/org";
 
@@ -25,17 +25,32 @@ export async function saveMode(fd: FormData) {
   const { profile } = await requireOwner();
   const mode = String(fd.get("mode"));
   if (!(MODES as readonly string[]).includes(mode)) return;
+  // Extra buttons are only touched when the form that was submitted has the link rows on it.
+  let links: string | undefined;
+  if (fd.get("hasLinks") === "1") {
+    const labels = fd.getAll("linkLabel").map(String), urls = fd.getAll("linkUrl").map(String);
+    const out: { label: string; url: string }[] = [];
+    for (let i = 0; i < urls.length && out.length < MAX_MODE_LINKS; i++) {
+      const url = cleanLink(urls[i]).slice(0, 500);
+      if (!url) continue;
+      const label = (labels[i] ?? "").trim().slice(0, 40) || url.replace(/^(https?:\/\/(www\.)?|mailto:|tel:)/i, "").split(/[/?#]/)[0];
+      out.push({ label, url });
+    }
+    links = JSON.stringify(out);
+  }
+  const rawUrl = String(fd.get("url") ?? "").trim();
   await db.modeConfig.updateMany({
     where: { profileId: profile.id, mode },
     data: {
       ctaLabel: String(fd.get("cta")).trim().slice(0, 60),
       intro: String(fd.get("intro") ?? "").trim().slice(0, 240),
       requireApproval: fd.get("approval") === "on",
-      bookingUrl: String(fd.get("url")).trim(),
+      bookingUrl: rawUrl && !/^https?:\/\//i.test(rawUrl) && /^[\w-]+(\.[\w-]+)+/.test(rawUrl) ? "https://" + rawUrl : rawUrl,
       isEnabled: mode === "ALL" ? true : fd.get("on") !== "off",
+      ...(links !== undefined ? { links } : {}),
     },
   });
   revalidatePath("/app", "layout");
-  if (fd.get("ret") === "kit") redirect(`/app/profile/kit?mode=${mode}&tab=actions&saved=1`);
+  if (fd.get("ret") === "kit") redirect(mode !== "ALL" && fd.get("on") === "off" ? "/app/profile/kit?mode=ADD" : `/app/profile/kit?mode=${mode}&tab=actions&saved=1`);
   redirect(`/app/settings?mode=${mode}&saved=1`);
 }

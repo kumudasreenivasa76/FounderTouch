@@ -10,7 +10,9 @@ import { modeHasContent } from "@/lib/mode-content";
 import PageLink from "@/components/page-link";
 import ModeSelect from "@/components/mode-select";
 import { bookingInfo } from "@/lib/booking";
-import { MODES, MODE_INFO, Mode, kindLabel, kindsOf, listItems, parseFields } from "@/lib/modes";
+import LinkPage from "@/components/link-page";
+import { profileMeta } from "@/lib/link-page";
+import { MODES, MODE_INFO, Mode, kindLabel, kindsOf, listItems, parseFields, parseLinks } from "@/lib/modes";
 import Avatar from "@/components/avatar";
 import Kiki from "@/components/kiki";
 import { tagList, cleanTags } from "@/lib/tags";
@@ -131,9 +133,15 @@ async function requestAccess(fd: FormData) {
   revalidatePath(`/${handle}`);
 }
 
+export async function generateMetadata({ params }: { params: Promise<{ handle: string }> }) {
+  return profileMeta((await params).handle);
+}
+
 export default async function Public({ params, searchParams }: { params: Promise<{ handle: string }>; searchParams: Promise<{ contact?: string; mode?: string; tag?: string; pane?: string; requested?: string; error?: string; saved?: string; invited?: string }> }) {
   const { handle } = await params;
   const sp = await searchParams;
+  // The plain /handle address is the link page. A mode (or any other state in the address) opens the full profile.
+  if (!sp.mode && !sp.pane && !sp.contact && !sp.tag && !sp.requested && !sp.error && !sp.saved && !sp.invited) return <LinkPage handle={handle} />;
   const p = await db.profile.findUnique({ where: { handle }, include: { sections: true, modes: true, resources: { orderBy: { createdAt: "asc" } }, team: { orderBy: { order: "asc" } }, events: { orderBy: { startsAt: "asc" } }, projects: { where: { eventId: null }, orderBy: { createdAt: "desc" } }, career: true, jobs: { where: { open: true }, orderBy: { createdAt: "desc" } } } });
   if (!p) notFound();
   const mode = (MODES as readonly string[]).includes(sp.mode ?? "") ? sp.mode! : "ALL";
@@ -187,6 +195,34 @@ export default async function Public({ params, searchParams }: { params: Promise
   const booking = cfg.bookingUrl ? bookingInfo(cfg.bookingUrl, h.get("host") ?? "") : null;
   const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`;
   const socials = parseSocials(p.socials);
+  // A signed-in visitor already has these details, so the "share back" forms send them in one tap.
+  const visitor = me && !isOwner ? {
+    first: me.firstName || me.name.trim().split(/\s+/)[0] || "",
+    last: me.lastName || me.name.trim().split(/\s+/).slice(1).join(" "),
+    email: me.email,
+    company: me.profile?.company ?? "",
+    linkedin: me.profile ? parseSocials(me.profile.socials).linkedin ?? "" : "",
+  } : null;
+  const backFields = (withLinkedin: boolean) => {
+    const inputs = (<>
+      <div className="row"><input name="firstName" placeholder="First name" required defaultValue={visitor?.first} /><input name="lastName" placeholder="Last name" required defaultValue={visitor?.last} /></div>
+      <input name="email" type="email" placeholder="Email" required defaultValue={visitor?.email} />
+      <input name="company" placeholder="Company" defaultValue={visitor?.company} />
+      {withLinkedin && <input name="linkedin" placeholder="Your LinkedIn (optional)" defaultValue={visitor?.linkedin} />}
+    </>);
+    if (!visitor) return inputs;
+    const full = `${visitor.first} ${visitor.last}`.trim();
+    return (
+      <div className="back-me">
+        <div className="back-me-top">
+          <span className="back-me-ini" aria-hidden>{(visitor.first[0] ?? "") + (visitor.last[0] ?? "")}</span>
+          <div><b>{full || visitor.email}</b><span>{[visitor.email, visitor.company].filter(Boolean).join(" · ")}</span></div>
+        </div>
+        <p className="back-me-note">You are signed in, so your details are already filled in.</p>
+        <details className="back-edit" open={!visitor.first || !visitor.last}><summary>Edit before sending</summary>{inputs}</details>
+      </div>
+    );
+  };
   const linked = await db.profile.findMany({ where: { handle: { in: p.team.map((t) => t.memberHandle).filter(Boolean) } } });
   const showTeam = p.team.length > 0;
   type Res = (typeof p.resources)[number];
@@ -251,6 +287,9 @@ export default async function Public({ params, searchParams }: { params: Promise
         {booking && (booking.embed
           ? <a className="btn" style={{ marginBottom: 8 }} href={`/${handle}?mode=${mode}&pane=book`}>{cfg.ctaLabel}</a>
           : <a className="btn" style={{ marginBottom: 8 }} href={cfg.bookingUrl} target="_blank" rel="noopener noreferrer">{cfg.ctaLabel}</a>)}
+        {parseLinks(cfg.links).map((l) => (
+          <a key={l.url + l.label} className="btn ghost" style={{ marginBottom: 8 }} href={l.url} {...(/^https?:/i.test(l.url) ? { target: "_blank", rel: "noopener noreferrer" } : {})}>{l.label}</a>
+        ))}
         <a className="btn ghost" href={`/${handle}/vcard?mode=${mode}`}>Save contact</a>
         {!isOwner && (alreadySaved || sp.saved
           ? <div className="pill" style={{ marginTop: 8, display: "block", textAlign: "center", padding: "10px 12px" }}>✓ Saved to your wallet</div>
@@ -258,7 +297,7 @@ export default async function Public({ params, searchParams }: { params: Promise
         {resume && <a className="btn ghost" style={{ marginTop: 8 }} href={`/${handle}?mode=${mode}&pane=hire`}>View resume</a>}
         {socials.linkedin && <a className="btn ghost" style={{ marginTop: 8 }} href={socials.linkedin} target="_blank" rel="noopener noreferrer">in Connect on LinkedIn</a>}
       </div>
-      {cfg.intro && <div className="card" style={{ background: "#eef1ff", borderColor: "#d7defb" }}>{cfg.intro}</div>}
+      {cfg.intro && <div className="card" style={{ background: "#f1ebff", borderColor: "#d7defb" }}>{cfg.intro}</div>}
       {enabled.length > 0 && (mode === "ALL" || enabled.length > 1) && (
         <div className="card"><b>I am a…</b>
           <div style={{ marginTop: 8 }}>
@@ -360,7 +399,7 @@ export default async function Public({ params, searchParams }: { params: Promise
   const hireP = (
     <>
       {showCareer && myJobs.length > 0 && openTo !== "Not looking" && (
-        <form action={inviteCandidate} className="card" style={{ background: "#eef1ff", borderColor: "#d7defb" }}>
+        <form action={inviteCandidate} className="card" style={{ background: "#f1ebff", borderColor: "#d7defb" }}>
           <input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value={mode} />
           <b>Invite {p.firstName || p.name} to apply</b>
           {sp.invited && <div className="ok" style={{ marginTop: 8 }}>Invite sent ✓</div>}
@@ -370,7 +409,7 @@ export default async function Public({ params, searchParams }: { params: Promise
       )}
       {(openTo || skillList.length > 0) && (
         <div className="card">
-          {openTo && <div style={{ marginBottom: skillList.length ? 10 : 0 }}><span className="pill on" style={{ margin: 0 }}>{openTo === "Not looking" ? "" : ""} {openTo}</span></div>}
+          {openTo && <div style={{ marginBottom: skillList.length ? 10 : 0 }}><span className="pill on" style={{ margin: 0 }}>{openTo}</span></div>}
           {skillList.length > 0 && <><h3>Skills</h3><div>{skillList.map((x) => <span key={x} className="pill">{x}</span>)}</div></>}
         </div>
       )}
@@ -436,11 +475,8 @@ export default async function Public({ params, searchParams }: { params: Promise
       <form action={exchange} className="card">
         <h3>Share your details back</h3>
         <input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value={mode} />
-        <div className="row"><input name="firstName" placeholder="First name" required /><input name="lastName" placeholder="Last name" required /></div>
-        <input name="email" type="email" placeholder="Email" required />
-        <input name="company" placeholder="Company" />
-        <input name="linkedin" placeholder="Your LinkedIn (optional)" />
-        <button>Send</button>
+        {backFields(true)}
+        <button>{visitor ? "Send my details" : "Send"}</button>
         <p className="muted">By sending, you agree {p.name} may contact you.</p>
       </form>
     </>
@@ -458,7 +494,7 @@ export default async function Public({ params, searchParams }: { params: Promise
     const li = (title: string, body: React.ReactNode) => (<div className="li"><h3>{title}</h3>{body}</div>);
     const entry = (c: (typeof p.career)[number]) => (
       <div key={c.id} style={{ display: "flex", gap: 12, marginBottom: 14 }}>
-        <div style={{ width: 46, height: 46, borderRadius: 6, background: "#eef1ff", color: "#3b5bdb", display: "grid", placeItems: "center", fontWeight: 700, flexShrink: 0 }}>{initials(c.org) || "•"}</div>
+        <div style={{ width: 46, height: 46, borderRadius: 6, background: "#f1ebff", color: "#7c3aed", display: "grid", placeItems: "center", fontWeight: 700, flexShrink: 0 }}>{initials(c.org) || "•"}</div>
         <div style={{ minWidth: 0 }}>
           <b>{c.title}</b>
           <div>{c.org}{c.location ? ` · ${c.location}` : ""}</div>
@@ -495,7 +531,7 @@ export default async function Public({ params, searchParams }: { params: Promise
 
         {openTo && (
           <div className="li" style={{ background: openToWork ? "#f0fbf5" : "#fff", borderLeft: `4px solid ${openToWork ? "#0ca678" : "#cfd4dd"}` }}>
-            <b>{openToWork ? "" : ""}{openTo}</b>
+            <b>{openTo}</b>
             {skillList.length > 0 && <div className="muted">{skillList.slice(0, 3).join(" · ")}</div>}
           </div>
         )}
@@ -523,9 +559,7 @@ export default async function Public({ params, searchParams }: { params: Promise
         {li("Get in touch", (
           <form action={exchange}>
             <input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value="HIRE" />
-            <div className="row"><input name="firstName" placeholder="First name" required /><input name="lastName" placeholder="Last name" required /></div>
-            <input name="email" type="email" placeholder="Email" required />
-            <input name="company" placeholder="Company" />
+            {backFields(false)}
             <button>Send my details</button>
             <p className="muted" style={{ marginBottom: 0 }}>By sending, you agree {p.name} may contact you.</p>
           </form>
@@ -592,6 +626,9 @@ export default async function Public({ params, searchParams }: { params: Promise
               </details>
             )}
             {cta && <a className="fp-btn" href={cta} {...(booking && !booking.embed ? { target: "_blank", rel: "noopener noreferrer" } : {})}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 6h16v12H4zM4 7l8 6 8-6" /></svg>{cfg.ctaLabel || "Let's connect"}</a>}
+            {parseLinks(cfg.links).map((l) => (
+              <a key={l.url + l.label} className="fp-btn" href={l.url} {...(/^https?:/i.test(l.url) ? { target: "_blank", rel: "noopener noreferrer" } : {})}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></svg>{l.label}</a>
+            ))}
             {socials.linkedin && <a className="fp-btn" href={socials.linkedin} target="_blank" rel="noopener noreferrer"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.75h4V21H3zM9.5 9.75h3.8v1.6h.06c.53-1 1.84-2.05 3.8-2.05 4.06 0 4.84 2.67 4.84 6.14V21h-4v-4.9c0-1.17-.02-2.67-1.63-2.67-1.63 0-1.88 1.27-1.88 2.58V21h-4z" /></svg>LinkedIn</a>}
             {!isOwner && (alreadySaved || sp.saved
               ? <span className="fp-saved">Saved to your wallet</span>
@@ -649,11 +686,8 @@ export default async function Public({ params, searchParams }: { params: Promise
         <div className="fp-card">{sec("Share your details back", (
           <form action={exchange} className="fp-form">
             <input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value="FOUNDER" />
-            <div className="row"><input name="firstName" placeholder="First name" required /><input name="lastName" placeholder="Last name" required /></div>
-            <input name="email" type="email" placeholder="Email" required />
-            <input name="company" placeholder="Company" />
-            <input name="linkedin" placeholder="Your LinkedIn (optional)" />
-            <button>Send</button>
+            {backFields(true)}
+            <button>{visitor ? "Send my details" : "Send"}</button>
             <p className="muted">By sending, you agree {p.name} may contact you.</p>
           </form>
         ))}</div>

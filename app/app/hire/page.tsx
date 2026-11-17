@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Icon from "@/components/icon";
 import { db } from "@/lib/db";
 import { requireOwner } from "@/lib/auth";
 import { STATUSES, PIPELINE } from "@/lib/hiring";
@@ -23,7 +24,7 @@ export default async function Hire() {
     <>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
         <div style={{ flex: 1 }}><h1 style={{ fontSize: 22, margin: 0 }}>Recruiting</h1><div className="muted">{open.length} open {open.length === 1 ? "role" : "roles"} · {apps.length} {apps.length === 1 ? "candidate" : "candidates"}</div></div>
-        <Link href="/app/hire/new" className="btn" style={{ width: "auto", padding: "8px 14px" }}>＋ Post a role</Link>
+        <Link href="/app/hire/new" className="btn" style={{ width: "auto", padding: "8px 14px", display: "inline-flex", alignItems: "center", gap: 6 }}><Icon name="plus" size={15} /> Post a role</Link>
       </div>
 
       <div className="stat" style={{ marginTop: 10 }}>
@@ -38,7 +39,7 @@ export default async function Hire() {
           {count("NEW") > 0 && <div style={{ padding: "4px 0" }}><b>{count("NEW")}</b> new {count("NEW") === 1 ? "candidate is" : "candidates are"} waiting for a decision</div>}
           {interviews.slice(0, 4).map((a) => (
             <Link key={a.id} href={`/app/hire/candidate/${a.id}`} style={{ display: "flex", gap: 8, padding: "6px 0", borderTop: "1px solid var(--line)", color: "inherit" }}>
-              <span aria-hidden></span><span style={{ flex: 1 }}><b>{a.name}</b><span className="muted" style={{ display: "block" }}>{a.jobTitle}</span></span><span className="muted">{day(a.interviewAt!)}, {time(a.interviewAt!)}</span>
+              <span aria-hidden style={{ display: "inline-flex", alignItems: "center", color: "#7c3aed" }}><Icon name="calendar" size={17} /></span><span style={{ flex: 1 }}><b>{a.name}</b><span className="muted" style={{ display: "block" }}>{a.jobTitle}</span></span><span className="muted">{day(a.interviewAt!)}, {time(a.interviewAt!)}</span>
             </Link>
           ))}
         </section>

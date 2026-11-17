@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireOwner } from "@/lib/auth";
 import { MODES, MODE_INFO, Mode } from "@/lib/modes";
@@ -6,6 +7,7 @@ import PageHead from "@/components/page-head";
 import { addResource, delResource } from "../actions";
 import { addCareer, delCareer, saveHire, setHireVisible, setOpenToWork } from "../hire-actions";
 import Icon from "@/components/icon";
+import PreviewLink from "@/components/preview-link";
 export const dynamic = "force-dynamic";
 
 const ERR: Record<string, string> = {
@@ -56,6 +58,11 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
   return (
     <>
       <PageHead title="Hire me" sub="Your career in one place: openness to work, skills, experience, education and resume. Your portfolio and website are in Contact & socials." saved={!!sp.saved} error={sp.err ? ERR[sp.err] ?? "Something went wrong." : undefined} />
+      <Link href="/app/profile/import" className="menu-row" style={{ marginTop: 10 }}>
+        <span className="menu-ico" aria-hidden><Icon name="download" /></span>
+        <span style={{ flex: 1, minWidth: 0 }}><b>Import from LinkedIn or a resume</b><span className="muted" style={{ display: "block" }}>Fill in experience, education and skills in one go</span></span>
+        <span className="muted" aria-hidden>›</span>
+      </Link>
 
       <div className="card">
         <form action={setOpenToWork} className="switch-row">
@@ -74,7 +81,7 @@ export default async function Hire({ searchParams }: { searchParams: Promise<{ e
         <b>Your Hire me page</b>
         <p className="muted" style={{ margin: "4px 0 10px" }}>This is what people see when you share your Hire me mode: a profile-style page built from everything below.</p>
         <div className="row">
-          <a className="btn ghost" href={`/${profile.handle}?mode=HIRE`} target="_blank">Preview ↗</a>
+          <PreviewLink className="btn ghost" href={`/${profile.handle}?mode=HIRE`} title="Hire me page preview">Preview</PreviewLink>
           <a className="btn" href="/app/card?mode=HIRE">Share it →</a>
         </div>
       </div>

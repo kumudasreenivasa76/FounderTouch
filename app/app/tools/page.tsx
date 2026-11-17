@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { requireOwner } from "@/lib/auth";
 import { membership } from "@/lib/org";
 import PageHead from "@/components/page-head";
+import Icon from "@/components/icon";
 import CopyButton from "@/components/copy-button";
 import ShareButtons from "@/components/share-buttons";
 import EmailSignature from "@/components/email-signature";
@@ -28,11 +29,13 @@ export default async function Tools() {
 
       <h2 style={{ fontSize: 16 }}>Email signature</h2>
       <EmailSignature html={sig} />
+      <Link className="btn ghost" style={{ marginTop: 8 }} href="/dashboard/signature" target="_blank" rel="noopener noreferrer">Change the design ↗</Link>
 
       <h2 style={{ fontSize: 16 }}>Video-call background</h2>
       <div className="card">
         <p className="muted" style={{ marginTop: 0 }}>A 1920×1080 background with your name and QR code at the sides. Set it in Zoom, Meet or Teams so people can scan you on screen.</p>
         <a className="btn" href={`/card/${profile.handle}/background`} download={`${profile.handle}-background.png`}>Download background</a>
+        <Link className="btn ghost" style={{ marginTop: 8 }} href="/dashboard/backgrounds" target="_blank" rel="noopener noreferrer">Change the design ↗</Link>
       </div>
 
       <h2 style={{ fontSize: 16 }}>Send my card</h2>
@@ -48,7 +51,7 @@ export default async function Tools() {
       </div>
 
       <h2 style={{ fontSize: 16 }}>Booth mode</h2>
-      <Link href="/app/booth" className="menu-row"><span className="menu-ico">▦</span><span style={{ flex: 1 }}><b>Full-screen QR</b><span className="muted" style={{ display: "block" }}>For events: a big QR people can scan from a distance</span></span><span className="muted">›</span></Link>
+      <Link href="/app/booth" className="menu-row"><span className="menu-ico"><Icon name="qr" /></span><span style={{ flex: 1 }}><b>Full-screen QR</b><span className="muted" style={{ display: "block" }}>For events: a big QR people can scan from a distance</span></span><span className="muted">›</span></Link>
 
       <h2 style={{ fontSize: 16 }}>Contacts</h2>
       <div className="card">

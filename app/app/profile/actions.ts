@@ -31,10 +31,11 @@ export async function saveDetails(fd: FormData) {
     await putUpload(photo, Buffer.from(await f.arrayBuffer()));
     if (profile.photo) await deleteUpload(profile.photo).catch(() => {});
   }
-  const firstName = String(fd.get("firstName")).trim(), lastName = String(fd.get("lastName")).trim();
+  const firstName = String(fd.get("firstName")).trim().slice(0, 40), lastName = String(fd.get("lastName")).trim().slice(0, 40);
+  if (!firstName) go("basic", "&err=name");
   await db.profile.update({
     where: { id: profile.id },
-    data: { photo, firstName, lastName, name: `${firstName} ${lastName}`.trim(), headline: String(fd.get("headline")).trim(), bio: String(fd.get("bio")).trim() },
+    data: { photo, firstName, lastName, name: `${firstName} ${lastName}`.trim(), headline: String(fd.get("headline") ?? "").trim().slice(0, 120), bio: String(fd.get("bio") ?? "").trim().slice(0, 600) },
   });
   done();
   go("basic", "&saved=1");
@@ -63,9 +64,11 @@ export async function removePhoto() {
 
 export async function saveContact(fd: FormData) {
   const { profile } = await requireOwner();
+  const email = String(fd.get("email") ?? "").trim().slice(0, 120);
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) go("contact", "&err=email");
   await db.profile.update({
     where: { id: profile.id },
-    data: { phone: String(fd.get("phone")).trim(), email: String(fd.get("email")).trim(), website: withHttp(String(fd.get("website") ?? "").trim()), socials: socialsFromForm(fd) },
+    data: { phone: String(fd.get("phone") ?? "").trim().slice(0, 30), email, website: withHttp(String(fd.get("website") ?? "").trim().slice(0, 200)), socials: socialsFromForm(fd) },
   });
   done();
   go("contact", "&saved=1");

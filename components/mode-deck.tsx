@@ -50,8 +50,16 @@ export default function ModeDeck({ items, children, initial = 0 }: { items: Item
         ))}
       </div>
       <div className="deck-meta">
-        <b>{cur.label}</b>
-        <span>{cur.sub}</span>
+        <button type="button" className="deck-arrow" aria-label="Previous card" disabled={i === 0} onClick={() => go(Math.max(i - 1, 0))}>
+          <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
+        <div aria-live="polite">
+          <b>{cur.label}</b>
+          <span>{cur.sub}</span>
+        </div>
+        <button type="button" className="deck-arrow" aria-label="Next card" disabled={i === items.length - 1} onClick={() => go(Math.min(i + 1, items.length - 1))}>
+          <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
       </div>
       <div className="deck-dots" role="tablist" aria-label="Choose a card">
         {items.map((it, n) => <button key={it.label + n} type="button" role="tab" aria-selected={n === i} aria-label={it.label} className={n === i ? "on" : ""} onClick={() => go(n)} />)}

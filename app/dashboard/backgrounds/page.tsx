@@ -1,41 +1,38 @@
 import Link from "next/link";
 import { requireOwner } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { MODES, MODE_INFO } from "@/lib/modes";
+import { gradient } from "@/lib/look";
+import { parseBgPrefs } from "@/lib/background";
+import BackgroundStudio from "@/components/background-studio";
+import { saveBgPrefs } from "../studio-actions";
 
-/** Virtual background studio: a 1920x1080 video-call background with your name and scannable QR. */
+export const metadata = { title: "Virtual background" };
+
+/** Virtual background studio: six designs for Zoom, Meet and Teams, with your name and a scannable QR. */
 export default async function Backgrounds() {
   const { profile } = await requireOwner();
-  const src = `/card/${profile.handle}/background`;
+  const [links, cfgs] = await Promise.all([
+    db.shareLink.findMany({ where: { profileId: profile.id }, select: { mode: true } }),
+    db.modeConfig.findMany({ where: { profileId: profile.id, isEnabled: true }, select: { mode: true } }),
+  ]);
+  const ok = new Set(cfgs.map((c) => c.mode).filter((m) => links.some((l) => l.mode === m)));
+  const pages = MODES.filter((m) => ok.has(m)).map((m) => ({ mode: m as string, label: m === "ALL" ? "My full profile" : `${MODE_INFO[m].label} page` }));
+  // "All" first, since it is the safest thing to show a mixed audience.
+  pages.sort((a, b) => (a.mode === "ALL" ? -1 : b.mode === "ALL" ? 1 : 0));
 
   return (
     <>
       <div className="dash-top">
         <div>
           <h2>Virtual background</h2>
-          <div className="dash-sub">Be scannable on every video call — your name and QR at the edges, the middle left clear for you.</div>
+          <div className="dash-sub">Be scannable on every video call. Your name and QR sit at the edges, and the middle stays clear for you.</div>
         </div>
       </div>
-
-      <div className="panels">
-        <div className="panel bgp">
-          <h3>Preview</h3>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="bg-prev" src={src} alt="Your video-call background: name on the left, QR code on the right" />
-          <div className="dc-actions" style={{ marginTop: 12 }}>
-            <a className="btn" href={src} download={`${profile.handle}-background.png`}>Download PNG · 1920×1080</a>
-            <a className="ghost" href={src} target="_blank" rel="noopener noreferrer">Open full size</a>
-          </div>
-        </div>
-        <div className="panel">
-          <h3>How to set it</h3>
-          <ol className="howto">
-            <li><b>Zoom</b>: Settings → Background &amp; effects → Virtual backgrounds → + Add image.</li>
-            <li><b>Google Meet</b>: Apply visual effects → Upload a background image.</li>
-            <li><b>Teams</b>: Video effects → Add new → upload the PNG.</li>
-          </ol>
-          <p className="muted2">The QR opens your card hub, so anyone on the call can scan you straight from the screen. It uses your brand colours — change them in <Link href="/app/settings">Settings</Link> and download again.</p>
-          <p className="muted2">Presenting at an event instead? <Link href="/app/booth">Booth mode</Link> shows a full-screen QR people can scan from a distance.</p>
-        </div>
-      </div>
+      {pages.length === 0
+        ? <div className="panel"><p className="muted2" style={{ margin: 0 }}>Switch on at least one page first, then come back to make a background. <Link href="/dashboard/w/app/card">Go to Card &amp; scan</Link></p></div>
+        : <BackgroundStudio handle={profile.handle} brand={gradient(profile.theme)} pages={pages} initial={parseBgPrefs(profile.bgPrefs)} hasLogo={!!profile.logo} save={saveBgPrefs} />}
+      <p className="muted2" style={{ marginTop: 14 }}>Presenting at an event? <Link href="/dashboard/w/app/booth">Booth mode</Link> shows a full-screen QR people can scan from a distance.</p>
     </>
   );
 }

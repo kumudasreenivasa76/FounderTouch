@@ -1,6 +1,7 @@
 import "./globals.css";
 import SwRegister from "@/components/sw-register";
 import A11yEnhancer from "@/components/a11y-enhancer";
+import EmbedFlag from "@/components/embed-flag";
 export const metadata = {
   title: { default: "TapNodd", template: "%s · TapNodd" },
   description: "Share yourself with a QR code or an NFC tap.",
@@ -16,6 +17,7 @@ export default function L({ children }: { children: React.ReactNode }) {
         <div className="phone">{children}</div>
         <SwRegister />
         <A11yEnhancer />
+        <EmbedFlag />
       </body>
     </html>
   );

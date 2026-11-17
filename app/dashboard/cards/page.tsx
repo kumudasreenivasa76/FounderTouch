@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { autoLinks } from "@/lib/link-page";
 import { headers } from "next/headers";
 import QRCode from "qrcode";
 import { requireOwner } from "@/lib/auth";
@@ -23,7 +24,8 @@ export default async function Cards() {
     db.scanEvent.groupBy({ by: ["mode"], where: { shareLink: { profileId: profile.id }, createdAt: { gte: since } }, _count: true }),
     db.contact.groupBy({ by: ["mode"], where: { profileId: profile.id, status: { not: "BLOCKED" } }, _count: true }),
   ]);
-  const added = cfgs.filter((c) => c.added && c.isEnabled && c.mode !== "ALL").map((c) => c.mode);
+  // Every page that is switched on and has something in it, the same rule the phone app uses.
+  const added = (await autoLinks(profile.id, profile.handle)).flatMap((x) => (x.mode ? [x.mode as string] : []));
   const modes = ["ALL", ...added];
 
   const tiles = await Promise.all(modes.map(async (m) => {
@@ -69,14 +71,14 @@ export default async function Cards() {
                 <div className="dc-actions">
                   <CopyButton text={t.share} label="Copy link" />
                   <a className="ghost" href={`/${profile.handle}${t.m === "ALL" ? "" : `?mode=${t.m}`}`} target="_blank" rel="noopener noreferrer">Open page</a>
-                  <Link className="ghost" href={t.m === "ALL" ? "/app/card" : `/app/profile/kit?mode=${t.m}`}>Edit card</Link>
+                  <Link className="ghost" href={t.m === "ALL" ? "/dashboard/w/app/card" : `/dashboard/w/app/profile/kit?mode=${t.m}`}>Edit card</Link>
                 </div>
               </div>
             </div>
           </div>
         ))}
 
-        <Link href="/app/modes" className="dc-tile dc-new">
+        <Link href="/dashboard/w/app/card?pane=add" className="dc-tile dc-new">
           <span className="dc-plus" aria-hidden><Icon name="plus" size={24} /></span>
           <b>Add a card</b>
           <span className="muted2">Founder, Investor, Business, Hire me, Recruiter…</span>

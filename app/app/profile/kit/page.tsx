@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireOwner } from "@/lib/auth";
-import { MODES, MODE_INFO, Mode, kindLabel, kindsOf, parseFields } from "@/lib/modes";
+import { MODES, MODE_INFO, Mode, kindLabel, kindsOf, parseFields, parseLinks, MAX_MODE_LINKS } from "@/lib/modes";
 import { buildNeedData, modeNeeds } from "@/lib/mode-needs";
 import { tagList } from "@/lib/tags";
 import Swiper from "@/components/swiper";
@@ -11,6 +11,9 @@ import { saveMode } from "../../settings/actions";
 import { headers } from "next/headers";
 import QRCode from "qrcode";
 import LogoUpload from "@/components/logo-upload";
+import { modeHasContent } from "@/lib/mode-content";
+import { addMode } from "../../modes/actions";
+import Icon from "@/components/icon";
 import BrandForm from "@/components/brand-form";
 import { THEMES, isCustomTheme, themeOf } from "@/lib/look";
 import { saveBrand, setResourceLock, createQr, deleteQr } from "../actions";
@@ -39,6 +42,8 @@ const HINT: Record<string, string> = {
   DOC: "A catalog, brochure or one-pager. Paste a link or upload a file.",
   SUPPORT: "Cap table, certificates, case studies. Tags let visitors filter them.",
 };
+const CTA_IDEAS = ["Let's connect", "Book a call", "Book a meeting", "Request a demo", "Get in touch", "Talk to us"];
+const KIND_ICON: Record<string, string> = { DECK: "file", DEMO: "play", DOC: "file", SUPPORT: "folder" };
 // Resume and Portfolio live under "Hire me", so they are not repeated here.
 const KIT_KINDS = ["DECK", "DEMO", "DOC", "SUPPORT"] as const;
 const PAGES = MODES.filter((m) => m !== "ALL" && m !== "HIRE");
@@ -61,7 +66,18 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
     db.nfcTag.findMany({ where: { profileId: profile.id }, orderBy: { createdAt: "asc" } }),
   ]);
   const qrOf = Object.fromEntries(await Promise.all(links.map(async (l) => [l.id, await QRCode.toDataURL(`${origin}/s/${l.token}?src=qr`, { errorCorrectionLevel: "H", margin: 1, width: 600, color: { dark: "#111827", light: "#ffffff" } })] as const)));
-  const start = Math.max(0, PAGES.findIndex((m) => m === sp.mode));
+  // Only the modes this person has set up get a kit. The rest wait under "Add a mode".
+  const [jobCount, projectRows] = await Promise.all([
+    db.job.count({ where: { profileId: profile.id, open: true } }),
+    db.project.findMany({ where: { profileId: profile.id }, select: { modes: true } }),
+  ]);
+  const extra = { projects, events, jobs: jobCount, projectModes: projectRows.flatMap((r) => r.modes.split(",").filter(Boolean)) };
+  const hasContent = (m: Mode) => modeHasContent(m, cfgs.find((c) => c.mode === m), resources, extra);
+  const isSetUp = (m: Mode) => !!cfgs.find((c) => c.mode === m)?.isEnabled && hasContent(m);
+  // A mode opened by a direct link (for example from Settings) is shown even if it is not set up yet.
+  const shown = PAGES.filter((m) => isSetUp(m) || m === sp.mode);
+  const toAdd = PAGES.filter((m) => !shown.includes(m));
+  const start = sp.mode === "ADD" ? shown.length : Math.max(0, shown.findIndex((m) => m === sp.mode));
 
   return (
     <>
@@ -71,8 +87,8 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
         <span className="muted" style={{ marginLeft: "auto" }}>Swipe to switch</span>
       </div>
 
-      <Swiper labels={PAGES.map((m) => `${ic(m)}${MODE_INFO[m].label}`)} initial={start}>
-        {PAGES.map((m) => {
+      <Swiper labels={[...shown.map((m) => `${ic(m)}${MODE_INFO[m].label}`), "+ Add mode"]} initial={start}>
+        {shown.map((m) => {
           const info = MODE_INFO[m];
           const cfg = cfgs.find((c) => c.mode === m);
           const values = parseFields(cfg?.fields ?? "{}");
@@ -108,9 +124,16 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
               </div>
 
               {m === "FOUNDER" && <LogoUpload action={saveBrand} ret={"kit:" + m} company={profile.company} logoSrc={profile.logo ? `/logo/${profile.handle}?v=${encodeURIComponent(profile.logo)}` : ""} />}
-                <form action={saveKitText} className="card kit-form">
+                <form action={saveKitText} className="card kit-form kit-lux">
                 <input type="hidden" name="kmode" value={m} />
-                <h3>{info.about}</h3>
+                <div className="kit-lux-top">
+                  <i className="kit-lux-ic" aria-hidden><Icon mode={m} size={24} /></i>
+                  <div>
+                    <b>{info.label} details</b>
+                    <span>What people see on your {info.label} page</span>
+                  </div>
+                </div>
+                <label className="f">{info.about}</label>
                 <textarea name="kitText" rows={3} defaultValue={text} placeholder={info.aboutHint} />
                 {info.fields.map((f) => (
                   <div key={f.key}>
@@ -139,61 +162,85 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
                 </div>
               )}
 
+              <form action={addResource} className="card kit-form kit-add kit-lux" key={m + kind}>
+                <input type="hidden" name="kmode" value={m} />
+                <div className="kit-lux-top">
+                  <i className="kit-lux-ic" aria-hidden><Icon name="share" size={24} /></i>
+                  <div>
+                    <b>Upload and add</b>
+                    <span>A link or file for your {info.label} page</span>
+                  </div>
+                </div>
+                <label className="f">Type</label>
+                <select name="kind" defaultValue={kind}>{kinds.map((k) => <option key={k} value={k}>{kindLabel(m, k)}</option>)}</select>
+                {kinds.map((k) => <p key={k} className="kit-hint" data-kind={k}>{HINT[k]}</p>)}
+                <label className="f">Link</label>
+                <input name="url" placeholder="https://" inputMode="url" autoCapitalize="none" />
+                <div className="kit-or"><span>or</span></div>
+                <label className="f">File, up to 25 MB</label>
+                <input name="file" type="file" accept=".ppt,.pptx,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.png,.jpg,.jpeg,.mp4,.mov,.webm,.key" />
+                <div className="kit-tags-f">
+                  <label className="f" htmlFor={"tags-" + m}>Tags</label>
+                  <input id={"tags-" + m} name="tags" maxLength={80} placeholder="e.g. legal, financials, case study" list={"tag-ideas-" + m} autoComplete="off" autoCapitalize="none" />
+                  <datalist id={"tag-ideas-" + m}>{[...new Set(resources.flatMap((r) => tagList(r.tags)))].sort().map((t) => <option key={t} value={t} />)}</datalist>
+                  <p className="kit-note">Separate tags with commas. Visitors can filter your documents by tag.</p>
+                </div>
+                <input type="hidden" name="modes" value={m} />
+                <label className="kit-toggle"><input type="checkbox" name="gated" /><span><b>Lock this</b><span className="muted" style={{ display: "block" }}>Visitors ask for your approval before opening it.</span></span></label>
+                <button>Add</button>
+              </form>
+
               {kinds.map((k) => (
                 <div key={k}>
                   <h3 className="kit-sec">{kindLabel(m, k)}<span>{mine(k).length}</span></h3>
                   {mine(k).length === 0 && <div className="kit-empty">Nothing here yet</div>}
-                  {mine(k).map((r) => (
-                    <div className="card" key={r.id}>
-                      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <b>{r.title}</b>{r.gated && <span className="lock-badge">Locked</span>}
-                          {tagList(r.tags).length > 0 && <div>{tagList(r.tags).map((t) => <span key={t} className="pill">#{t}</span>)}</div>}
-                          <div className="muted">{r.filePath ? "Uploaded file" : new URL(r.url).hostname}</div>
+                  {mine(k).map((r) => {
+                    const also = r.modes.split(",").filter((x) => x && x !== m).map((x) => MODE_INFO[x as Mode]?.label).filter(Boolean).join(", ");
+                    const until = r.expiresAt ? r.expiresAt.toISOString().slice(0, 10) : "";
+                    return (
+                    <div className="doc" key={r.id}>
+                      <div className="doc-top">
+                        <i className="doc-ic" aria-hidden><Icon name={KIND_ICON[k] ?? "file"} size={22} /></i>
+                        <div className="doc-main">
+                          <b>{r.title}</b>
+                          <span className="doc-src">{r.filePath ? "Uploaded file" : new URL(r.url).hostname}</span>
+                          {tagList(r.tags).length > 0 && <div className="doc-tags">{tagList(r.tags).map((t) => <span key={t}>#{t}</span>)}</div>}
                         </div>
-                        <form action={delResource}><input type="hidden" name="id" value={r.id} /><button className="ghost sm">Remove</button></form>
+                        <form action={delResource}><input type="hidden" name="id" value={r.id} /><button className="doc-del" aria-label={`Remove ${r.title}`}>Remove</button></form>
                       </div>
-                      <form action={setResourceLock} className="lock-row">
+                      <form action={setResourceLock} className={"doc-lock" + (r.gated ? " on" : "")}>
                         <input type="hidden" name="id" value={r.id} /><input type="hidden" name="kmode" value={m} />
-                        <label className="switch-row"><input type="checkbox" name="gated" defaultChecked={r.gated} /><span><b>{r.gated ? "Locked" : "Open to everyone"}</b><span className="muted" style={{ display: "block" }}>{r.gated ? "Visitors ask for approval first." : "Anyone with your link can open it."}</span></span></label>
-                        <button className="ghost sm" style={{ width: "auto" }}>Update</button>
+                        <input type="hidden" name="gated" value={r.gated ? "" : "on"} />
+                        <i aria-hidden><Icon name="lock" size={18} /></i>
+                        <span><b id={"lock-" + r.id}>{r.gated ? "Locked" : "Open to everyone"}</b><small>{r.gated ? "Visitors ask for approval first." : "Anyone with your link can open it."}</small></span>
+                        <button type="submit" role="switch" aria-checked={r.gated} aria-labelledby={"lock-" + r.id} className="doc-sw"><span /></button>
                       </form>
-                      <form action={setResourceExpiry} className="row" style={{ marginTop: 8, alignItems: "center" }}>
-                        <input type="hidden" name="id" value={r.id} /><input type="hidden" name="kmode" value={m} />
-                        <span className="muted">Available until</span>
-                        <input type="date" name="expiresAt" defaultValue={r.expiresAt ? r.expiresAt.toISOString().slice(0, 10) : ""} />
-                        <button className="ghost sm" style={{ width: "auto" }}>Set</button>
-                      </form>
-                      <details style={{ marginTop: 8 }}>
-                        <summary className="muted">Also on: {r.modes.split(",").filter((x) => x && x !== m).map((x) => MODE_INFO[x as Mode]?.label).filter(Boolean).join(", ") || "only this page"} · <span style={{ color: "#3b5bdb" }}>change</span></summary>
-                        <form action={setResourceModes}>
+                      <details className="doc-more">
+                        <summary><span>More options</span><em>{[until && `Until ${until}`, also && `Also on ${also}`].filter(Boolean).join(" · ")}</em></summary>
+                        <form action={setResourceExpiry} className="doc-opt">
                           <input type="hidden" name="id" value={r.id} /><input type="hidden" name="kmode" value={m} />
-                          <div className="chips">
+                          <label className="doc-opt-t" htmlFor={"exp-" + r.id}>Available until</label>
+                          <div className="doc-line">
+                            <input id={"exp-" + r.id} type="date" name="expiresAt" defaultValue={until} />
+                            <button>Set</button>
+                          </div>
+                        </form>
+                        <form action={setResourceModes} className="doc-opt">
+                          <input type="hidden" name="id" value={r.id} /><input type="hidden" name="kmode" value={m} />
+                          <span className="doc-opt-t">Show on these pages</span>
+                          <div className="doc-chips">
                             {PAGES.filter((x) => kindsOf(x).includes(r.kind as never)).map((x) => (
-                              <label key={x} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={x} defaultChecked={r.modes.split(",").includes(x)} />{MODE_INFO[x].label}</label>
+                              <label key={x}><input type="checkbox" name="modes" value={x} defaultChecked={r.modes.split(",").includes(x)} />{MODE_INFO[x].label}</label>
                             ))}
                           </div>
-                          <button className="ghost sm">Save</button>
+                          <button>Save pages</button>
                         </form>
                       </details>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ))}
-
-              <form action={addResource} className="card kit-form kit-add" key={m + kind}>
-                <input type="hidden" name="kmode" value={m} />
-                <h3>Add to {info.kit}</h3>
-                <select name="kind" defaultValue={kind}>{kinds.map((k) => <option key={k} value={k}>{kindLabel(m, k)}</option>)}</select>
-                <p className="kit-hint">{HINT[kind]}</p>
-                <input name="url" placeholder="Paste a link" inputMode="url" autoCapitalize="none" />
-                <div className="kit-or"><span>or</span></div>
-                <label className="f">Upload a file · up to 25 MB</label>
-                <input name="file" type="file" accept=".ppt,.pptx,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.png,.jpg,.jpeg,.mp4,.mov,.webm,.key" />
-                <input type="hidden" name="modes" value={m} />
-                <label className="kit-toggle"><input type="checkbox" name="gated" /><span><b>Lock this</b><span className="muted" style={{ display: "block" }}>Visitors must ask for your approval before they can open it.</span></span></label>
-                <button>Add</button>
-              </form>
 
                 </>}
                 share={(() => {
@@ -204,14 +251,17 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
                   const mt = tags.filter((t) => t.mode === m);
                   const av = (n: number) => <Avatar name={profile.name} handle={profile.handle} hasPhoto={!!profile.photo} avatar={profile.avatar} size={n} />;
                   return (<div className="kit-share">
-                    <div className="share-info">
-                      <b>What people see when they scan</b>
-                      <ul>
-                        <li><span>About you</span><em>{text ? "Added" : "Not added yet"}</em></li>
-                        <li><span>Documents and links</span><em>{shared.length === 0 ? "None yet" : `${shared.length} item${shared.length === 1 ? "" : "s"}`}</em></li>
-                        <li><span>Locked</span><em>{lockedN === 0 ? "Nothing locked" : `${lockedN} need your approval`}</em></li>
-                      </ul>
-                      <p className="muted">Everything on this page is what a scan opens. Lock a document and visitors have to ask before they see it.</p>
+                    <div className="kit-lux-top share-top">
+                      <i className="kit-lux-ic" aria-hidden><Icon name="qr" size={24} /></i>
+                      <div>
+                        <b>Share your {info.label} page</b>
+                        <span>What a scan or a tap opens</span>
+                      </div>
+                    </div>
+                    <div className="share-stats">
+                      <div><b>{text ? "Added" : "Missing"}</b><span>About you</span></div>
+                      <div><b>{shared.length}</b><span>{shared.length === 1 ? "Document or link" : "Documents and links"}</span></div>
+                      <div><b>{lockedN}</b><span>Locked, need your approval</span></div>
                     </div>
                     {mlinks.length === 0 && <div className="kit-empty">Add something to this page first, then your QR appears here.</div>}
                     {mlinks.map((l, i) => (
@@ -225,14 +275,15 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
                     {link && <>
                       <form action={createQr} className="qr-new">
                         <input type="hidden" name="kmode" value={m} />
-                        <div><b>Need another QR?</b><span className="muted">Make a separate code for an event or a printed card. Each one has its own link and scan count.</span></div>
+                        <div><b>Need another QR?</b><span className="muted">One per event or printed card, each with its own scan count.</span></div>
                         <button>Create new QR</button>
                       </form>
                       <h3 className="kit-sec">Tap to share</h3>
-                      <TapShare pages={[{ mode: m, label: info.label, icon: info.icon, tapUrl: `${origin}/t/${link.token}` }]} avatar={av(96)} peek={peekTap} save={saveTapCard} />
+                      <div className="share-card">
+                        <TapShare pages={[{ mode: m, label: info.label, icon: info.icon, tapUrl: `${origin}/t/${link.token}` }]} avatar={av(96)} peek={peekTap} save={saveTapCard} />
+                      </div>
                     </>}
                     <h3 className="kit-sec">NFC tags<span>{mt.length}</span></h3>
-                    {mt.length === 0 && <div className="kit-empty">No tag opens this page yet</div>}
                     {mt.map((t) => (
                       <form key={t.id} action={saveTag} className="nfc-tag">
                         <input type="hidden" name="id" value={t.id} /><input type="hidden" name="ret" value={m} /><input type="hidden" name="mode" value={m} /><input type="hidden" name="fallback" value={t.fallback} />
@@ -252,11 +303,16 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
                         </div>
                       </form>
                     ))}
-                    <form action={addTag} className="card kit-form">
+                    <form action={addTag} className="nfc-add">
                       <input type="hidden" name="ret" value={m} />
-                      <label className="f">New tag nickname</label>
-                      <input name="nickname" placeholder="Keychain, desk card…" maxLength={40} />
-                      <button>Add tag</button>
+                      <div className="nfc-add-top">
+                        <span className="nfc-ico" aria-hidden><Icon name="nfc" size={22} /></span>
+                        <div><b>Add an NFC tag</b><span>{mt.length === 0 ? "No tag opens this page yet. Name one to get its link." : "Name another tag to get its link."}</span></div>
+                      </div>
+                      <div className="nfc-add-row">
+                        <input name="nickname" placeholder="Keychain, desk card" maxLength={40} aria-label="New tag nickname" />
+                        <button>Add tag</button>
+                      </div>
                     </form>
                   </div>);
                 })()}
@@ -275,24 +331,86 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
                   </div>
                   <BrandForm action={saveBrand} ret={"kit:" + m} company={profile.company} logoSrc={profile.logo ? `/logo/${profile.handle}?v=${encodeURIComponent(profile.logo)}` : ""} color1={themeOf(profile.theme).from} color2={themeOf(profile.theme).to} />
                 </>}
-                actions={<form action={saveMode} className="card kit-form">
+                actions={<form action={saveMode} className="card kit-form kit-lux">
                   <input type="hidden" name="mode" value={m} />
                   <input type="hidden" name="ret" value="kit" />
-                  <h3>Actions &amp; privacy</h3>
-                  <label className="kit-toggle"><input type="checkbox" name="approval" defaultChecked={!!cfg?.requireApproval} /><span><b>Visitors need my approval</b><span className="muted" style={{ display: "block" }}>People who scan see only your name and a request form until you approve them in Contacts.</span></span></label>
-                  <label className="f">Intro message</label>
-                  <textarea name="intro" rows={2} maxLength={240} defaultValue={cfg?.intro ?? ""} placeholder={`A short hello for ${info.label.toLowerCase()} visitors`} />
-                  <label className="f">Button label</label>
-                  <input name="cta" defaultValue={cfg?.ctaLabel ?? info.cta} />
-                  <label className="f">Booking link</label>
-                  <input name="url" defaultValue={cfg?.bookingUrl ?? ""} placeholder="Calendly, Cal.com, Google Calendar…" inputMode="url" autoCapitalize="none" />
-                  {cfg?.bookingUrl && (() => { const b = bookingInfo(cfg.bookingUrl, host); return b && <p className="muted" style={{ margin: "6px 2px 0" }}>{b.provider}{b.embed ? " · visitors book right on your page" : " · opens the booking page"}</p>; })()}
-                  <label className="kit-toggle"><input type="checkbox" name="on" value="off" defaultChecked={cfg?.isEnabled === false} /><span>Hide this mode for now</span></label>
+                  <input type="hidden" name="hasLinks" value="1" />
+                  <div className="kit-lux-top">
+                    <i className="kit-lux-ic" aria-hidden><Icon name="chat" size={24} /></i>
+                    <div>
+                      <b>Connect</b>
+                      <span>How visitors reach you on your {info.label} page</span>
+                    </div>
+                  </div>
+
+                  <label className="f" htmlFor={"intro-" + m}>Intro message</label>
+                  <textarea id={"intro-" + m} name="intro" rows={2} maxLength={240} defaultValue={cfg?.intro ?? ""} placeholder={`A short hello for ${info.label.toLowerCase()} visitors`} />
+                  <p className="kit-note">Shown at the top of your page. Up to 240 characters.</p>
+
+                  <div className="kit-group">
+                    <b className="kit-group-t">Main button</b>
+                    <label className="f" htmlFor={"cta-" + m}>Label</label>
+                    <input id={"cta-" + m} name="cta" maxLength={60} defaultValue={cfg?.ctaLabel ?? info.cta} list={"cta-ideas-" + m} />
+                    <datalist id={"cta-ideas-" + m}>{CTA_IDEAS.map((x) => <option key={x} value={x} />)}</datalist>
+                    <label className="f" htmlFor={"book-" + m}>Booking link</label>
+                    <input id={"book-" + m} name="url" defaultValue={cfg?.bookingUrl ?? ""} placeholder="Calendly, Cal.com or Google Calendar link" inputMode="url" autoCapitalize="none" />
+                    {cfg?.bookingUrl
+                      ? (() => { const bk = bookingInfo(cfg.bookingUrl, host); return bk ? <p className="kit-note ok">{bk.provider}{bk.embed ? ": visitors book right on your page." : ": opens the booking page in a new tab."}</p> : <p className="kit-note">Opens this link in a new tab.</p>; })()
+                      : <p className="kit-note">Without a booking link, the button emails you instead.</p>}
+                  </div>
+
+                  <div className="kit-group">
+                    <b className="kit-group-t">More links<span>{parseLinks(cfg?.links).length}/{MAX_MODE_LINKS}</span></b>
+                    <p className="kit-note" style={{ marginTop: 0 }}>Extra buttons under the main one: website, WhatsApp, waitlist, an email address or phone number.</p>
+                    {(() => {
+                      const saved = parseLinks(cfg?.links);
+                      const rows = saved.length < MAX_MODE_LINKS ? [...saved, { label: "", url: "" }] : saved;
+                      return rows.map((l, i) => (
+                        <div className="kit-link" key={i}>
+                          <span className="kit-link-n" aria-hidden>{l.url ? i + 1 : <Icon name="plus" size={16} />}</span>
+                          <div>
+                            <input name="linkLabel" maxLength={40} defaultValue={l.label} placeholder={l.url ? "Button label" : "New button label, e.g. Join the waitlist"} aria-label={`Link ${i + 1} label`} />
+                            <input name="linkUrl" maxLength={500} defaultValue={l.url} placeholder="https://, an email or a phone number" inputMode="url" autoCapitalize="none" aria-label={`Link ${i + 1} address`} />
+                          </div>
+                        </div>
+                      ));
+                    })()}
+                    <p className="kit-note">Save to add another. Clear a link's address and save to remove it.</p>
+                  </div>
+
+                  <div className="kit-group">
+                    <b className="kit-group-t">Privacy</b>
+                    <label className="kit-toggle"><input type="checkbox" name="approval" defaultChecked={!!cfg?.requireApproval} /><span><b>Visitors need my approval</b><span className="muted" style={{ display: "block" }}>People who scan see only your name and a request form until you approve them in Contacts.</span></span></label>
+                    <label className="kit-toggle"><input type="checkbox" name="on" value="off" defaultChecked={cfg?.isEnabled === false} /><span><b>Remove this mode</b><span className="muted" style={{ display: "block" }}>Your {info.label} page stops opening and moves to Add mode. Everything in it is kept.</span></span></label>
+                  </div>
                   <button>Save</button>
                 </form>} />
             </div>
           );
         })}
+        <div key="add-mode" className="mode-add">
+          <div className="kit-lux-top share-top">
+            <i className="kit-lux-ic" aria-hidden><Icon name="plus" size={24} /></i>
+            <div>
+              <b>Add a mode</b>
+              <span>Pick only the ones you need</span>
+            </div>
+          </div>
+          {shown.length === 0 && <p className="mode-add-note">You have no modes yet. Add the first one to start building its page.</p>}
+          {toAdd.length === 0 && <div className="kit-empty">You have added every mode.</div>}
+          {toAdd.map((m) => {
+            const kept = hasContent(m);
+            return (
+              <form key={m} action={addMode} className="mode-opt">
+                <input type="hidden" name="mode" value={m} />
+                <i className="doc-ic" aria-hidden><Icon mode={m} size={22} /></i>
+                <span className="mode-opt-t"><b>{MODE_INFO[m].label}</b><span>{kept ? "Hidden. Everything in it is kept." : MODE_INFO[m].blurb}</span></span>
+                <button aria-label={`${kept ? "Show" : "Add"} ${MODE_INFO[m].label} mode`}>{kept ? "Show again" : "Add"}</button>
+              </form>
+            );
+          })}
+          {shown.length > 0 && <p className="mode-add-note">To take a mode away, open it, go to Actions &amp; privacy and choose "Remove this mode". Nothing in it is deleted.</p>}
+        </div>
       </Swiper>
     </>
   );

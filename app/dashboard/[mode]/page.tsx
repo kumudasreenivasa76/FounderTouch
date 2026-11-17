@@ -12,6 +12,7 @@ const STAGES = [
   { key: "due", label: "Follow-up due" },
   { key: "starred", label: "Starred" },
 ] as const;
+const SRC: Record<string, string> = { qr: "QR code", nfc: "NFC tag", link: "Link", email: "Email signature", event: "Event", job: "Job application", manual: "Added by hand", import: "Imported", team: "Team" };
 const APP_COLS = ["NEW", "SHORTLISTED", "INTERVIEW", "OFFER", "HIRED", "REJECTED"];
 
 /** The CRM for one mode: stage counts, search, and a contact table. Recruiter and Hire also show the applicant board. */
@@ -50,7 +51,7 @@ export default async function ModeCrm({ params, searchParams }: { params: Promis
   return (
     <>
       <h2>{mode === "ALL" ? "Contacts" : `${info.label} · CRM`}</h2>
-      <div className="dash-sub">{info.blurb}. People who reached you through this {mode === "ALL" ? "card" : "mode"}.</div>
+      <div className="dash-sub">{mode === "ALL" ? "Everyone who reached you, across all your cards." : `${info.blurb}. People who reached you through this card.`}</div>
 
       <div className="stages">
         {STAGES.map((s, i) => (
@@ -76,13 +77,17 @@ export default async function ModeCrm({ params, searchParams }: { params: Promis
         <input name="q" defaultValue={sp.q ?? ""} placeholder="Search name, email, company, tag" aria-label="Search" />
         <select name="source" defaultValue={sp.source ?? ""} aria-label="Source">
           <option value="">Any source</option>
-          {["qr", "nfc", "event", "manual", "link"].map((s) => <option key={s} value={s}>{s}</option>)}
+          {Object.entries(SRC).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
         </select>
-        <button type="submit">Filter</button>
-        <Link href="/app/contacts/new" className="btn ghost" style={{ marginLeft: "auto", padding: "8px 14px" }}>+ Add contact</Link>
-        <a href="/app/contacts/import" className="btn ghost" style={{ padding: "8px 14px" }}>Import</a>
-        <a href="/app/contacts/export?format=csv" className="btn ghost" style={{ padding: "8px 14px" }}>Export CSV</a>
-        <a href="/app/contacts/export?format=vcf" className="btn ghost" style={{ padding: "8px 14px" }}>vCard</a>
+        <button type="submit">Search</button>
+        {(sp.q || sp.source || stage !== "all") && <Link href={`/dashboard/${raw}`} className="f-clear">Clear</Link>}
+        <span className="f-count">{rows.length} {rows.length === 1 ? "person" : "people"}{rows.length === 200 ? " (first 200)" : ""}</span>
+        <span className="f-actions">
+          <Link href="/dashboard/w/app/contacts/new" className="f-btn primary">Add contact</Link>
+          <Link href="/dashboard/w/app/contacts/import" className="f-btn">Import</Link>
+          <a href="/app/contacts/export?format=csv" className="f-btn">Export CSV</a>
+          <a href="/app/contacts/export?format=vcf" className="f-btn">vCard</a>
+        </span>
       </form>
 
       {rows.length === 0 ? (
@@ -96,11 +101,11 @@ export default async function ModeCrm({ params, searchParams }: { params: Promis
           <tbody>
             {rows.map((c) => (
               <tr key={c.id}>
-                <td><Link href={`/app/contacts/${c.id}`}><b>{c.starred ? "★ " : ""}{c.name}</b></Link><div className="muted2">{c.email}</div></td>
+                <td><Link href={`/dashboard/w/app/contacts/${c.id}`}><b>{c.starred ? "★ " : ""}{c.name}</b></Link><div className="muted2">{c.email}</div></td>
                 <td>{c.company || "—"}<div className="muted2">{c.jobTitle}</div></td>
                 {mode === "ALL" && <td>{MODE_INFO[c.mode as Mode]?.label ?? c.mode}</td>}
                 <td>{pill(c.status)}</td>
-                <td style={{ textTransform: "capitalize" }}>{c.source}{c.metAt ? <div className="muted2">{c.metAt}</div> : null}</td>
+                <td>{SRC[c.source] ?? c.source}{c.metAt ? <div className="muted2">{c.metAt}</div> : null}</td>
                 <td>{d(c.lastInteractionAt)}<div className="muted2">{c.interactions}× seen</div></td>
                 <td>{c.followUpAt && c.followUpAt <= endOfToday ? <span className="pill wait">{d(c.followUpAt)}</span> : d(c.followUpAt)}</td>
                 <td>{c.tags ? c.tags.split(",").filter(Boolean).map((t) => <span key={t} className="pill" style={{ marginRight: 4 }}>{t}</span>) : "—"}</td>

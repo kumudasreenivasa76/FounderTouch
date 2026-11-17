@@ -61,29 +61,53 @@ export default function BrandForm({ action, logoSrc, color1, color2, company, re
   };
   const light = luminance(c1) > 0.6 && luminance(c2) > 0.6;
 
+  const PRESETS: [string, string, string][] = [
+    ["Violet", "#7c3aed", "#a855f7"], ["Ocean", "#1d4ed8", "#0ea5e9"], ["Forest", "#047857", "#10b981"],
+    ["Sunset", "#ea580c", "#dc2626"], ["Rose", "#be185d", "#ec4899"], ["Slate", "#1f2937", "#475569"],
+  ];
+
   return (
-    <form action={action} className="card">
+    <form action={action} className="card kit-form kit-lux bf">
       {ret && <input type="hidden" name="ret" value={ret} />}
-      <h2 style={{ fontSize: 15 }}>Company logo &amp; colours</h2>
-      <p className="muted" style={{ marginTop: 0 }}>Your logo shows on your digital card and page, and your colours replace the preset theme everywhere.</p>
-
-      <div style={{ height: 78, borderRadius: 14, background: `linear-gradient(135deg, ${c1}, ${c2})`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 14px", color: "#fff", marginBottom: 10 }}>
-        <b style={{ fontSize: 17 }}>{company || "Your company"}</b>
-        {preview ? <img src={preview} alt="" style={{ height: 42, maxWidth: 110, objectFit: "contain", background: "#fff", borderRadius: 10, padding: 4 }} /> : <span style={{ opacity: 0.8, fontSize: 12 }}>No logo yet</span>}
+      <div className="bf-card" style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }}>
+        <div>
+          <b>{company || "Your company"}</b>
+          <span>This is how your card will look</span>
+        </div>
+        {preview ? <img src={preview} alt="" /> : <i>No logo yet</i>}
       </div>
 
-      <label className="f" style={{ marginTop: 0 }}>Logo (PNG, JPG or WebP, up to 2 MB)</label>
-      <input ref={file} name="logo" type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => onFile(e.target.files?.[0])} />
-      {logoSrc && <label style={{ display: "block", margin: "0 0 8px" }}><input type="checkbox" name="rm_logo" />Remove my logo</label>}
-      {note && <div className="muted" style={{ marginBottom: 8 }}>{note}</div>}
-
-      <div className="row">
-        <div><label className="f">Main colour</label><input type="color" name="color1" value={c1} onChange={(e) => setC1(e.target.value)} style={{ padding: 2, height: 44 }} /></div>
-        <div><label className="f">Second colour</label><input type="color" name="color2" value={c2} onChange={(e) => setC2(e.target.value)} style={{ padding: 2, height: 44 }} /></div>
+      <div className="kit-group" style={{ marginTop: 14 }}>
+        <b className="kit-group-t">Logo</b>
+        <div className="bf-logo">
+          <label className="bf-pick">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 15V4.5M7.5 9 12 4.5l4.5 4.5M5 14v3.5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V14" /></svg>
+            {preview ? "Change logo" : "Choose logo"}
+            <input ref={file} name="logo" type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e) => onFile(e.target.files?.[0])} />
+          </label>
+          <span className="bf-hint">PNG, JPG or WebP, up to 2 MB</span>
+        </div>
+        {logoSrc && <label className="kit-toggle"><input type="checkbox" name="rm_logo" /><span><b>Remove my logo</b></span></label>}
+        {note && <p className="kit-note ok">{note}</p>}
       </div>
-      {light && <div className="err">These colours are very light, so white text on your card will be hard to read. Pick a darker colour.</div>}
-      <label style={{ display: "block", margin: "6px 0 10px" }}><input type="checkbox" name="reset" />Go back to a preset colour theme</label>
-      <button>Save logo &amp; colours</button>
+
+      <div className="kit-group">
+        <b className="kit-group-t">Colours</b>
+        <div className="bf-presets" role="group" aria-label="Ready-made colour pairs">
+          {PRESETS.map(([n, a1, a2]) => (
+            <button key={n} type="button" aria-label={`${n} colours`} aria-pressed={c1 === a1 && c2 === a2} className={c1 === a1 && c2 === a2 ? "on" : ""} onClick={() => { setC1(a1); setC2(a2); setNote(""); }}>
+              <i style={{ background: `linear-gradient(135deg, ${a1}, ${a2})` }} /><span>{n}</span>
+            </button>
+          ))}
+        </div>
+        <div className="bf-colors">
+          <label><input type="color" name="color1" value={c1} onChange={(e) => setC1(e.target.value)} aria-label="Main colour" /><span><b>Main colour</b><small>{c1.toUpperCase()}</small></span></label>
+          <label><input type="color" name="color2" value={c2} onChange={(e) => setC2(e.target.value)} aria-label="Second colour" /><span><b>Second colour</b><small>{c2.toUpperCase()}</small></span></label>
+        </div>
+        {light && <div className="err" style={{ marginTop: 10 }}>These colours are very light, so the white text on your card will be hard to read. Pick a darker colour.</div>}
+        <label className="kit-toggle"><input type="checkbox" name="reset" /><span><b>Go back to a preset card theme</b><span className="muted" style={{ display: "block" }}>Drops your own colours and uses a standard theme.</span></span></label>
+      </div>
+      <button>Save logo and colours</button>
     </form>
   );
 }

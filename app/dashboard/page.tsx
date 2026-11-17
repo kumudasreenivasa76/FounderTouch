@@ -4,6 +4,9 @@ import { db } from "@/lib/db";
 import { MODES, MODE_INFO } from "@/lib/modes";
 import { gradient } from "@/lib/look";
 import Icon from "@/components/icon";
+import CopyButton from "@/components/copy-button";
+import { headers } from "next/headers";
+import { modePath } from "@/lib/modes";
 
 const SOURCE_LABEL: Record<string, string> = { qr: "QR code", link: "Link", nfc: "NFC tag", tap: "Tap to share", scan: "In-app scan", event: "Event", manual: "Added by hand", email: "Email signature" };
 
@@ -58,6 +61,18 @@ export default async function Overview({ searchParams }: { searchParams: Promise
   const cards = ["ALL", ...MODES].map((m) => ({ m, n: perMode[m] ?? 0 })).sort((a, b) => b.n - a.n);
   const cardMax = Math.max(1, ...cards.map((c) => c.n));
   const sources = Object.entries(perSource).sort((a, b) => b[1] - a[1]);
+
+  // Your pages: each switched-on page with its short address and how often it was opened in this period.
+  const hd = await headers();
+  const origin = `${hd.get("x-forwarded-proto") ?? "http"}://${hd.get("host")}`;
+  const [cfgs, bio] = await Promise.all([
+    db.modeConfig.findMany({ where: { profileId: pid, isEnabled: true }, select: { mode: true } }),
+    db.bioLink.aggregate({ where: { profileId: pid, kind: "LINK" }, _sum: { clicks: true }, _count: true }),
+  ]);
+  const onModes = new Set(cfgs.map((c) => c.mode));
+  const pages = MODES.filter((m) => onModes.has(m)).map((m) => ({ m, label: m === "ALL" ? "Full profile" : `${MODE_INFO[m].label} page`, path: modePath(profile.handle, m), n: perMode[m] ?? 0 }));
+  const hour = now.getHours();
+  const hello = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   const srcMax = Math.max(1, ...sources.map(([, n]) => n));
   const bg = gradient(profile.theme);
   const ago = (d: Date) => { const m = Math.round((now.getTime() - d.getTime()) / 60000); return m < 60 ? `${m}m ago` : m < 1440 ? `${Math.round(m / 60)}h ago` : `${Math.round(m / 1440)}d ago`; };
@@ -66,12 +81,20 @@ export default async function Overview({ searchParams }: { searchParams: Promise
     <>
       <div className="dash-top">
         <div>
-          <h2>Analytics</h2>
-          <div className="dash-sub">How your cards performed, {short(since)} – {short(now)}.</div>
+          <h2>{hello}, {profile.firstName || profile.name.split(" ")[0]}</h2>
+          <div className="dash-sub">How your cards performed, {short(since)} to {short(now)}.</div>
         </div>
         <div className="range" role="tablist" aria-label="Date range">
           {[7, 14, 30].map((d) => <Link key={d} role="tab" aria-selected={span === d} href={d === 14 ? "/dashboard" : `/dashboard?days=${d}`} className={span === d ? "on" : ""}>{d} days</Link>)}
         </div>
+      </div>
+
+      <div className="qa" aria-label="Quick actions">
+        <Link href="/dashboard/w/app/card"><i aria-hidden><Icon name="qr" size={18} /></i><span><b>Share my card</b><small>QR, tap or link</small></span></Link>
+        <Link href="/dashboard/w/app/contacts/new"><i aria-hidden><Icon name="plus" size={18} /></i><span><b>Add a contact</b><small>Someone you just met</small></span></Link>
+        <Link href="/dashboard/w/app/links"><i aria-hidden><Icon name="link" size={18} /></i><span><b>Edit link page</b><small>{bio._count} {bio._count === 1 ? "link" : "links"} · {profile.linkViews} {profile.linkViews === 1 ? "view" : "views"}</small></span></Link>
+        <Link href="/dashboard/signature"><i aria-hidden><Icon name="mail" size={18} /></i><span><b>Email signature</b><small>Six designs</small></span></Link>
+        <Link href="/dashboard/backgrounds"><i aria-hidden><Icon name="video" size={18} /></i><span><b>Call background</b><small>Zoom, Meet, Teams</small></span></Link>
       </div>
 
       <div className="kpis">
@@ -79,7 +102,8 @@ export default async function Overview({ searchParams }: { searchParams: Promise
         <Link href="/dashboard/all" className="kpi"><span className="k-lbl">New contacts</span><b>{newContacts}</b><Delta cur={newContacts} prev={prevContacts} /></Link>
         <div className="kpi"><span className="k-lbl">Card saves</span><b>{saves}</b><Delta cur={saves} prev={prevSaves} /></div>
         <Link href="/dashboard/all" className="kpi"><span className="k-lbl">Connections</span><b>{total}</b><span className="delta flat">all time</span></Link>
-        <Link href="/app/nfc" className="kpi"><span className="k-lbl">NFC taps</span><b>{nfcTaps._sum.taps ?? 0}</b><span className="delta flat">all time</span></Link>
+        <Link href="/dashboard/w/app/links" className="kpi"><span className="k-lbl">Link page</span><b>{profile.linkViews}</b><span className="delta flat">{bio._sum.clicks ?? 0} {(bio._sum.clicks ?? 0) === 1 ? "click" : "clicks"}</span></Link>
+        <Link href="/dashboard/w/app/nfc" className="kpi"><span className="k-lbl">NFC taps</span><b>{nfcTaps._sum.taps ?? 0}</b><span className="delta flat">all time</span></Link>
       </div>
 
       {(pending > 0 || due > 0) && (
@@ -88,6 +112,28 @@ export default async function Overview({ searchParams }: { searchParams: Promise
           {due > 0 && <Link href="/dashboard/all?stage=due">{due} follow-up{due === 1 ? "" : "s"} due</Link>}
         </div>
       )}
+
+      <div className="panel pg">
+        <div className="pg-head"><h3>Your pages</h3><Link href="/dashboard/w/app/profile/kit">Manage in Kits</Link></div>
+        <div className="pg-row pg-link">
+          <span className="mode-chip" style={{ background: bg }} aria-hidden><Icon name="link" size={15} /></span>
+          <b>Link page</b>
+          <code>{`${origin}/${profile.handle}`.replace(/^https?:\/\//, "")}</code>
+          <span className="pg-n">{profile.linkViews} {profile.linkViews === 1 ? "view" : "views"}</span>
+          <CopyButton text={`${origin}/${profile.handle}`} label="Copy link" />
+          <a href={`/${profile.handle}`} target="_blank" rel="noopener noreferrer">Open</a>
+        </div>
+        {pages.map((p) => (
+          <div key={p.m} className="pg-row">
+            <span className="mode-chip" style={{ background: bg }} aria-hidden><Icon mode={p.m} size={15} /></span>
+            <b>{p.label}</b>
+            <code>{`${origin}${p.path}`.replace(/^https?:\/\//, "")}</code>
+            <span className="pg-n">{p.n} {p.n === 1 ? "view" : "views"}</span>
+            <CopyButton text={`${origin}${p.path}`} label="Copy link" />
+            <a href={p.path} target="_blank" rel="noopener noreferrer">Open</a>
+          </div>
+        ))}
+      </div>
 
       <div className="panels">
         <div className="panel chartp">
@@ -140,14 +186,14 @@ export default async function Overview({ searchParams }: { searchParams: Promise
           <h3>Recent activity</h3>
           {recent.length === 0 && <div className="muted2">Nothing yet.</div>}
           {recent.map((a) => (
-            <div key={a.id} className="feed-row"><Link href={`/app/contacts/${a.contact.id}`}><b>{a.contact.name}</b></Link> <span className="muted2">· {a.kind}{a.text ? `: ${a.text}` : ""} · {ago(a.createdAt)}</span></div>
+            <div key={a.id} className="feed-row"><Link href={`/dashboard/w/app/contacts/${a.contact.id}`}><b>{a.contact.name}</b></Link> <span className="muted2">· {a.kind}{a.text ? `: ${a.text}` : ""} · {ago(a.createdAt)}</span></div>
           ))}
         </div>
         <div className="panel">
           <h3>Upcoming events</h3>
           {upcoming.length === 0 && <div className="muted2">No events planned.</div>}
           {upcoming.map((e) => (
-            <div key={e.id} className="feed-row"><Link href={`/app/events/${e.id}`}><b>{e.name}</b></Link> <span className="muted2">· {e.startsAt ? e.startsAt.toLocaleDateString("en-IN", { dateStyle: "medium" }) : "No date"} · {e._count.attendees} registered</span></div>
+            <div key={e.id} className="feed-row"><Link href={`/dashboard/w/app/events/${e.id}`}><b>{e.name}</b></Link> <span className="muted2">· {e.startsAt ? e.startsAt.toLocaleDateString("en-IN", { dateStyle: "medium" }) : "No date"} · {e._count.attendees} registered</span></div>
           ))}
         </div>
       </div>

@@ -18,6 +18,7 @@ import CardWithShare from "@/components/card-with-share";
 import { SocialIcon } from "@/components/social-icon";
 import { uploadPhoto, logout } from "./profile/actions";
 import Icon from "@/components/icon";
+import PreviewLink from "@/components/preview-link";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Home" };
 
@@ -103,7 +104,7 @@ export default async function Home() {
       <div style={{ height: 8, borderRadius: 8, background: "#e8ebf2", overflow: "hidden", marginBottom: 14 }} role="progressbar" aria-label="Profile completion" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
         <div style={{ width: `${pct}%`, height: "100%", background: gradient(profile.theme) }} />
       </div>
-      {next && <Link href={next.href} className="menu-row" style={{ borderColor: "rgba(59,91,219,.35)", background: "linear-gradient(135deg,rgba(59,91,219,.06),rgba(112,72,232,.06))" }}><span className="menu-ico"><Icon name="check" /></span><span style={{ flex: 1 }}><b>{next.label}</b><span className="muted" style={{ display: "block" }}>Finish your profile</span></span><span className="muted">›</span></Link>}
+      {next && <Link href={next.href} className="menu-row" style={{ borderColor: "rgba(124,58,237,.35)", background: "linear-gradient(135deg,rgba(124,58,237,.06),rgba(168,85,247,.06))" }}><span className="menu-ico"><Icon name="check" /></span><span style={{ flex: 1 }}><b>{next.label}</b><span className="muted" style={{ display: "block" }}>Finish your profile</span></span><span className="muted">›</span></Link>}
 
       <CardWithShare key={profile.theme}
         card={{ background: gradient(profile.theme), back: `linear-gradient(135deg, ${t.to}, ${t.from})`, avatar, name: profile.name, sub: byline(profile.headline, profile.company), logo, lines, social: icons }}
@@ -111,8 +112,14 @@ export default async function Home() {
 
       <div className="row" style={{ margin: "12px 0" }}>
         <a className="btn ghost" href="#profile">Edit profile</a>
-        <a className="btn ghost" href={`/${profile.handle}`} target="_blank" rel="noopener">View my page</a>
+        <PreviewLink className="btn ghost" href={`/${profile.handle}`} title="My public page">View my page</PreviewLink>
       </div>
+
+      <Link href="/app/links" className="menu-row">
+        <span className="menu-ico" aria-hidden><Icon name="link" /></span>
+        <span style={{ flex: 1, minWidth: 0 }}><b>Your link page</b><span className="muted" style={{ display: "block" }}>/{profile.handle} · add links, pick a look, see clicks</span></span>
+        <span className="muted" aria-hidden>›</span>
+      </Link>
 
       <h2 style={{ fontSize: 15, margin: "16px 0 8px" }}>Your modes</h2>
       {visible.length === 0

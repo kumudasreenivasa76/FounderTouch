@@ -108,3 +108,35 @@ export const kindLabel = (mode: string, kind: string) => MODE_INFO[mode as Mode]
 export const parseFields = (s: string): Record<string, string> => { try { return JSON.parse(s) ?? {}; } catch { return {}; } };
 /** "a, b\nc" -> ["a","b","c"] */
 export const listItems = (v: string) => v.split(/[\n,;]/).map((x) => x.trim()).filter(Boolean);
+
+/** Extra buttons a mode shows under its main button. Stored as JSON on ModeConfig.links. */
+export type ModeLink = { label: string; url: string };
+export const MAX_MODE_LINKS = 5;
+export function parseLinks(raw: string | null | undefined): ModeLink[] {
+  try {
+    const a = JSON.parse(raw || "[]");
+    if (!Array.isArray(a)) return [];
+    return a
+      .filter((x) => x && typeof x.label === "string" && typeof x.url === "string" && /^(https?:\/\/|mailto:|tel:)/i.test(x.url))
+      .slice(0, MAX_MODE_LINKS)
+      .map((x) => ({ label: x.label, url: x.url }));
+  } catch {
+    return [];
+  }
+}
+/** Turns what someone typed into a safe link: bare domains get https://, emails become mailto:, anything else is dropped. */
+export function cleanLink(v: string): string {
+  const t = v.trim();
+  if (!t) return "";
+  if (/^(https?:\/\/|mailto:|tel:)/i.test(t)) return t;
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t)) return "mailto:" + t;
+  if (/^\+?[\d\s().-]{7,}$/.test(t)) return "tel:" + t.replace(/[^\d+]/g, "");
+  if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(t)) return "https://" + t;
+  return "";
+}
+
+/** The word each page uses in its short address: /handle/founder, /handle/business, /handle/card (the full profile). */
+const MODE_SLUGS: Record<Mode, string> = { FOUNDER: "founder", INVESTOR: "investor", SERVICES: "business", HIRE: "hire", RECRUITER: "recruiter", OTHER: "other", ALL: "card" };
+export const modeSlug = (m: string) => MODE_SLUGS[m as Mode] ?? m.toLowerCase();
+export const modeFromSlug = (slug: string): Mode | null => (Object.keys(MODE_SLUGS) as Mode[]).find((m) => MODE_SLUGS[m] === slug.toLowerCase()) ?? null;
+export const modePath = (handle: string, m: string) => `/${handle}/${modeSlug(m)}`;

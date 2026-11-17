@@ -11,7 +11,7 @@ const PATHS: Record<string, string> = {
 
 export const SOCIAL_COLORS: Record<string, string> = {
   linkedin: "#0a66c2", x: "#111827", instagram: "linear-gradient(45deg,#f9a825,#e1306c 55%,#833ab4)", github: "#24292f",
-  youtube: "#ff0000", facebook: "#1877f2", telegram: "#229ed9", whatsapp: "#25d366", portfolio: "linear-gradient(135deg,#3b5bdb,#7048e8)",
+  youtube: "#ff0000", facebook: "#1877f2", telegram: "#229ed9", whatsapp: "#25d366", portfolio: "linear-gradient(135deg,#7c3aed,#a855f7)",
 };
 
 export function SocialIcon({ k, size = 20 }: { k: string; size?: number }) {
@@ -34,7 +34,7 @@ export function SocialIcon({ k, size = 20 }: { k: string; size?: number }) {
 /** Round brand-coloured badge with the white glyph inside. */
 export function SocialBadge({ k, size = 40 }: { k: string; size?: number }) {
   return (
-    <span style={{ width: size, height: size, borderRadius: "50%", background: SOCIAL_COLORS[k] ?? "#3b5bdb", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+    <span style={{ width: size, height: size, borderRadius: "50%", background: SOCIAL_COLORS[k] ?? "#7c3aed", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
       <SocialIcon k={k} size={Math.round(size * 0.5)} />
     </span>
   );

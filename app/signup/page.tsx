@@ -27,22 +27,24 @@ export default async function Signup({ searchParams }: { searchParams: Promise<{
   if (await currentUser()) redirect("/app");
   const sp = await searchParams;
   return (
-    <div role="main" id="main" className="screen center auth">
-      <div className="auth-hero">
-        <Logo size={78} className="auth-logo" />
-        <span className="auth-hi brand-word">Tap<span>Nodd</span></span>
+    <div role="main" id="main" className="screen center auth lux">
+      <div className="auth-top">
+        <div className="auth-hero">
+          <Logo size={78} className="auth-logo" />
+          <span className="auth-hi brand-word">Tap<span>Nodd</span></span>
+        </div>
+        <h1>Create your account</h1>
+        <p className="sub">Your digital card, ready to share <b>in about a minute</b>.</p>
       </div>
-      <h1>Create your account</h1>
-      <p className="sub">Set up your account in a minute</p>
-      {sp.error && <div className="err">{MSG[sp.error] ?? "Something went wrong."}</div>}
       <form action={signup} className="kit-form">
+        {sp.error && <div className="err">{MSG[sp.error] ?? "Something went wrong."}</div>}
         <div className="row"><input name="firstName" placeholder="First name" required autoComplete="given-name" /><input name="lastName" placeholder="Last name" required autoComplete="family-name" /></div>
         <input name="email" type="email" placeholder="Email" required autoComplete="email" />
         <input name="password" type="password" placeholder="Password (8+ characters)" required autoComplete="new-password" />
         <button>Continue</button>
       </form>
-      <p className="muted" style={{ textAlign: "center", marginTop: 14 }}>Have an account? <Link href="/login">Log in</Link></p>
-      <div className="or-div">or</div>
+      <p className="auth-switch"><span>Already have an account?</span><Link href="/login">Log in<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg></Link></p>
+      <div className="or-div">or continue with</div>
       <SsoButtons />
     </div>
   );

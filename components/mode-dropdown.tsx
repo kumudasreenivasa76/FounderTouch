@@ -9,7 +9,7 @@ export default function ModeDropdown({ options }: { options: { value: string; la
       onChange={(e) => { const v = e.target.value; if (v) router.push(v === "__add" ? "/app/card?pane=add" : `/app/card?mode=${v}`); }}>
       <option value="">Choose a mode…</option>
       {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      <option value="__add">＋ Add a mode</option>
+      <option value="__add">Add a mode</option>
     </select>
   );
 }

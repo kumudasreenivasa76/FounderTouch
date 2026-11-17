@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PreviewLink from "@/components/preview-link";
 
 /** Tab strip shown on every mode editor screen, so one mode's pieces feel like one editor. */
 export default function ModeTabs({ mode, handle, active }: { mode: string; handle: string; active: "details" | "docs" | "actions" | "share" }) {
@@ -13,7 +14,7 @@ export default function ModeTabs({ mode, handle, active }: { mode: string; handl
     <nav className="chips" style={{ margin: "0 0 12px", overflowX: "auto", flexWrap: "nowrap" }} aria-label="Mode editor">
       {tabs.map((t) => <Link key={t.k} aria-current={t.k === active ? "page" : undefined} href={t.href} className={"pill" + (t.k === active ? " on" : "")} style={{ padding: "6px 14px", whiteSpace: "nowrap" }}>{t.label}</Link>)}
       <Link href="/app/nfc" className="pill" style={{ padding: "6px 14px", whiteSpace: "nowrap" }}>NFC</Link>
-      <a href={`/${handle}?mode=${mode}`} target="_blank" rel="noopener noreferrer" className="pill" style={{ padding: "6px 14px", whiteSpace: "nowrap" }}>Preview</a>
+      <PreviewLink href={`/${handle}?mode=${mode}`} title="Page preview" className="pill" style={{ padding: "6px 14px", whiteSpace: "nowrap" }}>Preview</PreviewLink>
     </nav>
   );
 }

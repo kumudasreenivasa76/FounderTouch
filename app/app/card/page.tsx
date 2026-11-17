@@ -3,7 +3,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { MODES, MODE_INFO, Mode } from "@/lib/modes";
+import { MODES, MODE_INFO, Mode, modePath } from "@/lib/modes";
 import { requireOwner } from "@/lib/auth";
 import { modeHasContent } from "@/lib/mode-content";
 import { buildNeedData, modeNeeds } from "@/lib/mode-needs";
@@ -23,6 +23,8 @@ import DigitalCard, { CardLine } from "@/components/digital-card";
 import { SocialIcon } from "@/components/social-icon";
 import { uploadPhoto } from "../profile/actions";
 import Icon from "@/components/icon";
+import CopyButton from "@/components/copy-button";
+import PreviewLink from "@/components/preview-link";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "My card" };
 
@@ -90,7 +92,7 @@ export default async function MyCard({ searchParams }: { searchParams: Promise<{
 
   // Three ways to share: show a QR, tap, or scan someone else's.
   const via = sp.via === "tap" || sp.pane === "tap" ? "tap" : sp.via === "scan" ? "scan" : "qr";
-  const labels = [...visible.map(label), "＋ Add a mode", "Wallet"];
+  const labels = [...visible.map(label), "Add a mode", "Wallet"];
   const addIdx = visible.length, walletIdx = visible.length + 1;
   const start = sp.pane === "wallet" ? walletIdx : sp.pane === "add" ? addIdx
     : visible.includes(sp.mode as Mode) ? visible.indexOf(sp.mode as Mode) : toAdd.includes(sp.mode as Mode) ? addIdx : 0;
@@ -115,7 +117,7 @@ export default async function MyCard({ searchParams }: { searchParams: Promise<{
       <div className="shell-head" style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <PhotoUpload action={uploadPhoto} size={46}><Avatar name={profile.name} handle={profile.handle} hasPhoto={!!profile.photo} avatar={profile.avatar} size={46} /></PhotoUpload>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h1 style={{ fontSize: 17, margin: 0 }}>Hi, {profile.firstName || profile.name.split(" ")[0]} <span aria-hidden></span></h1>
+          <h1 style={{ fontSize: 17, margin: 0 }}>Hi, {profile.firstName || profile.name.split(" ")[0]}</h1>
           <div className="muted">{total} scans · {taps} taps · {contactCount} contacts</div>
         </div>
         <Link href="/app/nfc" className="gear" aria-label="NFC tags" title="NFC tags" style={{ marginRight: 8 }}><Icon name="nfc" size={19} /></Link>
@@ -124,17 +126,19 @@ export default async function MyCard({ searchParams }: { searchParams: Promise<{
 
       <div style={{ flex: 1, overflowY: "auto", padding: "0 18px 18px", minHeight: 0 }}>
         <nav className="seg" aria-label="Card, tap or scan">
-          <Link href="/app/card" aria-current={via === "qr" ? "page" : undefined}><span aria-hidden>▦</span> My card</Link>
-          <Link href="/app/card?via=tap" aria-current={via === "tap" ? "page" : undefined}><span aria-hidden></span> Tap</Link>
-          <Link href="/app/card?via=scan" aria-current={via === "scan" ? "page" : undefined}><span aria-hidden></span> Scan</Link>
+          <Link href="/app/card" aria-current={via === "qr" ? "page" : undefined}><span aria-hidden style={{ display: "inline-flex", verticalAlign: "-3px", marginRight: 5 }}><Icon name="qr" size={15} /></span>My card</Link>
+          <Link href="/app/card?via=tap" aria-current={via === "tap" ? "page" : undefined}><span aria-hidden style={{ display: "inline-flex", verticalAlign: "-3px", marginRight: 5 }}><Icon name="nfc" size={15} /></span>Tap</Link>
+          <Link href="/app/card?via=scan" aria-current={via === "scan" ? "page" : undefined}><span aria-hidden style={{ display: "inline-flex", verticalAlign: "-3px", marginRight: 5 }}><Icon name="search" size={15} /></span>Scan</Link>
         </nav>
 
         {via === "tap" ? (
+          <div className="kit-share tapv"><div className="share-card">
           <TapShare
             pages={modeData.map((x) => ({ mode: x.mode, label: MODE_INFO[x.mode].label, icon: MODE_INFO[x.mode].icon, tapUrl: `${origin}/t/${x.link.token}` }))}
             avatar={<Avatar name={profile.name} handle={profile.handle} hasPhoto={!!profile.photo} avatar={profile.avatar} size={96} />}
             peek={peekTap} save={saveTapCard}
           />
+          </div></div>
         ) : via === "scan" ? (
           <>
             <ScanOthers peek={peekTap} save={saveTapCard} />
@@ -152,26 +156,29 @@ export default async function MyCard({ searchParams }: { searchParams: Promise<{
               const needs = modeNeeds(mode, buildNeedData({ profile, cfg, mode, resources, team: teamCount, projects: projectCount, events: eventCount, jobs: jobCount, career: careerN, skills: !!profile.skills.trim() }));
               const todo = needs.filter((n) => !n.ok);
               return (
-                <div key={mode}>
+                <div key={mode} className="kit-share cs">
                   <QrPanel
                     qrSrc={qrs[i]} url={`${origin}/s/${link.token}`} name={profile.name} modeLabel={info.label} modeIcon={info.icon}
                     frame={gradient(profile.theme)} downloadName={`${profile.handle}-${mode.toLowerCase()}-qr.png`}
                     center={<Avatar name={profile.name} handle={profile.handle} hasPhoto={!!profile.photo} avatar={profile.avatar} size={46} />}
                   />
-                  <div className="row" style={{ marginTop: 8 }}>
-                    <a className="btn ghost" href={`/${profile.handle}?mode=${mode}`} target="_blank">Preview page</a>
-                    <Link className="btn ghost" href={`/app/settings?mode=${mode}`}>Page settings</Link>
-                    {mode !== "ALL" && <form action={removeMode}><input type="hidden" name="mode" value={mode} /><button className="ghost">Remove mode</button></form>}
+                  <div className="lk-url cs-link">
+                    <code>{`${origin}${modePath(profile.handle, mode)}`.replace(/^https?:\/\//, "")}</code>
+                    <CopyButton text={`${origin}${modePath(profile.handle, mode)}`} label="Copy link" />
+                  </div>
+                  <div className="cs-actions">
+                    <PreviewLink className="btn ghost" href={modePath(profile.handle, mode)} title={`${info.label} page preview`}>Preview page</PreviewLink>
+                    <Link className="btn ghost" href={mode === "ALL" || mode === "HIRE" ? `/app/settings?mode=${mode}` : `/app/profile/kit?mode=${mode}`}>Edit this page</Link>
                   </div>
 
-                  <details className="card" style={{ marginTop: 12 }}>
-                    <summary>{todo.length ? `${todo.length} to finish · ` : "Ready · "}checklist and last 7 days</summary>
+                  <details className="cs-more">
+                    <summary><span><b className={"cs-dot" + (todo.length ? " todo" : "")} />{todo.length ? `${todo.length} to finish` : "Ready to share"}</span><em>{link._count.scans} {link._count.scans === 1 ? "scan" : "scans"}</em></summary>
                   <div style={{ marginTop: 10, borderColor: todo.length ? "#ffd8a8" : "#b2f2bb", background: todo.length ? "#fff9f0" : "#f3fcf5" }}>
                     <b>{todo.length ? `Finish your ${info.label} page` : `${info.label} page is ready`}</b>
                     <div className="muted" style={{ marginBottom: 6 }}>{info.blurb}</div>
                     {needs.map((n) => (
                       <Link key={n.label} href={n.href} style={{ display: "flex", gap: 8, padding: "5px 0", color: n.ok ? "#566074" : "#1c2330" }}>
-                        <span>{n.ok ? "" : ""}</span><span style={{ flex: 1, textDecoration: n.ok ? "line-through" : "none" }}>{n.label}</span>
+                        <span style={{ display: "inline-flex", color: n.ok ? "#0ca678" : "#9aa4b5" }} aria-hidden>{n.ok ? <Icon name="check" size={16} /> : <Icon name="plus" size={16} />}</span><span style={{ flex: 1, textDecoration: n.ok ? "line-through" : "none" }}>{n.label}</span>
                       </Link>
                     ))}
                   </div>
@@ -182,39 +189,38 @@ export default async function MyCard({ searchParams }: { searchParams: Promise<{
                     <div className="bars-l">{days.map((d, n) => <span key={n}>{"SMTWTFS"[d.getDay()]}</span>)}</div>
                   </div>
                   </details>
+                  {mode !== "ALL" && <form action={removeMode} className="cs-remove"><input type="hidden" name="mode" value={mode} /><button>Remove this mode</button></form>}
                 </div>
               );
             })}
 
-            <div key="add">
-              <h2 style={{ marginTop: 0 }}>Add a mode</h2>
-              <p className="muted" style={{ marginTop: 0 }}>A mode shows up for visitors once you add something to it. Pick the ones that describe you.</p>
-              {toAdd.filter((m) => m !== "ALL").length === 0 && <div className="card muted">You have added every mode.</div>}
+            <div key="add" className="mode-add cs-pane">
+              <p className="mode-add-note" style={{ margin: "0 4px 12px" }}>Each mode is its own page for one kind of visitor. Pick only the ones that describe you.</p>
+              {toAdd.filter((m) => m !== "ALL").length === 0 && <div className="kit-empty">You have added every mode.</div>}
               {toAdd.filter((m) => m !== "ALL").map((m) => (
-                <form key={m} action={addMode} className="menu-row">
+                <form key={m} action={addMode} className="mode-opt">
                   <input type="hidden" name="mode" value={m} />
-                  <span className="menu-ico" aria-hidden><Icon mode={m} /></span>
-                  <span style={{ flex: 1, minWidth: 0 }}><b>{MODE_INFO[m].label}</b><span className="muted" style={{ display: "block" }}>{MODE_INFO[m].blurb}</span></span>
-                  <button className="sm" style={{ width: "auto" }} aria-label={`Add ${MODE_INFO[m].label} mode`}>＋ Add</button>
+                  <i className="doc-ic" aria-hidden><Icon mode={m} size={22} /></i>
+                  <span className="mode-opt-t"><b>{MODE_INFO[m].label}</b><span>{MODE_INFO[m].blurb}</span></span>
+                  <button aria-label={`Add ${MODE_INFO[m].label} mode`}>Add</button>
                 </form>
               ))}
             </div>
 
-            <div key="wallet">
-              <h2 style={{ marginTop: 0 }}>Wallet</h2>
-              <div className="card">
+            <div key="wallet" className="cs-pane">
+              <div className="cs-wallet">
                 <b>Add my card to my phone</b>
-                <div className="row" style={{ marginTop: 10 }}>
+                <div className="cs-actions" style={{ marginTop: 12 }}>
                   <a className="btn" href="/wallet/google">Google Wallet</a>
                   <a className="btn ghost" href="/wallet/apple">Apple Wallet</a>
                 </div>
-                <p className="muted" style={{ marginBottom: 0 }}>Or save the card image and keep it in Photos, or tap Share → Add to Home Screen in your browser.</p>
+                <p className="mode-add-note" style={{ margin: "12px 0 0" }}>Or save the card image to Photos, or use Share, then Add to Home Screen in your browser.</p>
               </div>
 
-              <h3 style={{ margin: "14px 0 6px" }}>Saved cards ({saved.length})</h3>
-              {saved.length === 0 && <div className="card muted">Cards you save from other people&apos;s pages, taps or QR codes appear here.</div>}
+              <h3 className="kit-sec">Saved cards<span>{saved.length}</span></h3>
+              {saved.length === 0 && <div className="kit-empty">Cards you save from other people&apos;s pages, taps or QR codes appear here.</div>}
               {saved.map((sv) => (
-                <div className="card" key={sv.id} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div className="cs-saved" key={sv.id}>
                   <Avatar name={sv.profile.name} handle={sv.profile.handle} hasPhoto={!!sv.profile.photo} avatar={sv.profile.avatar} size={44} />
                   <div style={{ flex: 1, minWidth: 0 }}><b>{sv.profile.name}</b><div className="muted">{byline(sv.profile.headline, sv.profile.company)}</div></div>
                   <a className="btn ghost sm" href={`/${sv.profile.handle}?mode=${sv.mode}`} target="_blank" style={{ width: "auto", padding: "6px 12px" }}>Open</a>

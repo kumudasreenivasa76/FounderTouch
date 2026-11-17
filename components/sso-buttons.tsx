@@ -10,7 +10,7 @@ export default function SsoButtons({ next }: { next?: string }) {
           <path fill="#FBBC05" d="M10.4 28.7a14.5 14.5 0 0 1 0-9.4l-7.8-6.1a24 24 0 0 0 0 21.6l7.8-6.1z" />
           <path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.4-5.5l-7.5-5.8c-2.1 1.4-4.8 2.3-7.9 2.3-6.3 0-11.7-3.9-13.6-9.3l-7.8 6.1C6.5 42.6 14.6 48 24 48z" />
         </svg>
-        Continue with Google
+        <span><span className="sso-pre">Continue with </span>Google</span>
       </a>
       <a className="btn-sso" href={`/auth/microsoft${q}`}>
         <svg width="18" height="18" viewBox="0 0 23 23" aria-hidden>
@@ -19,13 +19,13 @@ export default function SsoButtons({ next }: { next?: string }) {
           <rect x="1" y="12" width="10" height="10" fill="#00A4EF" />
           <rect x="12" y="12" width="10" height="10" fill="#FFB900" />
         </svg>
-        Continue with Microsoft
+        <span><span className="sso-pre">Continue with </span>Microsoft</span>
       </a>
       <a className="btn-sso" href={`/auth/apple${q}`}>
         <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden>
           <path fill="currentColor" d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.56-1.702" />
         </svg>
-        Continue with Apple
+        <span><span className="sso-pre">Continue with </span>Apple</span>
       </a>
     </div>
   );

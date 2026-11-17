@@ -133,7 +133,7 @@ export default function TapShare({ pages, avatar, peek, save }: {
           {supported && <button type="button" className="ghost" onClick={writeTag}>Write to a tag</button>}
         </div>
         <p className="muted" style={{ margin: "8px 0 0", fontSize: 12.5 }}>
-          Searching works with NFC cards and stickers, and with phones that share a tap link. Sending to a phone uses your phone&apos;s own share sheet (Nearby Share or AirDrop). Browsers can&apos;t beam to another phone directly.
+          Tapping works with NFC cards, stickers and phones that share a tap link. Send to a phone opens your phone&apos;s share sheet.
         </p>
       </div>
     </div>

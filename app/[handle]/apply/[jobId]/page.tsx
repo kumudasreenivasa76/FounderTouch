@@ -42,7 +42,7 @@ async function applyWithProfile(fd: FormData) {
   await db.application.create({
     data: { jobId: job.id, profileId: p.id, name: mine.name, email, phone: mine.phone, linkedin: parseSocials(mine.socials).linkedin ?? "", resumeUrl, candidateHandle: mine.handle, eventId, note: String(fd.get("note") ?? "").trim().slice(0, 600) },
   });
-  await db.contact.upsert({ where: { profileId_email: { profileId: p.id, email } }, update: { lastInteractionAt: new Date(), interactions: { increment: 1 }, mode: "RECRUITER" }, create: { profileId: p.id, email, name: mine.name, mode: "RECRUITER" } });
+  await db.contact.upsert({ where: { profileId_email: { profileId: p.id, email } }, update: { lastInteractionAt: new Date(), interactions: { increment: 1 }, mode: "RECRUITER" }, create: { profileId: p.id, email, name: mine.name, mode: "RECRUITER", source: "job" } });
   redirect(`${here(handle, jobId)}?sent=1`);
 }
 
@@ -71,7 +71,7 @@ async function applyForm(fd: FormData) {
       resumeUrl: url && !/^https?:\/\//i.test(url) ? "https://" + url : url, resumeFile, eventId, note: String(fd.get("note") ?? "").trim().slice(0, 600),
     },
   });
-  await db.contact.upsert({ where: { profileId_email: { profileId: p.id, email } }, update: { lastInteractionAt: new Date(), interactions: { increment: 1 }, mode: "RECRUITER" }, create: { profileId: p.id, email, name, mode: "RECRUITER" } });
+  await db.contact.upsert({ where: { profileId_email: { profileId: p.id, email } }, update: { lastInteractionAt: new Date(), interactions: { increment: 1 }, mode: "RECRUITER" }, create: { profileId: p.id, email, name, mode: "RECRUITER", source: "job" } });
   redirect(`${here(handle, jobId)}?sent=1`);
 }
 

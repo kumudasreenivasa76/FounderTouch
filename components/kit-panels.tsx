@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, type ReactNode } from "react";
+import PreviewLink from "@/components/preview-link";
 
 type Tab = "details" | "docs" | "actions" | "share" | "brand";
 
@@ -22,7 +23,7 @@ export default function KitPanels({ mode, handle, initial, details, docs, action
           <button key={k} type="button" onClick={() => setTab(k)} aria-current={tab === k ? "page" : undefined}
             className={"pill" + (tab === k ? " on" : "")} style={{ ...pill, width: "auto", border: 0, cursor: "pointer", fontWeight: 400 }}>{label}</button>
         ))}
-        <a href={`/${handle}?mode=${mode}`} target="_blank" rel="noopener noreferrer" className="pill" style={pill}>Preview</a>
+        <PreviewLink href={`/${handle}?mode=${mode}`} title="Page preview" className="pill" style={pill}>Preview</PreviewLink>
       </nav>
       <div hidden={tab !== "details"}>{details}</div>
       <div hidden={tab !== "docs"}>{docs}</div>

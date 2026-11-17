@@ -1,40 +1,54 @@
+import Link from "next/link";
 import { requireOwner } from "@/lib/auth";
+import { gradient } from "@/lib/look";
 import Avatar from "@/components/avatar";
-import PageHead from "@/components/page-head";
+import Icon from "@/components/icon";
 import PhotoUpload from "@/components/photo-upload";
+import AboutForm from "@/components/about-form";
 import { removePhoto, saveDetails, uploadPhoto } from "../actions";
 export const dynamic = "force-dynamic";
+export const metadata = { title: "About you" };
 
+/** About you: name, photo, headline and bio, with a live preview of the card. */
 export default async function Details({ searchParams }: { searchParams: Promise<{ err?: string; saved?: string }> }) {
   const sp = await searchParams;
   const { profile } = await requireOwner();
-  return (
-    <>
-      <PageHead title="About you" sub="Your name, photo and headline, as they appear on your card." saved={!!sp.saved}
-        error={sp.err === "photo" ? "Photo must be JPG, PNG or WebP under 5 MB." : undefined} />
+  const done = [!!profile.photo, !!profile.headline.trim(), !!profile.bio.trim()];
+  const left = [!done[0] && "a photo", !done[1] && "a headline", !done[2] && "a short bio"].filter(Boolean) as string[];
 
-      <div className="ab-hero">
-        <PhotoUpload action={uploadPhoto} size={96} center>
-          <Avatar name={profile.name} handle={profile.handle} hasPhoto={!!profile.photo} avatar={profile.avatar} size={96} />
-        </PhotoUpload>
-        <div className="ab-name">{profile.name}</div>
-        <div className="ab-sub">{profile.headline || "Add a headline below"}</div>
-        <div className="ab-hint">{profile.photo ? "Tap the photo to change it" : "Tap to add a photo"}</div>
-        {profile.photo && <form action={removePhoto} style={{ marginTop: 10 }}><button className="ghost">Remove photo</button></form>}
+  return (
+    <div className="ab2">
+      <Link href="/app" className="muted">← Back</Link>
+      <div className="kit-lux-top share-top" style={{ marginTop: 10 }}>
+        <i className="kit-lux-ic" aria-hidden><Icon name="user" size={24} /></i>
+        <div>
+          <b>About you</b>
+          <span>How you appear on your card and pages</span>
+        </div>
+      </div>
+      {sp.saved && <div className="ok">Saved</div>}
+      {sp.err === "photo" && <div className="err">The photo must be a JPG, PNG or WebP under 5 MB.</div>}
+
+      <AboutForm
+        action={saveDetails}
+        cardBg={gradient(profile.theme)}
+        company={profile.company}
+        initial={{ firstName: profile.firstName || profile.name.split(" ")[0] || "", lastName: profile.lastName || profile.name.split(" ").slice(1).join(" "), headline: profile.headline, bio: profile.bio }}
+        photo={
+          <PhotoUpload action={uploadPhoto} size={84}>
+            <Avatar name={profile.name} handle={profile.handle} hasPhoto={!!profile.photo} avatar={profile.avatar} size={84} />
+          </PhotoUpload>
+        }
+      />
+
+      <div className="ab2-photo-row">
+        <span><b>{profile.photo ? "Your photo" : "Add a photo"}</b><small>{profile.photo ? "Tap the photo on the card to change it." : "Tap the circle on the card. People remember a face. JPG, PNG or WebP, up to 5 MB."}</small></span>
+        {profile.photo && <form action={removePhoto}><button className="doc-del">Remove</button></form>}
       </div>
 
-      <form action={saveDetails} className="card kit-form ab-form">
-        <h3>Details</h3>
-        <div className="row">
-          <div><label className="f">First name</label><input name="firstName" defaultValue={profile.firstName} required autoComplete="given-name" /></div>
-          <div><label className="f">Last name</label><input name="lastName" defaultValue={profile.lastName} required autoComplete="family-name" /></div>
-        </div>
-        <label className="f">Headline</label>
-        <input className="ab-headline" name="headline" defaultValue={profile.headline} placeholder="e.g. Founder & CEO, Lumen Labs" />
-        <label className="f">Bio</label>
-        <textarea name="bio" rows={4} defaultValue={profile.bio} placeholder="One or two lines about what you do and who it helps" />
-        <button>Save</button>
-      </form>
-    </>
+      {left.length > 0
+        ? <p className="mode-add-note">Still to add: {left.join(", ")}. A complete profile gets saved more often.</p>
+        : <p className="mode-add-note">Your profile basics are complete. Next, add your <Link href="/app/profile/contact">contact details and socials</Link>.</p>}
+    </div>
   );
 }
