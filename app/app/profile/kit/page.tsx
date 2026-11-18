@@ -26,6 +26,7 @@ import CopyButton from "@/components/copy-button";
 import { peekTap, saveTapCard } from "../../tap-actions";
 import { addTag, saveTag, resetTag, deleteTag } from "../../nfc/actions";
 import { addResource, delResource, saveKitText, setResourceModes, setResourceExpiry } from "../actions";
+import BackLink from "@/components/back-link";
 export const dynamic = "force-dynamic";
 const ic = (_m: Mode) => "";
 
@@ -46,7 +47,7 @@ const CTA_IDEAS = ["Let's connect", "Book a call", "Book a meeting", "Request a 
 const KIND_ICON: Record<string, string> = { DECK: "file", DEMO: "play", DOC: "file", SUPPORT: "folder" };
 // Resume and Portfolio live under "Hire me", so they are not repeated here.
 const KIT_KINDS = ["DECK", "DEMO", "DOC", "SUPPORT"] as const;
-const PAGES = MODES.filter((m) => m !== "ALL" && m !== "HIRE");
+const PAGES = MODES.filter((m) => m !== "ALL" && m !== "NORMAL");
 
 export default async function Kits({ searchParams }: { searchParams: Promise<{ err?: string; saved?: string; kind?: string; mode?: string; tab?: string }> }) {
   const sp = await searchParams;
@@ -82,7 +83,7 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
   return (
     <>
       <div className="shell-head" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <Link href="/app" className="muted">← Back</Link>
+        <BackLink href="/app" />
         <h1 style={{ fontSize: 17, margin: 0 }}>Kits</h1>
         <span className="muted" style={{ marginLeft: "auto" }}>Swipe to switch</span>
       </div>

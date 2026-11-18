@@ -28,18 +28,18 @@ export default function HeroCards() {
       </div>
       <div className="back-card b3">
         <div className="bc-in bc-prof" style={{ animationDelay: "1.6s" }}>
-          <span className="mp-ava" style={{ background: "linear-gradient(135deg,#1f4fd8,#3d6bea)" }}>AV</span>
+          <span className="mp-ava" style={{ background: "linear-gradient(135deg,#8b5cf6,#a78bfa)" }}>AV</span>
           <span className="mp-id"><b>Aisha Verma</b><i>Founder · Lumen Labs</i></span>
           <span className="mp-pill">Founder</span>
         </div>
       </div>
       <span className="float-tag ft1">
-        <i className="ft-ico" style={{ background: "linear-gradient(135deg,#1f4fd8,#3d6bea)" }}>
+        <i className="ft-ico" style={{ background: "linear-gradient(135deg,#8b5cf6,#a78bfa)" }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><rect x="3" y="6" width="18" height="13" rx="3" /><path d="M7 11h6M7 14.5h4" /></svg>
         </i>Cards
       </span>
       <span className="float-tag ft2">
-        <i className="ft-ico" style={{ background: "linear-gradient(135deg,#9c36b5,#3d6bea)" }}>
+        <i className="ft-ico" style={{ background: "linear-gradient(135deg,#9c36b5,#a78bfa)" }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><rect x="4" y="4" width="7" height="7" rx="2" /><rect x="13" y="4" width="7" height="7" rx="2" /><rect x="4" y="13" width="7" height="7" rx="2" /><rect x="13" y="13" width="7" height="7" rx="2" /></svg>
         </i>Modes
       </span>

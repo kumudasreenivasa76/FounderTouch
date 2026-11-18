@@ -11,7 +11,7 @@ export function modeHasContent(mode: string, cfg: Cfg, resources: Res[], extra: 
   if (mode === "ALL") return true;
   if (!MODE_INFO[mode as Mode] || !cfg) return false;
   if (cfg.added) return true; // the owner chose this mode, so it shows even before it has content
-  if (mode === "HIRE") return (extra.career ?? 0) > 0;
+  if (mode === "NORMAL") return true; // your plain profile: name, photo, bio and contact
   if (cfg.kitText.trim() || cfg.intro.trim()) return true;
   if (Object.values(parseFields(cfg.fields)).some((v) => String(v).trim())) return true;
   if (resources.some((r) => r.modes.split(",").includes(mode))) return true;

@@ -1,12 +1,14 @@
-import Link from "next/link";
+import BackLink from "@/components/back-link";
 
-/** Back link, title and an optional saved / error banner for the profile sub-screens. */
+/** Screen header: back button and title on one row, then an optional line of help and a saved / error banner. */
 export default function PageHead({ title, sub, back = "/app", saved, error }: { title: string; sub?: string; back?: string; saved?: boolean; error?: string }) {
   return (
     <>
-      <Link href={back} className="muted">← Back</Link>
-      <h1 style={{ marginTop: 4 }}>{title}</h1>
-      {sub && <p className="muted" style={{ marginTop: 0 }}>{sub}</p>}
+      <div className="tn-top">
+        <BackLink href={back} />
+        <h1>{title}</h1>
+      </div>
+      {sub && <p className="muted tn-sub">{sub}</p>}
       {saved && <div className="ok">Saved</div>}
       {error && <div className="err">{error}</div>}
     </>

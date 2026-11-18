@@ -39,7 +39,7 @@ export default async function Hire() {
           {count("NEW") > 0 && <div style={{ padding: "4px 0" }}><b>{count("NEW")}</b> new {count("NEW") === 1 ? "candidate is" : "candidates are"} waiting for a decision</div>}
           {interviews.slice(0, 4).map((a) => (
             <Link key={a.id} href={`/app/hire/candidate/${a.id}`} style={{ display: "flex", gap: 8, padding: "6px 0", borderTop: "1px solid var(--line)", color: "inherit" }}>
-              <span aria-hidden style={{ display: "inline-flex", alignItems: "center", color: "#1f4fd8" }}><Icon name="calendar" size={17} /></span><span style={{ flex: 1 }}><b>{a.name}</b><span className="muted" style={{ display: "block" }}>{a.jobTitle}</span></span><span className="muted">{day(a.interviewAt!)}, {time(a.interviewAt!)}</span>
+              <span aria-hidden style={{ display: "inline-flex", alignItems: "center", color: "#8b5cf6" }}><Icon name="calendar" size={17} /></span><span style={{ flex: 1 }}><b>{a.name}</b><span className="muted" style={{ display: "block" }}>{a.jobTitle}</span></span><span className="muted">{day(a.interviewAt!)}, {time(a.interviewAt!)}</span>
             </Link>
           ))}
         </section>
@@ -71,7 +71,7 @@ export default async function Hire() {
               {fresh > 0 && <span className="pill on" style={{ margin: 0 }}>{fresh} new</span>}
               <span className="pill" style={{ margin: 0 }}>{j.open ? "Open" : "Closed"}</span>
             </div>
-            <div role="img" aria-label={`${total} candidates: ${PIPELINE.map((k) => `${j.applications.filter((a) => a.status === k).length} ${k.toLowerCase()}`).join(", ")}`} style={{ display: "flex", height: 8, borderRadius: 4, overflow: "hidden", background: "#e0dfdc", margin: "10px 0 6px" }}>
+            <div role="img" aria-label={`${total} candidates: ${PIPELINE.map((k) => `${j.applications.filter((a) => a.status === k).length} ${k.toLowerCase()}`).join(", ")}`} style={{ display: "flex", height: 8, borderRadius: 4, overflow: "hidden", background: "var(--surface-3)", margin: "10px 0 6px" }}>
               {PIPELINE.map((k) => { const n = j.applications.filter((a) => a.status === k).length; return n ? <span key={k} style={{ flex: n, background: colour(k) }} /> : null; })}
             </div>
             <div className="muted">{total === 0 ? "No applicants yet" : `${total} applicant${total === 1 ? "" : "s"} · ${j.applications.filter((a) => a.status === "INTERVIEW").length} interviewing · ${j.applications.filter((a) => a.status === "OFFER" || a.status === "HIRED").length} offered or hired`}</div>

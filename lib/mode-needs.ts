@@ -24,8 +24,6 @@ export function modeNeeds(mode: Mode, d: NeedData): Need[] {
       return [about("Write your investment thesis"), { ok: has("focus") || has("stages"), label: "Add sectors and stages you invest in", href: kit() }, { ok: has("portfolio") || has("portfolioUrl"), label: "Add your portfolio or portfolio link", href: kit() }, book];
     case "SERVICES":
       return [about("Describe what you offer"), { ok: has("services"), label: "List your products or services", href: kit() }, { ok: has("portfolioUrl") || d.hasPortfolio || d.docs > 0, label: "Add a portfolio, catalog or store link", href: kit() }, book];
-    case "HIRE":
-      return [{ ok: !!d.headline, label: "Write a headline", href: `${P}/details` }, { ok: d.career > 0, label: "Add your experience or education", href: `${P}/work` }, { ok: d.skills, label: "Add your skills", href: `${P}/work` }, { ok: d.resume, label: "Add your resume", href: `${P}/work` }];
     case "RECRUITER":
       return [about("Say why people should join you"), { ok: d.jobs > 0, label: "Post an open role", href: `${P}/jobs` }, { ok: has("perks") || has("process"), label: "Add perks or your hiring process", href: kit() }, { ok: !!d.company, label: "Add your company name", href: `${P}/company` }];
     case "OTHER":

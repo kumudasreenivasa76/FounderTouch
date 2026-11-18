@@ -9,6 +9,7 @@ import CopyButton from "@/components/copy-button";
 import PreviewLink from "@/components/preview-link";
 import { LINK_THEMES, autoLinks, hiddenAuto, linkIcon, linkTheme, normUrl, shortUrl } from "@/lib/link-page";
 import { addLink, addHeading, saveLink, toggleLink, featureLink, moveLink, deleteLink, setLinkTheme, toggleAuto, toggleSearchable } from "./actions";
+import BackLink from "@/components/back-link";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Link page" };
 
@@ -47,7 +48,7 @@ export default async function Links({ searchParams }: { searchParams: Promise<{ 
 
   return (
     <div className="lk-edit">
-      <Link href="/app" className="muted">← Back</Link>
+      <BackLink href="/app" />
       <div className="kit-lux-top share-top" style={{ marginTop: 10 }}>
         <i className="kit-lux-ic" aria-hidden><Icon name="link" size={24} /></i>
         <div>

@@ -1,6 +1,6 @@
 /** Card colours: deep, solid tones. `to` is a slightly lighter shade used for depth on the card. Keys stay for saved profiles. */
 export const THEMES: Record<string, { name: string; from: string; to: string }> = {
-  indigo: { name: "Navy", from: "#1b2a44", to: "#2a3d5f" },
+  indigo: { name: "Violet", from: "#22175a", to: "#5a3fd1" },
   sunset: { name: "Ember", from: "#7a3417", to: "#984522" },
   emerald: { name: "Forest", from: "#1d5546", to: "#286a58" },
   ocean: { name: "Cobalt", from: "#1a43bd", to: "#2f5fe3" },

@@ -9,3 +9,6 @@ dev.err
 mobile
 *.db-journal
 .env*
+android
+capacitor.config.ts
+dist

@@ -54,7 +54,7 @@ export default function EventWizard({ action }: { action: (fd: FormData) => void
       </div>
 
       <div hidden={step !== 3}>
-        <div className="card" style={{ background: "#f7f8fb" }}>
+        <div className="card" style={{ background: "var(--surface)" }}>
           <b>{v.name || "Untitled event"}</b>
           {v.summary && <div className="muted">{v.summary}</div>}
           <div className="muted">{v.format.replace("_", " ").toLowerCase()} · {v.visibility.toLowerCase()} · {v.startsAt ? new Date(v.startsAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "no date yet"}</div>

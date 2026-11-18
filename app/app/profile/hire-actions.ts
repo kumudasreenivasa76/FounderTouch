@@ -54,10 +54,3 @@ export async function setOpenToWork(fd: FormData) {
   back();
 }
 
-/** Show or hide the whole Hire me page for visitors. Nothing is deleted. */
-export async function setHireVisible(fd: FormData) {
-  const { profile } = await requireOwner();
-  await db.modeConfig.updateMany({ where: { profileId: profile.id, mode: "HIRE" }, data: { isEnabled: fd.get("on") === "1" } });
-  done();
-  back();
-}

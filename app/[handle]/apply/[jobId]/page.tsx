@@ -23,7 +23,7 @@ async function load(handle: string, jobId: string) {
   return { p, job };
 }
 
-/** One tap: apply using the signed-in visitor's own TapNodd profile (their Hire me details travel with it). */
+/** One tap: apply using the signed-in visitor's own TapNodd profile (their experience and skills travel with it). */
 async function applyWithProfile(fd: FormData) {
   "use server";
   const handle = String(fd.get("handle")), jobId = String(fd.get("jobId"));
@@ -116,14 +116,14 @@ export default async function Apply({ params, searchParams }: { params: Promise<
           {sp.err && <div className="err">{ERR[sp.err] ?? "Something went wrong."}</div>}
 
           {mine && mineStats && (
-            <form action={applyWithProfile} className="card" style={{ borderColor: "#b2f2bb", background: "#f3fcf5" }}>
+            <form action={applyWithProfile} className="card" style={{ borderColor: "var(--line-2)", background: "var(--surface)" }}>
               <input type="hidden" name="handle" value={handle} /><input type="hidden" name="jobId" value={jobId} /><input type="hidden" name="event" value={sp.event ?? ""} />
               <b>Apply with your TapNodd profile</b>
               <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "10px 0" }}>
                 <Avatar name={mine.name} handle={mine.handle} hasPhoto={!!mine.photo} avatar={mine.avatar} size={44} />
                 <div style={{ minWidth: 0 }}><b>{mine.name}</b><div className="muted">{byline(mine.headline, mine.company)}</div></div>
               </div>
-              <div className="muted" style={{ marginBottom: 8 }}>Shares your Hire me profile: {mineStats.jobs} experience, {mineStats.edu} education, {mineStats.skills} skills{mineStats.resume ? ", your resume" : ""}.</div>
+              <div className="muted" style={{ marginBottom: 8 }}>Shares your profile: {mineStats.jobs} experience, {mineStats.edu} education, {mineStats.skills} skills{mineStats.resume ? ", your resume" : ""}.</div>
               <input name="note" placeholder="Add a short note (optional)" maxLength={600} />
               <button>Apply in one tap</button>
             </form>
@@ -146,7 +146,7 @@ export default async function Apply({ params, searchParams }: { params: Promise<
           </form>
         </>
       )}
-      <Link href={`/${handle}?mode=RECRUITER&pane=roles`} className="btn ghost">← All open roles</Link>
+      <Link href={`/${handle}?mode=RECRUITER&pane=roles`} className="btn ghost">All open roles</Link>
     </div>
   );
 }

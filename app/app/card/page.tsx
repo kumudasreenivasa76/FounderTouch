@@ -86,7 +86,7 @@ export default async function MyCard({ searchParams }: { searchParams: Promise<{
   if (profile.website) cardLines.push({ icon: "globe", text: profile.website.replace(/^https?:\/\//, ""), href: profile.website });
   const socialIcons = SOCIALS.filter((s) => socials[s.key]).map((s) => (
     <a key={s.key} href={socials[s.key]} target="_blank" rel="noopener noreferrer" title={s.label} aria-label={s.label}
-      style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(255,255,255,.22)", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center" }}><SocialIcon k={s.key} size={16} /></a>
+      style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(255,255,255,.22)", color: "#ffffff", display: "inline-flex", alignItems: "center", justifyContent: "center" }}><SocialIcon k={s.key} size={16} /></a>
   ));
   const avatarNode = <PhotoUpload action={uploadPhoto} size={56}><Avatar name={profile.name} handle={profile.handle} hasPhoto={!!profile.photo} avatar={profile.avatar} size={56} /></PhotoUpload>;
 
@@ -168,17 +168,17 @@ export default async function MyCard({ searchParams }: { searchParams: Promise<{
                   </div>
                   <div className="cs-actions">
                     <PreviewLink className="btn ghost" href={modePath(profile.handle, mode)} title={`${info.label} page preview`}>Preview page</PreviewLink>
-                    <Link className="btn ghost" href={mode === "ALL" || mode === "HIRE" ? `/app/settings?mode=${mode}` : `/app/profile/kit?mode=${mode}`}>Edit this page</Link>
+                    <Link className="btn ghost" href={mode === "NORMAL" ? "/app/profile/details" : mode === "ALL" ? `/app/settings?mode=${mode}` : `/app/profile/kit?mode=${mode}`}>Edit this page</Link>
                   </div>
 
                   <details className="cs-more">
                     <summary><span><b className={"cs-dot" + (todo.length ? " todo" : "")} />{todo.length ? `${todo.length} to finish` : "Ready to share"}</span><em>{link._count.scans} {link._count.scans === 1 ? "scan" : "scans"}</em></summary>
-                  <div style={{ marginTop: 10, borderColor: todo.length ? "#ffd8a8" : "#b2f2bb", background: todo.length ? "#fff9f0" : "#f3fcf5" }}>
+                  <div style={{ marginTop: 10, borderColor: todo.length ? "rgba(251,191,36,.35)" : "rgba(74,222,128,.35)", background: todo.length ? "rgba(251,191,36,.08)" : "rgba(74,222,128,.08)" }}>
                     <b>{todo.length ? `Finish your ${info.label} page` : `${info.label} page is ready`}</b>
                     <div className="muted" style={{ marginBottom: 6 }}>{info.blurb}</div>
                     {needs.map((n) => (
-                      <Link key={n.label} href={n.href} style={{ display: "flex", gap: 8, padding: "5px 0", color: n.ok ? "#566074" : "#1c2330" }}>
-                        <span style={{ display: "inline-flex", color: n.ok ? "#0ca678" : "#9aa4b5" }} aria-hidden>{n.ok ? <Icon name="check" size={16} /> : <Icon name="plus" size={16} />}</span><span style={{ flex: 1, textDecoration: n.ok ? "line-through" : "none" }}>{n.label}</span>
+                      <Link key={n.label} href={n.href} style={{ display: "flex", gap: 8, padding: "5px 0", color: n.ok ? "var(--muted)" : "var(--ink)" }}>
+                        <span style={{ display: "inline-flex", color: n.ok ? "#4ade80" : "var(--ink-4)" }} aria-hidden>{n.ok ? <Icon name="check" size={16} /> : <Icon name="plus" size={16} />}</span><span style={{ flex: 1, textDecoration: n.ok ? "line-through" : "none" }}>{n.label}</span>
                       </Link>
                     ))}
                   </div>
@@ -229,7 +229,6 @@ export default async function MyCard({ searchParams }: { searchParams: Promise<{
               ))}
             </div>
           </ModeDeck>
-          <ShareSheet name={profile.name} handle={profile.handle} url={hubUrl} qr={hubQr} vcf={vcf} imageUrl={`/card/${profile.handle}/image?mode=ALL`} />
           </>
         )}
       </div>

@@ -7,6 +7,7 @@ import { STATUSES, PIPELINE, statusLabel, skillMatch, nextStage } from "@/lib/hi
 import { listItems } from "@/lib/modes";
 import PageHead from "@/components/page-head";
 import { moveCandidate, rateCandidate, saveCandidateNotes, scheduleInterview } from "../../actions";
+import BackLink from "@/components/back-link";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Candidate" };
 
@@ -28,6 +29,7 @@ export default async function Candidate({ params, searchParams }: { params: Prom
 
   return (
     <>
+      <BackLink href={`/app/hire/${a.jobId}`} label={`Back to ${a.job.title}`} />
       <PageHead title={a.name} sub={`Applied for ${a.job.title}`} back={`/app/hire/${a.jobId}`} saved={!!sp.saved} />
 
       <div className="card" style={{ textAlign: "center" }}>
@@ -41,7 +43,7 @@ export default async function Candidate({ params, searchParams }: { params: Prom
           {a.linkedin && <a className="btn ghost" href={a.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>}
           {a.resumeFile && <a className="btn ghost" href={`/applicant-file/${a.id}`} target="_blank" rel="noopener noreferrer">Resume</a>}
           {!a.resumeFile && a.resumeUrl && <a className="btn ghost" href={a.resumeUrl} target="_blank" rel="noopener noreferrer">Resume link</a>}
-          {cand && <a className="btn ghost" href={`/${cand.handle}?mode=HIRE`} target="_blank" rel="noopener noreferrer">Hire me profile</a>}
+          {cand && <a className="btn ghost" href={`/${cand.handle}?mode=ALL`} target="_blank" rel="noopener noreferrer">Full profile</a>}
         </div>
       </div>
 
@@ -69,7 +71,7 @@ export default async function Candidate({ params, searchParams }: { params: Prom
         <div style={{ display: "flex", gap: 2 }} role="group" aria-label="Rate this candidate">
           {[1, 2, 3, 4, 5].map((n) => (
             <form key={n} action={rateCandidate}><input type="hidden" name="id" value={a.id} /><input type="hidden" name="rating" value={n} />
-              <button className="ghost" aria-label={`${n} star${n === 1 ? "" : "s"}`} aria-pressed={a.rating >= n} style={{ border: 0, background: "none", fontSize: 28, minWidth: 44, color: a.rating >= n ? "#8a5a00" : "#8c8c8c" }}>{a.rating >= n ? "★" : "☆"}</button></form>
+              <button className="ghost" aria-label={`${n} star${n === 1 ? "" : "s"}`} aria-pressed={a.rating >= n} style={{ border: 0, background: "none", fontSize: 28, minWidth: 44, color: a.rating >= n ? "#fbbf24" : "#5b6470" }}>{a.rating >= n ? "★" : "☆"}</button></form>
           ))}
         </div>
       </section>
@@ -103,7 +105,6 @@ export default async function Candidate({ params, searchParams }: { params: Prom
           {cand.career.length === 0 && !cand.skills && <span className="muted">No experience listed yet.</span>}
         </section>
       )}
-      <Link href={`/app/hire/${a.jobId}`} className="muted">← Back to {a.job.title}</Link>
     </>
   );
 }

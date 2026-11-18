@@ -12,7 +12,7 @@ import ModeSelect from "@/components/mode-select";
 import { bookingInfo } from "@/lib/booking";
 import LinkPage from "@/components/link-page";
 import { profileMeta } from "@/lib/link-page";
-import { MODES, MODE_INFO, Mode, kindLabel, kindsOf, listItems, parseFields, parseLinks } from "@/lib/modes";
+import { MODES, MODE_INFO, Mode, modeSlug, kindLabel, kindsOf, listItems, parseFields, parseLinks } from "@/lib/modes";
 import Avatar from "@/components/avatar";
 import Kiki from "@/components/kiki";
 import { tagList, cleanTags } from "@/lib/tags";
@@ -20,6 +20,7 @@ import { SocialBadge } from "@/components/social-icon";
 import { socialUrl } from "@/lib/socials";
 import { gradient, byline, themeOf } from "@/lib/look";
 import DigitalCard from "@/components/digital-card";
+import Logo from "@/components/logo";
 import { SocialIcon } from "@/components/social-icon";
 import Swiper from "@/components/swiper";
 import ProjectCard from "@/components/project-card";
@@ -49,6 +50,42 @@ async function exchange(fd: FormData) {
   await logActivity(saved.id, prev ? "visit" : "created", prev ? `Visited your ${mode.toLowerCase()} page again` : `Asked to connect from your ${mode === "ALL" ? "main" : mode.toLowerCase()} page`);
   if (!prev) emit(p.id, "contact.created", { name: fullName, email, company: String(fd.get("company") ?? ""), mode, source: "qr" });
   revalidatePath(`/${handle}`);
+}
+
+/** Seller page: a visitor asks about a product or a quote. It lands as a lead in Connections (Seller mode). */
+async function inquire(fd: FormData) {
+  "use server";
+  const handle = String(fd.get("handle"));
+  const p = await db.profile.findUnique({ where: { handle } });
+  const email = String(fd.get("email") ?? "").trim().toLowerCase();
+  const name = String(fd.get("name") ?? "").trim();
+  const product = String(fd.get("product") ?? "").trim().slice(0, 120);
+  const message = String(fd.get("message") ?? "").trim().slice(0, 1000);
+  if (!p || !name || !/^\S+@\S+\.\S+$/.test(email)) redirect(`/${handle}?mode=SERVICES&pane=catalog&error=1`);
+  const prev = await db.contact.findUnique({ where: { profileId_email: { profileId: p!.id, email } } });
+  if (prev?.status === "BLOCKED") redirect(`/${handle}?mode=SERVICES&pane=catalog&asked=1`);
+  const text = product ? `Asked about ${product}${message ? `: ${message}` : ""}` : message || "Asked for a quote";
+  const saved = await db.contact.upsert({
+    where: { profileId_email: { profileId: p!.id, email } },
+    update: { lastInteractionAt: new Date(), interactions: { increment: 1 }, message: text, tags: prev?.tags.includes("lead") ? prev.tags : [prev?.tags, "lead"].filter(Boolean).join(",") },
+    create: { profileId: p!.id, email, name, company: String(fd.get("company") ?? ""), mode: "SERVICES", status: "PENDING", source: "link", message: text, tags: "lead" },
+  });
+  await logActivity(saved.id, prev ? "visit" : "created", text);
+  if (!prev) emit(p!.id, "contact.created", { name, email, company: String(fd.get("company") ?? ""), mode: "SERVICES", source: "inquiry" });
+  redirect(`/${handle}?mode=SERVICES&pane=catalog&asked=1`);
+}
+
+/** Investor page: a founder pitches. It lands as a NEW deal in the investor's pipeline. */
+async function pitch(fd: FormData) {
+  "use server";
+  const handle = String(fd.get("handle"));
+  const p = await db.profile.findUnique({ where: { handle } });
+  const g = (k: string, n = 300) => String(fd.get(k) ?? "").trim().slice(0, n);
+  const email = g("email").toLowerCase();
+  if (!p || !g("company") || !g("founder") || !/^\S+@\S+\.\S+$/.test(email)) redirect(`/${handle}?mode=INVESTOR&pane=pitch&error=1`);
+  const deck = g("deckUrl", 500);
+  await db.deal.create({ data: { profileId: p!.id, company: g("company", 120), founder: g("founder", 120), email, round: g("round", 40), amount: g("amount", 60), deckUrl: /^https?:\/\//i.test(deck) ? deck : "", note: g("note", 1500) } });
+  redirect(`/${handle}?mode=INVESTOR&pane=pitch&pitched=1`);
 }
 
 /** Visitor asks to unlock a whole mode that the owner has set to "approval required". */
@@ -137,16 +174,24 @@ export async function generateMetadata({ params }: { params: Promise<{ handle: s
   return profileMeta((await params).handle);
 }
 
-export default async function Public({ params, searchParams }: { params: Promise<{ handle: string }>; searchParams: Promise<{ contact?: string; mode?: string; tag?: string; pane?: string; requested?: string; error?: string; saved?: string; invited?: string }> }) {
+export default async function Public({ params, searchParams }: { params: Promise<{ handle: string }>; searchParams: Promise<{ contact?: string; mode?: string; asked?: string; pitched?: string; tag?: string; pane?: string; requested?: string; error?: string; saved?: string; invited?: string }> }) {
   const { handle } = await params;
   const sp = await searchParams;
+  // A custom card address (tapnodd.com/founder-kumuda) opens that card.
+  const custom = await db.cardSlug.findUnique({ where: { slug: handle.toLowerCase() } });
+  if (custom) {
+    const owner = await db.profile.findUnique({ where: { id: custom.profileId }, select: { handle: true } });
+    if (owner && owner.handle !== handle) redirect(`/${owner.handle}/${modeSlug(custom.mode)}`);
+  }
   // The plain /handle address is the link page. A mode (or any other state in the address) opens the full profile.
   if (!sp.mode && !sp.pane && !sp.contact && !sp.tag && !sp.requested && !sp.error && !sp.saved && !sp.invited) return <LinkPage handle={handle} />;
-  const p = await db.profile.findUnique({ where: { handle }, include: { sections: true, modes: true, resources: { orderBy: { createdAt: "asc" } }, team: { orderBy: { order: "asc" } }, events: { orderBy: { startsAt: "asc" } }, projects: { where: { eventId: null }, orderBy: { createdAt: "desc" } }, career: true, jobs: { where: { open: true }, orderBy: { createdAt: "desc" } } } });
+  const p = await db.profile.findUnique({ where: { handle }, include: { products: { orderBy: [{ order: "asc" }, { createdAt: "asc" }] }, sections: true, modes: true, resources: { orderBy: { createdAt: "asc" } }, team: { orderBy: { order: "asc" } }, events: { orderBy: { startsAt: "asc" } }, projects: { where: { eventId: null }, orderBy: { createdAt: "desc" } }, career: true, jobs: { where: { open: true }, orderBy: { createdAt: "desc" } } } });
   if (!p) notFound();
   const mode = (MODES as readonly string[]).includes(sp.mode ?? "") ? sp.mode! : "ALL";
   const cfg = p.modes.find((m) => m.mode === mode);
   if (!cfg || !cfg.isEnabled) notFound();
+  // Sections the owner switched off for this card (Edit Card).
+  const hide = new Set(cfg.hidden.split(",").filter(Boolean));
   const me = await currentUser();
   const isOwner = me?.profile?.id === p.id;
   if (!isOwner && !modeHasContent(mode, cfg, p.resources, { projects: p.projects.length, events: p.events.length, jobs: p.jobs.length, career: p.career.length + (p.skills.trim() || p.openTo ? 1 : 0), projectModes: p.projects.flatMap((x) => x.modes.split(",").filter(Boolean)) })) notFound();
@@ -224,14 +269,16 @@ export default async function Public({ params, searchParams }: { params: Promise
     );
   };
   const linked = await db.profile.findMany({ where: { handle: { in: p.team.map((t) => t.memberHandle).filter(Boolean) } } });
-  const showTeam = p.team.length > 0;
+  const showTeam = p.team.length > 0 && !hide.has("company");
+  if (hide.has("projects")) p.projects.length = 0;
+  if (hide.has("experience")) p.career.length = 0;
   type Res = (typeof p.resources)[number];
   const href = (r: Res) => (r.filePath ? `/files/${r.id}` : r.url);
-  const group = (k: string) => (kindsOf(mode).includes(k as never) ? p.resources.filter((r) => r.kind === k && inKit(r)) : []);
+  const group = (k: string) => (kindsOf(mode).includes(k as never) && !(k === "RESUME" ? hide.has("experience") : hide.has("kits")) ? p.resources.filter((r) => r.kind === k && inKit(r)) : []);
   const isVideo = (r: Res) => r.mime.startsWith("video/");
   const link = { marginBottom: 8 } as const;
   const demo = (r: Res) => {
-    const frame = { width: "100%", borderRadius: 12, marginBottom: 8, background: "#000" } as const;
+    const frame = { width: "100%", borderRadius: 12, marginBottom: 8, background: "#000000" } as const;
     const src = r.filePath ? (isVideo(r) ? href(r) : null) : isDirectVideo(r.url) ? r.url : null;
     const embed = src ? null : embedFor(r, origin);
     return (
@@ -251,14 +298,14 @@ export default async function Public({ params, searchParams }: { params: Promise
       <div key={r.id} style={{ marginBottom: 12 }}>
         <b style={{ display: "block", marginBottom: 6 }}>{r.title}</b>
         {src
-          ? <iframe src={src} title={r.title} loading="lazy" allowFullScreen style={{ width: "100%", height: 340, border: "1px solid #e3e6ec", borderRadius: 12, background: "#fff" }} />
+          ? <iframe src={src} title={r.title} loading="lazy" allowFullScreen style={{ width: "100%", height: 340, border: "1px solid var(--line-2)", borderRadius: 12, background: "var(--surface)" }} />
           : ext && !isPublicOrigin(origin) && <p className="muted" style={{ margin: "0 0 6px" }}>Inline preview of PowerPoint/Word files works once the site is online. Upload a PDF to preview it anywhere.</p>}
         <a className="btn ghost" style={{ marginTop: 8 }} href={href(r)} target="_blank">{src ? "Open full screen" : "Open " + r.title}</a>
       </div>
     );
   };
   const locked = (r: Res) => (
-    <details key={r.id} className="card" style={{ background: "#f6f7f9", padding: 10, marginBottom: 8 }}>
+    <details key={r.id} className="card" style={{ background: "var(--surface)", padding: 10, marginBottom: 8 }}>
       <summary>{r.title} <span className="muted">· request access</span></summary>
       <form action={requestAccess}>
         <input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value={mode} /><input type="hidden" name="resourceId" value={r.id} />
@@ -271,41 +318,99 @@ export default async function Public({ params, searchParams }: { params: Promise
 
   const hasDocs = group("DOC").length > 0 || group("SUPPORT").length > 0;
   const resume = group("RESUME").find((r) => !r.gated);
-  const hasContact = !!(p.company || p.website || p.email || p.phone || Object.keys(socials).length > 0);
+  const hasContact = !hide.has("contact") && !!(p.company || p.website || p.email || p.phone || Object.keys(socials).length > 0);
 
-  const meP = (
+  const fv0 = parseFields(cfg.fields);
+  const count = (v?: string) => listItems(v ?? "").length;
+  const heroStats = ([
+    ...(mode === "FOUNDER" ? [{ k: "Raising", v: fv0.raising }, { k: "Users", v: fv0.users }, { k: "Revenue", v: fv0.revenue }, { k: "Stage", v: fv0.stage }] : []),
+    ...(mode === "INVESTOR" ? [{ k: "Portfolio", v: count(fv0.portfolio) ? String(count(fv0.portfolio)) : "" }, { k: "Sectors", v: count(fv0.focus) ? String(count(fv0.focus)) : "" }, { k: "Cheque", v: fv0.ticket }] : []),
+    ...(mode === "SERVICES" ? [{ k: "Products", v: p.products.length ? String(p.products.length) : "" }, { k: "Services", v: count(fv0.services) ? String(count(fv0.services)) : "" }, { k: "Delivery", v: fv0.delivery }] : []),
+    ...(mode === "RECRUITER" ? [{ k: "Open roles", v: p.jobs.length ? String(p.jobs.length) : "" }, { k: "Work type", v: fv0.workType }, { k: "Perks", v: count(fv0.perks) ? String(count(fv0.perks)) : "" }] : []),
+  ] as { k: string; v?: string }[]).filter((x): x is { k: string; v: string } => !!x.v && x.v.length <= 11).slice(0, 3);
+  const modeIntro = (
     <>
-      <div className="card hero hero-themed" style={{ background: gradient(p.theme), border: 0, position: "relative" }}>
-        {p.logo && <img className="brand-logo" src={`/logo/${p.handle}?v=${encodeURIComponent(p.logo)}`} alt={p.company ? `${p.company} logo` : ""} />}
-        <Avatar name={p.name} handle={p.handle} hasPhoto={!!p.photo} avatar={p.avatar} size={88} flip center />
-        <h1>{p.name}</h1>
-        <div>{byline(p.headline, p.company)}</div>
-        <span className="pill" style={{ marginTop: 8 }}>{MODE_INFO[mode as Mode].label}</span>
-        {mode === "RECRUITER" && p.jobs.length > 0 && <div><span className="pill on" style={{ background: "#fff", color: "#0b7a4b" }}>Hiring · {p.jobs.length} open role{p.jobs.length === 1 ? "" : "s"}</span></div>}
-        {p.bio && <p className="muted" style={{ margin: "4px 0 12px" }}>{p.bio}</p>}
-        {mode === "RECRUITER" && p.jobs.length > 0 && <a className="btn" style={{ marginBottom: 8 }} href={`/${handle}?mode=RECRUITER&pane=roles`}>See open roles ({p.jobs.length})</a>}
-        {booking && (booking.embed
-          ? <a className="btn" style={{ marginBottom: 8 }} href={`/${handle}?mode=${mode}&pane=book`}>{cfg.ctaLabel}</a>
-          : <a className="btn" style={{ marginBottom: 8 }} href={cfg.bookingUrl} target="_blank" rel="noopener noreferrer">{cfg.ctaLabel}</a>)}
-        {parseLinks(cfg.links).map((l) => (
-          <a key={l.url + l.label} className="btn ghost" style={{ marginBottom: 8 }} href={l.url} {...(/^https?:/i.test(l.url) ? { target: "_blank", rel: "noopener noreferrer" } : {})}>{l.label}</a>
-        ))}
-        <a className="btn ghost" href={`/${handle}/vcard?mode=${mode}`}>Save contact</a>
-        {!isOwner && (alreadySaved || sp.saved
-          ? <div className="pill" style={{ marginTop: 8, display: "block", textAlign: "center", padding: "10px 12px" }}>Saved to your wallet</div>
-          : <form action={saveCard} style={{ marginTop: 8 }}><input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value={mode} /><button className="ghost">Save card</button></form>)}
-        {resume && <a className="btn ghost" style={{ marginTop: 8 }} href={`/${handle}?mode=${mode}&pane=hire`}>View resume</a>}
-        {socials.linkedin && <a className="btn ghost" style={{ marginTop: 8 }} href={socials.linkedin} target="_blank" rel="noopener noreferrer">in Connect on LinkedIn</a>}
-      </div>
-      {cfg.intro && <div className="card" style={{ background: "#eef2fb", borderColor: "#d7defb" }}>{cfg.intro}</div>}
-      {enabled.length > 0 && (mode === "ALL" || enabled.length > 1) && (
-        <div className="card"><b>I am a…</b>
-          <div style={{ marginTop: 8 }}>
-            <ModeSelect handle={handle} current={mode} placeholder={mode === "ALL" ? "Choose who you are" : "Switch to another view"}
-              options={[...enabled.map((m) => ({ value: m.mode, label: MODE_INFO[m.mode as Mode].label })), ...(mode !== "ALL" ? [{ value: "ALL", label: "Everything" }] : [])]} />
-          </div>
+      {enabled.length > 1 && (
+        <nav className="tn-switch" aria-label="Switch view">
+          {enabled.map((m) => (
+            <a key={m.mode} className={`m-${m.mode}`} href={`/${handle}?mode=${m.mode}`} aria-current={m.mode === mode ? "page" : undefined}>{MODE_INFO[m.mode as Mode].label}</a>
+          ))}
+          <a className="m-ALL" href={`/${handle}?mode=ALL`} aria-current={mode === "ALL" ? "page" : undefined}>Everything</a>
+        </nav>
+      )}
+      {heroStats.length > 0 && (
+        <div className={"tn-stats" + (heroStats.length === 3 ? " three" : "")} style={heroStats.length < 3 ? { gridTemplateColumns: `repeat(${heroStats.length}, minmax(0, 1fr))` } : undefined}>
+          {heroStats.map((x) => <div key={x.k}><b>{x.v}</b><span>{x.k}</span></div>)}
         </div>
       )}
+      {(() => {
+        const chips = mode === "INVESTOR" ? [...listItems(fv0.focus ?? ""), ...listItems(fv0.stages ?? "")] : mode === "SERVICES" ? listItems(fv0.services ?? "") : mode === "RECRUITER" ? listItems(fv0.perks ?? "") : [];
+        const title = mode === "INVESTOR" ? "Investment focus" : mode === "SERVICES" ? "What we offer" : mode === "RECRUITER" ? "Perks" : "";
+        return chips.length > 0 && (
+          <div className="card">
+            <div className="muted" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 8 }}>{title}</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{chips.map((c) => <span key={c} style={{ padding: "5px 10px", borderRadius: 12, fontSize: 12.5, background: "color-mix(in srgb, var(--mode) 16%, transparent)", border: "1px solid color-mix(in srgb, var(--mode) 35%, transparent)" }}>{c}</span>)}</div>
+          </div>
+        );
+      })()}
+      {mode === "FOUNDER" && (fv0.raising || fv0.round || listItems(fv0.milestones ?? "").length > 0) && (
+        <div className="card">
+          {(fv0.raising || fv0.round) && <>
+            <div className="muted" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: ".06em" }}>Funding need</div>
+            <div style={{ fontSize: 22, fontWeight: 650, margin: "2px 0" }}>{fv0.raising || fv0.round}</div>
+            {fv0.raising && fv0.round && <div className="muted">{fv0.round}</div>}
+            {fv0.useOfFunds && <p style={{ margin: "8px 0 0", whiteSpace: "pre-wrap" }}>{fv0.useOfFunds}</p>}
+          </>}
+          {listItems(fv0.milestones ?? "").length > 0 && <>
+            <div className="muted" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: ".06em", marginTop: fv0.raising || fv0.round ? 14 : 0 }}>Milestones</div>
+            <ul style={{ listStyle: "none", padding: 0, margin: "6px 0 0" }}>
+              {listItems(fv0.milestones ?? "").map((x) => <li key={x} style={{ display: "flex", gap: 8, alignItems: "center", padding: "4px 0" }}><span aria-hidden style={{ width: 18, height: 18, borderRadius: "50%", background: "var(--m-founder)", display: "grid", placeItems: "center", flexShrink: 0 }}><Icon name="check" size={12} /></span>{x}</li>)}
+            </ul>
+          </>}
+        </div>
+      )}
+    </>
+  );
+  const meP = (
+    <>
+      <div className="d-pub-bar">
+        <a href={`/${handle}`} className="d-pub-brand"><Logo size={28} />TapNodd<sup>™</sup></a>
+        <a className="d-ibtn" href={`/${handle}/vcard?mode=${mode}`} aria-label="Save contact to your phone"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4" /></svg></a>
+      </div>
+      <div className="d-pub-head">
+        <Avatar name={p.name} handle={p.handle} hasPhoto={!!p.photo} avatar={p.avatar} size={96} />
+        <h1>{p.name}</h1>
+        {byline(p.headline, p.company) && <p>{byline(p.headline, p.company)}</p>}
+        <div className="d-pub-chips">
+          <a href={`/${handle}?mode=${mode}`} className="on" aria-current="page">{MODE_INFO[mode as Mode].label}</a>
+          {enabled.filter((m) => m.mode !== mode && m.mode !== "NORMAL").slice(0, 3).map((m) => <a key={m.mode} href={`/${handle}?mode=${m.mode}`}>{MODE_INFO[m.mode as Mode].label}</a>)}
+        </div>
+        {mode === "RECRUITER" && p.jobs.length > 0 && <span className="d-chip g" style={{ marginTop: 8 }}>Hiring · {p.jobs.length} open role{p.jobs.length === 1 ? "" : "s"}</span>}
+        {p.bio && !hide.has("about") && <p style={{ marginTop: 8 }}>{p.bio}</p>}
+        <div className="d-pub-acts">
+          {mode === "RECRUITER" && p.jobs.length > 0
+            ? <a className="btn" href={`/${handle}?mode=RECRUITER&pane=roles`}>See Roles ({p.jobs.length})</a>
+            : booking
+              ? (booking.embed ? <a className="btn" href={`/${handle}?mode=${mode}&pane=book`}>{cfg.ctaLabel || "Connect"}</a> : <a className="btn" href={cfg.bookingUrl} target="_blank" rel="noopener noreferrer">{cfg.ctaLabel || "Connect"}</a>)
+              : <a className="btn" href={p.email ? `mailto:${p.email}` : socials.linkedin || `/${handle}/vcard?mode=${mode}`}>Connect</a>}
+          <a className="btn ghost" href={`/${handle}/vcard?mode=${mode}`}>Save Contact</a>
+        </div>
+        {!hide.has("contact") && (Object.keys(socials).length > 0 || p.website) && <div className="d-pub-soc">{SOCIALS.filter((x) => socials[x.key]).slice(0, 5).map((x) => (
+          <a key={x.key} href={socials[x.key]} target="_blank" rel="noopener noreferrer" aria-label={x.label} title={x.label}><SocialIcon k={x.key} size={18} /></a>
+        ))}{p.website && <a href={p.website} target="_blank" rel="noopener noreferrer" aria-label="Website" title="Website"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18" /></svg></a>}</div>}
+        <div className="d-pub-more">
+          {parseLinks(cfg.links).map((l) => (
+            <a key={l.url + l.label} className="btn ghost sm" href={l.url} {...(/^https?:/i.test(l.url) ? { target: "_blank", rel: "noopener noreferrer" } : {})}>{l.label}</a>
+          ))}
+          {resume && <a className="btn ghost sm" href={`/${handle}?mode=${mode}&pane=hire`}>View resume</a>}
+          {me?.profile && !isOwner && <a className="btn ghost sm" href={`/app/messages/new?to=${handle}`}>Message</a>}
+          {!isOwner && (alreadySaved || sp.saved
+            ? <span className="d-chip g">Saved to your wallet</span>
+            : <form action={saveCard}><input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value={mode} /><button className="ghost sm">Save card to wallet</button></form>)}
+        </div>
+      </div>
+      {cfg.intro && <div className="d-card" style={{ fontSize: 14.5, lineHeight: 1.55 }}>{cfg.intro}</div>}
+      {modeIntro}
     </>
   );
   // This mode's own details (portfolio, services, skills…): only the ones that are filled in.
@@ -380,8 +485,8 @@ export default async function Public({ params, searchParams }: { params: Promise
       })()}
     </>
   );
-  // Hire me: status, skills, experience, education, resume and portfolio together.
-  const showCareer = mode === "ALL" || mode === "HIRE" || p.hireModes.split(",").includes(mode);
+  // Experience & skills: status, skills, experience, education, resume and portfolio together.
+  const showCareer = mode === "ALL" || p.hireModes.split(",").includes(mode);
   const jobs = showCareer ? p.career.filter((c) => c.type === "EXPERIENCE").sort(byStartDesc) : [];
   const schools = showCareer ? p.career.filter((c) => c.type === "EDUCATION").sort(byStartDesc) : [];
   const skillList = showCareer ? listItems(p.skills) : [];
@@ -389,7 +494,7 @@ export default async function Public({ params, searchParams }: { params: Promise
   const portfolioLink = showCareer ? socials.portfolio : undefined;
   const hasHire = !!(openTo || skillList.length || jobs.length || schools.length || group("RESUME").length || group("PORTFOLIO").length || portfolioLink);
   const timeline = (c: (typeof p.career)[number]) => (
-    <div key={c.id} style={{ borderLeft: "3px solid #d7defb", padding: "2px 0 2px 12px", marginBottom: 12 }}>
+    <div key={c.id} style={{ borderLeft: "3px solid var(--line-2)", padding: "2px 0 2px 12px", marginBottom: 12 }}>
       <b>{c.title}</b>
       <div>{c.org}{c.location ? ` · ${c.location}` : ""}</div>
       {fmtRange(c.start, c.end) && <div className="muted">{fmtRange(c.start, c.end)}</div>}
@@ -399,7 +504,7 @@ export default async function Public({ params, searchParams }: { params: Promise
   const hireP = (
     <>
       {showCareer && myJobs.length > 0 && openTo !== "Not looking" && (
-        <form action={inviteCandidate} className="card" style={{ background: "#eef2fb", borderColor: "#d7defb" }}>
+        <form action={inviteCandidate} className="card" style={{ background: "var(--surface)", borderColor: "var(--line-2)" }}>
           <input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value={mode} />
           <b>Invite {p.firstName || p.name} to apply</b>
           {sp.invited && <div className="ok" style={{ marginTop: 8 }}>Invite sent</div>}
@@ -451,7 +556,7 @@ export default async function Public({ params, searchParams }: { params: Promise
   const bookP = booking && (
     <div className="card"><h3>{booking.icon} {cfg.ctaLabel}</h3>
       <p className="muted" style={{ marginTop: 0 }}>Booking with {p.name} via {booking.provider}.</p>
-      {booking.embed && <iframe src={booking.embed} title={`Book with ${p.name}`} loading="lazy" allow="payment" style={{ width: "100%", height: 560, border: "1px solid #e3e6ec", borderRadius: 12, background: "#fff" }} />}
+      {booking.embed && <iframe src={booking.embed} title={`Book with ${p.name}`} loading="lazy" allow="payment" style={{ width: "100%", height: 560, border: "1px solid var(--line-2)", borderRadius: 12, background: "var(--surface)" }} />}
       <a className="btn ghost" style={{ marginTop: 8 }} href={cfg.bookingUrl} target="_blank" rel="noopener noreferrer">Open the booking page</a>
     </div>
   );
@@ -483,33 +588,17 @@ export default async function Public({ params, searchParams }: { params: Promise
   );
 
   // Only the pages that have something to show, in a sensible order.
-  // Hire me mode: one profile-style page (banner, photo, About, Experience, Education, Skills), nothing else.
-  if (mode === "HIRE") {
-    const initials = (t: string) => t.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
-    const resumes = p.resources.filter((r) => r.kind === "RESUME");
-    const portfolios = p.resources.filter((r) => r.kind === "PORTFOLIO");
-    const openToWork = openTo.startsWith("Open to");
-    const firstResume = resumes.find((r) => !r.gated);
+  // Normal mode: a plain personal profile (banner, photo, about, contact). Nothing from the other modes.
+  if (mode === "NORMAL") {
     const contactHref = p.email ? `mailto:${p.email}` : p.phone ? `tel:${p.phone.replace(/\s+/g, "")}` : "";
     const li = (title: string, body: React.ReactNode) => (<div className="li"><h3>{title}</h3>{body}</div>);
-    const entry = (c: (typeof p.career)[number]) => (
-      <div key={c.id} style={{ display: "flex", gap: 12, marginBottom: 14 }}>
-        <div style={{ width: 46, height: 46, borderRadius: 6, background: "#eef2fb", color: "#1f4fd8", display: "grid", placeItems: "center", fontWeight: 700, flexShrink: 0 }}>{initials(c.org) || "•"}</div>
-        <div style={{ minWidth: 0 }}>
-          <b>{c.title}</b>
-          <div>{c.org}{c.location ? ` · ${c.location}` : ""}</div>
-          {fmtRange(c.start, c.end) && <div className="muted">{fmtRange(c.start, c.end)}</div>}
-          {c.description && <div style={{ whiteSpace: "pre-wrap", marginTop: 4 }}>{c.description}</div>}
-        </div>
-      </div>
-    );
     return (
       <div role="main" id="main" className="screen li-page">
         <div className="li" style={{ padding: 0 }}>
           <div style={{ height: 120, background: gradient(p.theme), position: "relative" }}>{p.logo && <img className="brand-logo" src={`/logo/${p.handle}?v=${encodeURIComponent(p.logo)}`} alt={p.company ? `${p.company} logo` : ""} />}</div>
           <div style={{ padding: "0 16px 16px" }}>
-            <div style={{ marginTop: -52, marginBottom: 8, display: "inline-block", borderRadius: "50%", padding: 4, background: openToWork ? "#0ca678" : "#fff" }}>
-              <div style={{ borderRadius: "50%", background: "#fff", padding: 3 }}>
+            <div style={{ marginTop: -52, marginBottom: 8, display: "inline-block", borderRadius: "50%", padding: 4, background: "#fff" }}>
+              <div style={{ borderRadius: "50%", background: "var(--surface)", padding: 3 }}>
                 <Avatar name={p.name} handle={p.handle} hasPhoto={!!p.photo} avatar={p.avatar} size={96} flip />
               </div>
             </div>
@@ -518,36 +607,17 @@ export default async function Public({ params, searchParams }: { params: Promise
             <div className="muted">{[p.company, p.website && p.website.replace(/^https?:\/\//, "")].filter(Boolean).join(" · ")}</div>
             {cfg.intro && <div className="muted" style={{ marginTop: 6 }}>{cfg.intro}</div>}
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
-              {contactHref && <a className="btn" style={{ width: "auto", padding: "8px 18px", borderRadius: 99 }} href={contactHref}>{cfg.ctaLabel || "Contact me"}</a>}
-              {socials.linkedin && <a className="btn ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }} href={socials.linkedin} target="_blank" rel="noopener noreferrer">in Connect</a>}
-              <a className="btn ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }} href={`/${handle}/vcard?mode=HIRE`}>Save contact</a>
-              {firstResume && <a className="btn ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }} href={href(firstResume)} target="_blank" rel="noopener noreferrer">Resume</a>}
+              {contactHref && <a className="btn" style={{ width: "auto", padding: "8px 18px", borderRadius: 12 }} href={contactHref}>{cfg.ctaLabel || "Contact me"}</a>}
+              {socials.linkedin && <a className="btn ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 12 }} href={socials.linkedin} target="_blank" rel="noopener noreferrer">in Connect</a>}
+              <a className="btn ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 12 }} href={`/${handle}/vcard?mode=NORMAL`}>Save contact</a>
               {!isOwner && (alreadySaved || sp.saved
                 ? <span className="pill" style={{ margin: 0, alignSelf: "center" }}>Saved</span>
-                : <form action={saveCard}><input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value="HIRE" /><button className="ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 99 }}>Save card</button></form>)}
+                : <form action={saveCard}><input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value="NORMAL" /><button className="ghost" style={{ width: "auto", padding: "8px 16px", borderRadius: 12 }}>Save card</button></form>)}
             </div>
           </div>
         </div>
 
-        {openTo && (
-          <div className="li" style={{ background: openToWork ? "#f0fbf5" : "#fff", borderLeft: `4px solid ${openToWork ? "#0ca678" : "#cfd4dd"}` }}>
-            <b>{openTo}</b>
-            {skillList.length > 0 && <div className="muted">{skillList.slice(0, 3).join(" · ")}</div>}
-          </div>
-        )}
-
-        {p.bio && li("About", <div style={{ whiteSpace: "pre-wrap" }}>{p.bio}</div>)}
-        {jobs.length > 0 && li("Experience", <>{jobs.map(entry)}</>)}
-        {schools.length > 0 && li("Education", <>{schools.map(entry)}</>)}
-        {skillList.length > 0 && li("Skills", <div>{skillList.map((x) => <span key={x} className="pill">{x}</span>)}</div>)}
-        {modeProjects.length > 0 && li("Projects", <>{modeProjects.map((x) => (
-          <div key={x.id} style={{ marginBottom: 10 }}><b>{x.name}</b>{x.tagline && <div>{x.tagline}</div>}{x.demoUrl && <a href={x.demoUrl} target="_blank" rel="noopener noreferrer">Open demo</a>}</div>
-        ))}</>)}
-        {(resumes.length > 0 || portfolios.length > 0 || portfolioLink) && li("Resume & portfolio", <>
-          {resumes.map((r) => r.gated ? locked(r) : viewer(r))}
-          {portfolioLink && <a className="btn ghost" style={{ marginBottom: 8 }} href={portfolioLink} target="_blank" rel="noopener noreferrer">Open my portfolio</a>}
-          {portfolios.map((r) => r.gated ? locked(r) : viewer(r))}
-        </>)}
+        {(cfg.kitText || p.bio) && li(MODE_INFO.NORMAL.about, <div style={{ whiteSpace: "pre-wrap" }}>{cfg.kitText || p.bio}</div>)}
         {hasContact && li("Contact info", <>
           {p.phone && <div><a href={`tel:${p.phone.replace(/\s+/g, "")}`}>{p.phone}</a></div>}
           {p.email && <div><a href={`mailto:${p.email}`}>{p.email}</a></div>}
@@ -558,7 +628,7 @@ export default async function Public({ params, searchParams }: { params: Promise
         </>)}
         {li("Get in touch", (
           <form action={exchange}>
-            <input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value="HIRE" />
+            <input type="hidden" name="handle" value={handle} /><input type="hidden" name="mode" value="NORMAL" />
             {backFields(false)}
             <button>Send my details</button>
             <p className="muted" style={{ marginBottom: 0 }}>By sending, you agree {p.name} may contact you.</p>
@@ -576,7 +646,7 @@ export default async function Public({ params, searchParams }: { params: Promise
     const stage = fv.stage, traction = fv.traction, looking = listItems(fv.lookingFor ?? "");
     // The "What we do" text may hold several titled parts (What we do, Products, Team). Show each with its own heading.
     const aboutTitle = MODE_INFO.FOUNDER.about.toLowerCase();
-    const blocks = (kitText || "").split(/\n\s*\n/).map((chunk) => chunk.trim()).filter(Boolean).map((chunk) => {
+    const blocks = (hide.has("about") ? "" : kitText || "").split(/\n\s*\n/).map((chunk) => chunk.trim()).filter(Boolean).map((chunk) => {
       const [first, ...rest] = chunk.split(/\r?\n/);
       const isHead = rest.length > 0 && first.length <= 32 && !/[.:;!?]$/.test(first.trim());
       if (!isHead) return { title: "", body: chunk };
@@ -586,25 +656,30 @@ export default async function Public({ params, searchParams }: { params: Promise
     const sec = (title: string, body: React.ReactNode) => (<section className="fp-sec"><h2>{title}</h2>{body}</section>);
     const cta = booking ? (booking.embed ? `/${handle}?mode=FOUNDER&pane=book` : cfg.bookingUrl) : p.email ? `mailto:${p.email}` : "";
     return (
-      <div role="main" id="main" className="screen fp-page">
-        <div className="fp-cardwrap">
-          <DigitalCard
-            background={gradient(p.theme)} back={`linear-gradient(135deg, ${themeOf(p.theme).to}, ${themeOf(p.theme).from})`}
-            avatar={<Avatar name={p.name} handle={p.handle} hasPhoto={!!p.photo} avatar={p.avatar} size={56} />}
-            name={p.name} sub={p.headline || byline(p.headline, p.company)}
-            logo={p.logo ? `/logo/${p.handle}?v=${encodeURIComponent(p.logo)}` : undefined}
-            lines={[
-              ...(p.phone ? [{ icon: "phone", text: p.phone, href: `tel:${p.phone.replace(/\s+/g, "")}` }] : []),
-              ...(p.email ? [{ icon: "mail", text: p.email, href: `mailto:${p.email}` }] : []),
-              ...(p.website ? [{ icon: "globe", text: p.website.replace(/^https?:\/\//, ""), href: p.website }] : []),
-            ]}
-            social={SOCIALS.filter((x) => socials[x.key]).map((x) => (
-              <a key={x.key} href={socials[x.key]} target="_blank" rel="noopener noreferrer" title={x.label} aria-label={x.label}
-                style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(255,255,255,.22)", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center" }}><SocialIcon k={x.key} size={16} /></a>
-            ))}
-          />
+      <div role="main" id="main" className="screen fp-page m-FOUNDER">
+        <div className="d-pub-bar">
+          <a href={`/${handle}`} className="d-pub-brand"><Logo size={28} />TapNodd<sup>™</sup></a>
+          <a className="d-ibtn" href={`/${handle}/vcard?mode=FOUNDER`} aria-label="Save contact to your phone"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4" /></svg></a>
         </div>
-        <div className="fp-card fp-save">
+        <div className="d-pub-head">
+          <Avatar name={p.name} handle={p.handle} hasPhoto={!!p.photo} avatar={p.avatar} size={96} />
+          <h1>{p.name}</h1>
+          {p.headline && <p>{p.headline}</p>}
+          {p.company && !p.headline.toLowerCase().includes(p.company.toLowerCase()) && <p>{p.company}</p>}
+          <div className="d-pub-chips">
+            {enabled.filter((m) => m.mode !== "NORMAL").slice(0, 4).map((m) => <a key={m.mode} href={`/${handle}?mode=${m.mode}`} className={m.mode === "FOUNDER" ? "on" : ""} aria-current={m.mode === "FOUNDER" ? "page" : undefined}>{MODE_INFO[m.mode as Mode].label}</a>)}
+          </div>
+          <div className="d-pub-acts">
+            <a className="btn" href="#fp-save">Connect</a>
+            <a className="btn ghost" href={`/${handle}/vcard?mode=FOUNDER`}>Save Contact</a>
+          </div>
+          {me?.profile && !isOwner && <a className="btn ghost sm" style={{ marginTop: 10 }} href={`/app/messages/new?to=${handle}`}>Message {p.firstName || p.name.split(" ")[0]}</a>}
+          {!hide.has("contact") && Object.keys(socials).length > 0 && <div className="d-pub-soc">{SOCIALS.filter((x) => socials[x.key]).slice(0, 5).map((x) => (
+            <a key={x.key} href={socials[x.key]} target="_blank" rel="noopener noreferrer" aria-label={x.label} title={x.label}><SocialIcon k={x.key} size={18} /></a>
+          ))}{p.website && <a href={p.website} target="_blank" rel="noopener noreferrer" aria-label="Website" title="Website"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18" /></svg></a>}</div>}
+        </div>
+        {modeIntro}
+        <div className="fp-card fp-save" id="fp-save">
           {cfg.intro && <p className="fp-intro" style={{ marginTop: 0 }}>{cfg.intro}</p>}
           <div className="fp-actions" style={{ marginTop: 0 }}>
             {sp.contact ? (
@@ -697,13 +772,75 @@ export default async function Public({ params, searchParams }: { params: Promise
     );
   }
 
+  const catalogP = (
+    <>
+      {sp.asked && <div className="ok">Sent. {p.name} will get back to you.</div>}
+      {sp.error && sp.pane === "catalog" && <div className="err">Add your name and a valid email.</div>}
+      <div className="tn-catalog">
+        {p.products.map((x) => (
+          <div key={x.id} className="tn-product">
+            <div className="img">{x.image ? <img src={`/product-img/${x.id}?v=${encodeURIComponent(x.image)}`} alt="" /> : <Icon name="store" size={28} />}</div>
+            <div className="body">
+              <b>{x.name}</b>
+              {x.price && <span className="tn-price">{x.price}</span>}
+              {x.description && <span className="muted" style={{ fontSize: 12.5 }}>{x.description}</span>}
+              {!isOwner && (
+                <details style={{ marginTop: 6 }}>
+                  <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, color: "var(--m-seller)" }}>Ask about this</summary>
+                  <form action={inquire} style={{ marginTop: 8 }}>
+                    <input type="hidden" name="handle" value={handle} /><input type="hidden" name="product" value={x.name} />
+                    <input name="name" placeholder="Your name" required defaultValue={visitor ? `${visitor.first} ${visitor.last}`.trim() : undefined} />
+                    <input name="email" type="email" placeholder="Email" required defaultValue={visitor?.email} />
+                    <input name="message" placeholder="Quantity, timing or a question" maxLength={500} />
+                    <button>Send</button>
+                  </form>
+                </details>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      {!isOwner && (
+        <form action={inquire} className="card" style={{ marginTop: 12 }}>
+          <h3>Ask for a quote</h3>
+          <input type="hidden" name="handle" value={handle} />
+          <input name="name" placeholder="Your name" required defaultValue={visitor ? `${visitor.first} ${visitor.last}`.trim() : undefined} />
+          <input name="email" type="email" placeholder="Email" required defaultValue={visitor?.email} />
+          <input name="company" placeholder="Company (optional)" defaultValue={visitor?.company} />
+          <textarea name="message" rows={3} placeholder="What do you need?" maxLength={1000} />
+          <button>Send request</button>
+        </form>
+      )}
+    </>
+  );
+  const pitchP = (
+    <div className="card">
+      <h3>Pitch {p.firstName || p.name}</h3>
+      {fv0.howToPitch && <p className="muted" style={{ marginTop: 0, whiteSpace: "pre-wrap" }}>{fv0.howToPitch}</p>}
+      {sp.pitched ? <div className="ok">Pitch sent. It is now in {p.firstName || p.name}&apos;s deal flow.</div> : (
+        <form action={pitch}>
+          {sp.error && <div className="err">Add your company, your name and a valid email.</div>}
+          <input type="hidden" name="handle" value={handle} />
+          <input name="company" placeholder="Company" required maxLength={120} />
+          <div className="row"><input name="founder" placeholder="Your name" required defaultValue={visitor ? `${visitor.first} ${visitor.last}`.trim() : undefined} /><input name="email" type="email" placeholder="Email" required defaultValue={visitor?.email} /></div>
+          <div className="row"><input name="round" placeholder="Round, e.g. Seed" maxLength={40} /><input name="amount" placeholder="Raising, e.g. $1.5M" maxLength={60} /></div>
+          <input name="deckUrl" type="url" placeholder="Deck link (https://...)" />
+          <textarea name="note" rows={4} placeholder="What you are building, traction, why now" maxLength={1500} />
+          <button>Send pitch</button>
+        </form>
+      )}
+    </div>
+  );
+
   const pages: { key: string; label: string; node: React.ReactNode }[] = [{ key: "me", label: "Me", node: meP }];
+  if (mode === "SERVICES") pages.push({ key: "catalog", label: p.products.length ? `Catalog (${p.products.length})` : "Get a quote", node: catalogP });
+  if (mode === "INVESTOR") pages.push({ key: "pitch", label: "Pitch me", node: pitchP });
   if (mode === "RECRUITER" && p.jobs.length > 0) pages.push({ key: "roles", label: `Open roles (${p.jobs.length})`, node: rolesP });
   if (kitText || fieldDefs.length > 0 || group("DECK").length > 0) pages.push({ key: "product", label: MODE_INFO[mode as Mode].pane, node: productP });
   if (group("DEMO").length > 0) pages.push({ key: "demo", label: "Demo", node: demoP });
   if (modeProjects.length > 0) pages.push({ key: "projects", label: "Projects", node: projectsP });
   if (hack && p.events.length > 0) pages.push({ key: "events", label: "Events", node: eventsP });
-  if (hasHire) pages.push({ key: "hire", label: "Hire me", node: hireP });
+  if (hasHire) pages.push({ key: "hire", label: "Experience", node: hireP });
   if (showTeam) pages.push({ key: "team", label: "Team", node: teamP });
   if (hasDocs) pages.push({ key: "docs", label: "Docs", node: docsP });
   if (booking?.embed) pages.push({ key: "book", label: "Book", node: bookP });
@@ -711,8 +848,10 @@ export default async function Public({ params, searchParams }: { params: Promise
   const start = Math.max(0, pages.findIndex((x) => x.key === sp.pane));
 
   return (
-    <Swiper main labels={pages.map((x) => x.label)} initial={start}>
-      {pages.map((x) => <div key={x.key}>{x.node}</div>)}
-    </Swiper>
+    <div className={`m-${mode}`} style={{ display: "contents" }}>
+      <Swiper main labels={pages.map((x) => x.label)} initial={start}>
+        {pages.map((x) => <div key={x.key}>{x.node}</div>)}
+      </Swiper>
+    </div>
   );
 }

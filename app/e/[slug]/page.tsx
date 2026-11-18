@@ -120,7 +120,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
   const about = (
     <>
       <div className="card hero hero-themed" style={{ background: heroBg, border: 0 }}>
-        {ev.logo && <img src={`/event-img/${ev.slug}/logo`} alt="" style={{ height: 76, maxWidth: 160, objectFit: "contain", background: "#fff", borderRadius: 16, padding: 6, margin: "0 auto 10px", display: "block" }} />}
+        {ev.logo && <img src={`/event-img/${ev.slug}/logo`} alt="" style={{ height: 76, maxWidth: 160, objectFit: "contain", background: "var(--surface)", borderRadius: 16, padding: 6, margin: "0 auto 10px", display: "block" }} />}
         <span className="pill">{ended ? "Event ended" : full ? "Sold out" : spotsLeft !== null && spotsLeft <= 10 ? `Only ${spotsLeft} places left` : ev.open ? "Registration open" : "Registration closed"}</span>
         <h1 style={{ marginTop: 8 }}>{ev.name}</h1>
         {ev.summary && <div>{ev.summary}</div>}
@@ -130,7 +130,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
             <div style={{ textAlign: "left" }}><b>{when(ev.startsAt, ev.endsAt)}</b>{!ended && <div>{countdown(ev.startsAt)}</div>}</div>
           </div>
         )}
-        {(ev.location || ev.onlineUrl) && <div style={{ marginTop: 6 }}>{ev.location && <>{ev.location} <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ev.location)}`} target="_blank" rel="noopener noreferrer" style={{ color: "#fff", textDecoration: "underline" }}>Directions</a></>}{ev.onlineUrl && <div>Online event</div>}</div>}
+        {(ev.location || ev.onlineUrl) && <div style={{ marginTop: 6 }}>{ev.location && <>{ev.location} <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ev.location)}`} target="_blank" rel="noopener noreferrer" style={{ color: "#ffffff", textDecoration: "underline" }}>Directions</a></>}{ev.onlineUrl && <div>Online event</div>}</div>}
         {myTicket
           ? <Link className="btn" style={{ marginTop: 12 }} href={`/e/${ev.slug}/ticket/${myTicket.token}`}>View my ticket</Link>
           : ev.open && !full && !ended && <Link className="btn" style={{ marginTop: 12 }} href={`/e/${ev.slug}?pane=register`}>Register now</Link>}

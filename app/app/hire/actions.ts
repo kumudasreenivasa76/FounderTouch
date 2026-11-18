@@ -109,7 +109,7 @@ export async function scheduleInterview(fd: FormData) {
   redirect(`/app/hire/candidate/${a.id}?saved=1`);
 }
 
-/** Invite someone with a Hire me profile to apply for one of your roles. */
+/** Invite someone open to work to apply for one of your roles. */
 export async function inviteTalent(fd: FormData) {
   const { profile, job } = await ownJob(fd.get("jobId"));
   const cand = await db.profile.findUnique({ where: { id: String(fd.get("profileId")) } });

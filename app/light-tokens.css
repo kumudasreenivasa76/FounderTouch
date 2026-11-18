@@ -1,0 +1,66 @@
+/* ==========================================================================
+   Light theme: hand-tuned tokens and fixes. Loaded after app/light.css
+   (which is generated from the dark stylesheets), so these win.
+   ========================================================================== */
+html[data-theme="light"]{
+  color-scheme:light;
+  --ink:#12141c;--ink-2:#2c3242;--muted:#545d70;--ink-4:#727b8e;
+  --bg:#f3f4f8;--surface:#ffffff;--surface-2:#f6f7fa;--surface-3:#eceef4;--sunken:#f0f1f5;
+  --line:rgba(17,24,39,.09);--line-2:rgba(17,24,39,.16);
+  --brand:#6d4ae8;--brand-2:#4f46e5;--brand-hi:#5b37d6;--brand-soft:rgba(109,74,232,.1);
+  --accent:#6d4ae8;--accent-hi:#5b37d6;--accent-soft:rgba(109,74,232,.1);
+  --good:#15803d;--warn:#b45309;--bad:#c53030;
+  /* mode colours: same hues, deep enough for text on white */
+  --m-founder:#7c4dea;--m-investor:#0284c7;--m-seller:#16a34a;--m-recruiter:#d97706;--m-normal:#475569;--m-other:#64748b;--m-all:#7c4dea;
+  --sh-1:0 1px 2px rgba(17,24,39,.05),0 8px 24px -18px rgba(17,24,39,.25);
+  --sh-2:0 1px 2px rgba(17,24,39,.06),0 18px 40px -24px rgba(17,24,39,.3);
+  --glow:0 10px 24px -12px rgba(109,74,232,.55);
+  --ev-ink:#12141c;--ev-primary:#6d4ae8;--ev-accent:#7c4dea;
+}
+html[data-theme="light"],html[data-theme="light"] body{background:#e9ebf1}
+:where(html[data-theme="light"]) .phone{background:radial-gradient(140% 50% at 100% -8%,#e6defc 0%,var(--bg) 58%);box-shadow:0 0 0 1px rgba(17,24,39,.06),0 40px 80px -40px rgba(17,24,39,.35)}
+:where(html[data-theme="light"]) ::selection{background:rgba(109,74,232,.22)}
+
+/* focus and skip link stay dark so they show on white */
+:where(html[data-theme="light"]) :focus-visible{outline-color:#12141c;box-shadow:0 0 0 5px rgba(109,74,232,.18)}
+html[data-theme="light"] input:focus-visible,html[data-theme="light"] textarea:focus-visible,html[data-theme="light"] select:focus-visible{border-color:var(--brand)}
+:where(html[data-theme="light"]) .skip{background:#12141c;color:#fff}
+
+/* inputs: white fields with a visible edge */
+:where(html[data-theme="light"]) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,select){background:#fff;color:var(--ink);border-color:rgba(17,24,39,.16)}
+:where(html[data-theme="light"]) ::placeholder{color:#8a92a3}
+
+/* cards lift off the grey page */
+:where(html[data-theme="light"]) :is(.card,.menu-row,.switch-row,.tn-mode,.tn-stats>*,.tn-event){background:#fff;box-shadow:var(--sh-1)}
+
+/* the tab bar and top bars read as white chrome */
+:where(html[data-theme="light"]) .tabbar{background:rgba(255,255,255,.92);border-top-color:var(--line)}
+:where(html[data-theme="light"]) .tabbar a[aria-current="page"],:where(html[data-theme="light"]) .tabbar a.on{color:var(--brand)}
+
+
+/* appearance switch: only the chosen option is filled */
+:where(html[data-theme="light"]) .seg.theme-seg button[type]{background:transparent;color:var(--muted)}
+:where(html[data-theme="light"]) .seg.theme-seg button[type].on{background:#6d4ae8;color:#fff}
+
+/* mode switcher: the chosen mode reads in ink on its pale highlight */
+:where(html[data-theme="light"]) .tn-switch a[aria-current=page]{background:#fff;color:var(--ink);box-shadow:inset 0 -2px 0 var(--mode),var(--sh-1)}
+
+/* the coloured header on mode pages sits on the card colour, so its text stays white */
+:where(html[data-theme="light"]) .hero-themed :is(h1,h2,h3,div,p,b,strong,span){color:#fff}
+:where(html[data-theme="light"]) .hero-themed .muted{color:rgba(255,255,255,.85)!important}
+:where(html[data-theme="light"]) .hero-themed .pill{background:rgba(255,255,255,.22);color:#fff;border-color:transparent}
+:where(html[data-theme="light"]) .hero-themed .btn.ghost{background:rgba(255,255,255,.2)!important;color:#fff!important;border-color:rgba(255,255,255,.75)!important}
+:where(html[data-theme="light"]) .hero-themed .btn:not(.ghost){background:#fff!important;color:#12141c!important}
+:where(html[data-theme="light"]) .hero-themed .avatar{border-color:rgba(255,255,255,.7)}
+
+/* initials avatars: violet letters on a pale violet disc */
+:where(html[data-theme="light"]) .avatar{background:#e9e2fd!important;color:#5b37d6!important}
+:where(html[data-theme="light"]) .hero-themed .avatar,:where(html[data-theme="light"]) .face .avatar{background:rgba(255,255,255,.22)!important;color:#fff!important}
+
+/* mode badges: white on the deep violet, ink on green, amber, blue and grey */
+:where(html[data-theme="light"]) .tn-badge{color:#12141c}
+:where(html[data-theme="light"]) :is(.m-FOUNDER,.m-ALL) .tn-badge{color:#fff}
+
+/* dashboard (its stylesheet loads after this one, so these use a stronger selector) */
+html[data-theme="light"] .kpi .delta.up{color:#15803d}
+html[data-theme="light"] .kpi .delta.down{color:#c53030}

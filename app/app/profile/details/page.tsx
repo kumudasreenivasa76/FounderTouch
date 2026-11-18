@@ -6,6 +6,7 @@ import Icon from "@/components/icon";
 import PhotoUpload from "@/components/photo-upload";
 import AboutForm from "@/components/about-form";
 import { removePhoto, saveDetails, uploadPhoto } from "../actions";
+import BackLink from "@/components/back-link";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "About you" };
 
@@ -18,7 +19,7 @@ export default async function Details({ searchParams }: { searchParams: Promise<
 
   return (
     <div className="ab2">
-      <Link href="/app" className="muted">← Back</Link>
+      <BackLink href="/app" />
       <div className="kit-lux-top share-top" style={{ marginTop: 10 }}>
         <i className="kit-lux-ic" aria-hidden><Icon name="user" size={24} /></i>
         <div>

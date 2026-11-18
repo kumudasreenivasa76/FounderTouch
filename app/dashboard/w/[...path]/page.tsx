@@ -11,7 +11,7 @@ const TITLES: [string, string, string][] = [
   ["app/profile/details", "About you", "Your name, photo, headline and bio."],
   ["app/profile/contact", "Contact and socials", "How people reach you."],
   ["app/profile/company", "Company and brand", "Company name, logo, colours and team."],
-  ["app/profile/work", "Hire me profile", "Experience, education, skills and resume."],
+  ["app/profile/work", "Experience & skills", "Experience, education, skills and resume."],
   ["app/profile/import", "Import your profile", "From LinkedIn or a resume."],
   ["app/nfc", "NFC tags", "Choose which page each tag opens."],
   ["app/contacts/inbox", "Inbox", "Requests waiting for your answer."],

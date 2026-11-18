@@ -62,6 +62,15 @@ model Profile {
   links    ShareLink[]
   contacts Contact[]
   nfcTags  NfcTag[]
+  bioLinks BioLink[]
+  linkTheme  String @default("lilac") // look of the link page (/handle)
+  linkHidden String @default("")      // comma list of automatic buttons switched off: book, web, FOUNDER...
+  linkViews  Int    @default(0)
+  sigPrefs   String @default("{}") // email signature design and options (JSON)
+  bgPrefs    String @default("{}") // video-call background design and options (JSON)
+  searchable Boolean @default(true)   // off = ask search engines not to list this person's pages
+  products Product[]
+  deals    Deal[]
 }
 model Section {
   id        String  @id @default(cuid())
@@ -83,6 +92,7 @@ model ModeConfig {
   fields     String  @default("{}") // JSON of this mode's extra fields (portfolio, rates, skillsâ€¦)
   requireApproval Boolean @default(false) // visitors must be approved before seeing this mode
   bookingUrl String  @default("")
+  links      String  @default("[]") // JSON array of extra buttons: [{ label, url }]
   isEnabled  Boolean @default(true)
   added      Boolean @default(false) // the owner chose to set this mode up
   profile    Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
@@ -582,4 +592,52 @@ model ContactActivity {
   createdAt DateTime @default(now())
   contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
   @@index([contactId, createdAt])
+}
+
+// One button on a person's public link page (/handle/links).
+model BioLink {
+  id        String   @id @default(cuid())
+  profileId String
+  title     String
+  url       String
+  kind      String   @default("LINK") // LINK, or HEADER for a heading between links
+  featured  Boolean  @default(false)  // the one highlighted button
+  order     Int      @default(0)
+  enabled   Boolean  @default(true)
+  clicks    Int      @default(0)
+  createdAt DateTime @default(now())
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  @@index([profileId, order])
+}
+
+/** A Seller's catalog item, shown on the Seller page. Price is display text (currency and units as typed). */
+model Product {
+  id          String   @id @default(cuid())
+  profileId   String
+  name        String
+  price       String   @default("")
+  description String   @default("")
+  image       String   @default("")   // stored upload name
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  @@index([profileId])
+}
+
+/** An Investor's deal: a pitch that came in through the Investor page, or one added by hand. */
+model Deal {
+  id          String   @id @default(cuid())
+  profileId   String
+  company     String
+  founder     String   @default("")
+  email       String   @default("")
+  round       String   @default("")
+  amount      String   @default("")
+  deckUrl     String   @default("")
+  note        String   @default("")
+  stage       String   @default("NEW") // NEW | REVIEW | TERM_SHEET | INVESTED | PASSED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  @@index([profileId, stage])
 }
