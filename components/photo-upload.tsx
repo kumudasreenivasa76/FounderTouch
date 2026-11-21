@@ -12,7 +12,7 @@ export default function PhotoUpload({ action, size, center, children }: { action
   return (
     <form ref={form} action={action} style={{ position: "relative", display: center ? "block" : "inline-block", width: size, height: size, margin: center ? "0 auto 10px" : 0, flexShrink: 0 }}>
       <input
-        ref={input} type="file" name="photo" accept="image/png,image/jpeg,image/webp" hidden
+        ref={input} type="file" name="photo" aria-label="Photo" accept="image/png,image/jpeg,image/webp" hidden
         onChange={(e) => {
           const f = e.target.files?.[0];
           if (!f) return;

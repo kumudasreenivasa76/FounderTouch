@@ -13,9 +13,8 @@ export default function EventWizard({ action }: { action: (fd: FormData) => void
 
   return (
     <form action={action} className="card" onKeyDown={(e) => { if (e.key === "Enter" && (e.target as HTMLElement).tagName === "INPUT") e.preventDefault(); }}>
-      <h2 style={{ marginTop: 0, fontSize: 16 }}>Create an event</h2>
-      <div className="chips" style={{ marginBottom: 12 }}>
-        {STEPS.map((s, i) => <button key={s} type="button" className={"pill" + (i === step ? " on" : "")} onClick={() => setStep(i)} style={{ padding: "6px 12px" }}>{i + 1}. {s}</button>)}
+      <div className="d-chips" style={{ marginBottom: 12 }}>
+        {STEPS.map((s, i) => <button key={s} type="button" className={i === step ? "on" : ""} aria-current={i === step ? "step" : undefined} onClick={() => setStep(i)}>{i + 1}. {s}</button>)}
       </div>
 
       {/* all fields stay mounted so the form always submits every value */}

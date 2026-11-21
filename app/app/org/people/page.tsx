@@ -58,13 +58,13 @@ export default async function People({ searchParams }: { searchParams: Promise<{
               : <form action={connectColleague}><input type="hidden" name="profileId" value={p.id} /><button>Connect</button></form>)}
           </div>
           {m.isAdmin && mem.role !== "OWNER" && mem.userId !== user.id && (
-            <div className="row" style={{ marginTop: 8, flexWrap: "wrap" }}>
+            <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
               {m.isOwner && (
-                <form action={setRole} className="row"><input type="hidden" name="id" value={mem.id} />
-                  <select name="role" defaultValue={mem.role} aria-label={`Role for ${p.name}`}><option value="MEMBER">Member</option><option value="ADMIN">Admin</option></select>
-                  <button className="ghost sm">Set role</button></form>
+                <form action={setRole} style={{ display: "flex", gap: 8, alignItems: "center" }}><input type="hidden" name="id" value={mem.id} />
+                  <select name="role" defaultValue={mem.role} aria-label={`Role for ${p.name}`} style={{ flex: 1, margin: 0 }}><option value="MEMBER">Member</option><option value="ADMIN">Admin</option></select>
+                  <button className="ghost sm" style={{ flex: "none" }}>Set role</button></form>
               )}
-              {(mem.role === "MEMBER" || m.isOwner) && <form action={removeMember}><input type="hidden" name="id" value={mem.id} /><button className="ghost sm">Remove from team</button></form>}
+              {(mem.role === "MEMBER" || m.isOwner) && <form action={removeMember}><input type="hidden" name="id" value={mem.id} /><button className="ghost sm d-danger" style={{ width: "100%" }}>Remove from team</button></form>}
             </div>
           )}
         </div>

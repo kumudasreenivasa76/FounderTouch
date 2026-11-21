@@ -11,10 +11,10 @@ export default function ModeTabs({ mode, handle, active }: { mode: string; handl
     { k: "share", label: "Share · QR · NFC", href: `/app/card?mode=${mode}` },
   ] as const;
   return (
-    <nav className="chips" style={{ margin: "0 0 12px", overflowX: "auto", flexWrap: "nowrap" }} aria-label="Mode editor">
-      {tabs.map((t) => <Link key={t.k} aria-current={t.k === active ? "page" : undefined} href={t.href} className={"pill" + (t.k === active ? " on" : "")} style={{ padding: "6px 14px", whiteSpace: "nowrap" }}>{t.label}</Link>)}
-      <Link href="/app/nfc" className="pill" style={{ padding: "6px 14px", whiteSpace: "nowrap" }}>NFC</Link>
-      <PreviewLink href={`/${handle}?mode=${mode}`} title="Page preview" className="pill" style={{ padding: "6px 14px", whiteSpace: "nowrap" }}>Preview</PreviewLink>
+    <nav className="d-chips" style={{ margin: "0 0 12px" }} aria-label="Mode editor">
+      {tabs.map((t) => <Link key={t.k} aria-current={t.k === active ? "page" : undefined} href={t.href} className={t.k === active ? "on" : ""}>{t.label}</Link>)}
+      <Link href="/app/nfc">NFC</Link>
+      <PreviewLink href={`/${handle}?mode=${mode}`} title="Page preview">Preview</PreviewLink>
     </nav>
   );
 }

@@ -68,9 +68,9 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
         {c.followUpAt
           ? (c.followUpAt.getTime() < Date.now() - 86400_000 ? <p style={{ margin: "0 0 8px" }}><span className="d-chip r">Overdue</span></p> : due ? <p style={{ margin: "0 0 8px" }}><span className="d-chip o">Due today</span></p> : null)
           : <p className="muted" style={{ margin: "0 0 8px" }}>No reminder set. Pick one so this person does not go cold.</p>}
-        <div className="d-chips" style={{ margin: "0 0 10px" }}>
+        <div className="d-chips" style={{ margin: "0 0 10px", flexWrap: "wrap", overflow: "visible" }}>
           {[[1, "Tomorrow"], [3, "In 3 days"], [7, "Next week"], [30, "In a month"]].map(([d, l]) => (
-            <form key={d} action={setFollowUp} style={{ display: "contents" }}><input type="hidden" name="id" value={c.id} /><input type="hidden" name="days" value={d} /><button>{l}</button></form>
+            <form key={d} action={setFollowUp} style={{ display: "contents" }}><input type="hidden" name="id" value={c.id} /><input type="hidden" name="days" value={d} /><button className="d-pill">{l}</button></form>
           ))}
         </div>
         <form action={setFollowUp} className="row" style={{ alignItems: "center" }}>

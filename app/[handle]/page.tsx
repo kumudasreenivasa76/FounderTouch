@@ -330,14 +330,6 @@ export default async function Public({ params, searchParams }: { params: Promise
   ] as { k: string; v?: string }[]).filter((x): x is { k: string; v: string } => !!x.v && x.v.length <= 11).slice(0, 3);
   const modeIntro = (
     <>
-      {enabled.length > 1 && (
-        <nav className="tn-switch" aria-label="Switch view">
-          {enabled.map((m) => (
-            <a key={m.mode} className={`m-${m.mode}`} href={`/${handle}?mode=${m.mode}`} aria-current={m.mode === mode ? "page" : undefined}>{MODE_INFO[m.mode as Mode].label}</a>
-          ))}
-          <a className="m-ALL" href={`/${handle}?mode=ALL`} aria-current={mode === "ALL" ? "page" : undefined}>Everything</a>
-        </nav>
-      )}
       {heroStats.length > 0 && (
         <div className={"tn-stats" + (heroStats.length === 3 ? " three" : "")} style={heroStats.length < 3 ? { gridTemplateColumns: `repeat(${heroStats.length}, minmax(0, 1fr))` } : undefined}>
           {heroStats.map((x) => <div key={x.k}><b>{x.v}</b><span>{x.k}</span></div>)}
@@ -373,10 +365,6 @@ export default async function Public({ params, searchParams }: { params: Promise
   );
   const meP = (
     <>
-      <div className="d-pub-bar">
-        <a href={`/${handle}`} className="d-pub-brand"><Logo size={28} />TapNodd<sup>™</sup></a>
-        <a className="d-ibtn" href={`/${handle}/vcard?mode=${mode}`} aria-label="Save contact to your phone"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4" /></svg></a>
-      </div>
       <div className="d-pub-head">
         <Avatar name={p.name} handle={p.handle} hasPhoto={!!p.photo} avatar={p.avatar} size={96} />
         <h1>{p.name}</h1>
@@ -546,7 +534,7 @@ export default async function Public({ params, searchParams }: { params: Promise
     <>
       {p.events.map((e) => (
         <a key={e.id} href={`/e/${e.slug}`} className="menu-row">
-          <span className="menu-ico"><Icon name="trophy" /></span>
+          <span className="menu-ico" aria-hidden="true"><Icon name="trophy" /></span>
           <span style={{ flex: 1, minWidth: 0 }}><b>{e.name}</b><span className="muted" style={{ display: "block" }}>{[e.startsAt?.toLocaleDateString("en-IN", { dateStyle: "medium" }), e.location].filter(Boolean).join(" · ") || "Details soon"}</span></span>
           <span className={"pill" + (e.open ? " on" : "")} style={{ margin: 0 }}>{e.open ? "Open" : "Closed"}</span>
         </a>
@@ -849,6 +837,10 @@ export default async function Public({ params, searchParams }: { params: Promise
 
   return (
     <div className={`m-${mode}`} style={{ display: "contents" }}>
+      <div className="d-pub-bar">
+        <a href={`/${handle}`} className="d-pub-brand"><Logo size={28} />TapNodd<sup>™</sup></a>
+        <a className="d-ibtn" href={`/${handle}/vcard?mode=${mode}`} aria-label="Save contact to your phone"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4" /></svg></a>
+      </div>
       <Swiper main labels={pages.map((x) => x.label)} initial={start}>
         {pages.map((x) => <div key={x.key}>{x.node}</div>)}
       </Swiper>

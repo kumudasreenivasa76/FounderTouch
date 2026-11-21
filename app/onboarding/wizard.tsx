@@ -56,6 +56,7 @@ export default function Wizard({ firstName, lastName, email, finish, modes }: { 
 
   return (
     <form action={finish} className="screen ob d-ob"
+      onInvalidCapture={(e) => { const sec = (e.target as HTMLElement).closest("[data-step]"); if (sec) setStep(Number(sec.getAttribute("data-step"))); setErr("Please check the highlighted field."); }}
       onTouchStart={(e) => { touch.current = e.touches[0].clientX; }}
       onTouchEnd={(e) => { if (touch.current === null) return; const dx = e.changedTouches[0].clientX - touch.current; touch.current = null; if (dx < -70 && step < 4) next(); else if (dx > 70 && step > 0) setStep(step - 1); }}
       onKeyDown={(e) => { if (e.key === "Enter" && step < 4 && (e.target as HTMLElement).tagName === "INPUT") { e.preventDefault(); next(); } }}>
@@ -70,7 +71,7 @@ export default function Wizard({ firstName, lastName, email, finish, modes }: { 
       )}
 
       {/* Choose modes (design 5) */}
-      <section style={show(0)} className="d-ob-s">
+      <section style={show(0)} className="d-ob-s" data-step={0}>
         <h1>Choose Your Mode(s)<sup>™</sup></h1>
         <p className="d-ob-p">Select one or more modes. You can add or change them anytime.</p>
         {pickable.map((m) => (
@@ -84,11 +85,11 @@ export default function Wizard({ firstName, lastName, email, finish, modes }: { 
       </section>
 
       {/* Step 1: socials (design 6) */}
-      <section style={show(1)} className="d-ob-s">
+      <section style={show(1)} className="d-ob-s" data-step={1}>
         <h1>Let&apos;s Build Socials</h1>
         <Field label="Phone Number"><PhoneField name="phone" /></Field>
         <Field label="Email"><input name="email" type="email" defaultValue={email} placeholder="Email" aria-label="Email" /></Field>
-        <Field label="Website"><label className="d-field"><Icon name="globe" size={18} /><span className="sr-only">Website</span><input name="website" type="url" inputMode="url" placeholder="Website" /></label></Field>
+        <Field label="Website"><label className="d-field"><Icon name="globe" size={18} /><span className="sr-only">Website</span><input name="website" type="text" inputMode="url" autoCapitalize="none" autoCorrect="off" placeholder="Website" /></label></Field>
         <Field label="Social Links">
           {links.map((k) => {
             const s = SOCIALS.find((x) => x.key === k)!;
@@ -101,7 +102,7 @@ export default function Wizard({ firstName, lastName, email, finish, modes }: { 
       </section>
 
       {/* Step 2: company (design 7) */}
-      <section style={show(2)} className="d-ob-s">
+      <section style={show(2)} className="d-ob-s" data-step={2}>
         <h1>Company Details</h1>
         <Field label="Company Name"><input name="company" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company Name" aria-label="Company name" /></Field>
         <Field label="Your Role">
@@ -109,12 +110,12 @@ export default function Wizard({ firstName, lastName, email, finish, modes }: { 
           <datalist id="ob-roles">{ROLES.map((r) => <option key={r} value={r} />)}</datalist>
         </Field>
         <Field label="Industry"><select name="industry" defaultValue="" aria-label="Industry"><option value="">Choose an industry</option>{INDUSTRIES.map((x) => <option key={x}>{x}</option>)}</select></Field>
-        <Field label="Company Website"><label className="d-field"><Icon name="globe" size={18} /><span className="sr-only">Company website</span><input name="companyWebsite" type="url" inputMode="url" placeholder="Company Website" /></label></Field>
+        <Field label="Company Website"><label className="d-field"><Icon name="globe" size={18} /><span className="sr-only">Company website</span><input name="companyWebsite" type="text" inputMode="url" autoCapitalize="none" autoCorrect="off" placeholder="Company Website" /></label></Field>
         <Field label="Company Size"><select name="companySize" defaultValue="" aria-label="Company size"><option value="">Choose a size</option>{SIZES.map((x) => <option key={x}>{x}</option>)}</select></Field>
       </section>
 
       {/* Step 3: about you */}
-      <section style={show(3)} className="d-ob-s">
+      <section style={show(3)} className="d-ob-s" data-step={3}>
         <h1>About You</h1>
         <div className="d-two">
           <Field label="First Name"><input name="firstName" value={first} onChange={(e) => setFirst(e.target.value)} autoComplete="given-name" aria-label="First name" /></Field>
@@ -124,11 +125,11 @@ export default function Wizard({ firstName, lastName, email, finish, modes }: { 
         <div className="d-chips" style={{ flexWrap: "wrap" }}>{ROLES.slice(0, 6).map((r) => <button key={r} type="button" className={headline === r ? "on" : ""} onClick={() => setHeadline(r)}>{r}</button>)}</div>
         <Field label="Short Bio"><textarea name="bio" rows={3} maxLength={160} value={bio} onChange={(e) => setBio(e.target.value)} placeholder="What are you building?" aria-label="Short bio" /></Field>
         <span className="d-t2" style={{ textAlign: "right" }}>{bio.length}/160</span>
-        <Field label="Booking Link (optional)"><input name="url" type="url" placeholder="https://cal.com/you" aria-label="Booking link" /></Field>
+        <Field label="Booking Link (optional)"><input name="url" type="text" inputMode="url" autoCapitalize="none" placeholder="https://cal.com/you" aria-label="Booking link" /></Field>
       </section>
 
       {/* Step 4: kits (design 9) */}
-      <section style={show(4)} className="d-ob-s">
+      <section style={show(4)} className="d-ob-s" data-step={4}>
         <h1>Kits &amp; Preferences</h1>
         <p className="d-ob-p">Which kits do you want to create?</p>
         {KITS.map((k) => (

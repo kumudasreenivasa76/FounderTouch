@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireOwner } from "@/lib/auth";
 import { MODES, MODE_INFO, Mode } from "@/lib/modes";
@@ -25,6 +25,8 @@ export default async function EditCard({ params, searchParams }: { params: Promi
     db.cardSlug.findFirst({ where: { profileId: profile.id, mode } }),
   ]);
   if (!cfg) notFound();
+  // A mode that is switched off has no public card yet, so send the person to turn it on first.
+  if (!cfg.isEnabled) redirect(`/app/card?pane=add`);
   const hidden = new Set(cfg.hidden.split(",").filter(Boolean));
   const label = mode === "ALL" ? "Complete Profile" : MODE_INFO[mode as Mode].label;
   return (

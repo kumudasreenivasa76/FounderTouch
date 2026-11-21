@@ -208,3 +208,17 @@ body:has(.dash), .phone:has(.dash) { background: #131726; }
 .dash-theme { margin: 0 4px 8px; }
 .dash-theme .theme-seg { display: flex; width: 100%; }
 .dash-theme .theme-seg button[type] { flex: 1; }
+
+/* Phones and small tablets: the sidebar becomes one scrolling strip of links above the content */
+@media (max-width: 800px) {
+  .dash { flex-direction: column; }
+  .dash .dash-side { flex-wrap: nowrap; width: auto; height: auto; position: sticky; top: 0; z-index: 5; flex-direction: row; align-items: center; gap: 4px; overflow-x: auto; overflow-y: hidden; padding: 8px 10px; border-right: 0; border-bottom: 1px solid rgba(127,127,127,.18); scrollbar-width: none; }
+  .dash .dash-side::-webkit-scrollbar { display: none; }
+  .dash .dash-side .dn, .dash .dash-side .dn-group { display: contents; }
+  .dash .dash-side small, .dash .dash-side h1, .dash .dash-side .dn-title { display: none; }
+  .dash .dash-side a { flex: none; white-space: nowrap; padding: 7px 10px; }
+  .dash .dash-side .dash-brand { margin: 0 6px 0 0; }
+  .dash .dash-side .dash-me, .dash .dash-side .dash-theme { display: none; }
+  .dash .dash-side .dash-foot { display: contents; }
+  .dash .dash-main { padding: 16px; }
+}

@@ -17,3 +17,4 @@ dev.err
 dist/
 .env*.local
 .env.production
+prisma/qa.db

@@ -31,7 +31,7 @@ async function finish(fd: FormData) {
   } });
   const ids: string[] = [];
   for (const m of MODES) {
-    await db.modeConfig.create({ data: { profileId: p.id, mode: m, sectionIds: JSON.stringify(ids), bookingUrl: url, ctaLabel: MODE_INFO[m].cta, isEnabled: m === "ALL" || m === "NORMAL" || picked.has(m) || kits.has(m), added: kits.has(m) } });
+    await db.modeConfig.create({ data: { profileId: p.id, mode: m, sectionIds: JSON.stringify(ids), bookingUrl: web(url), ctaLabel: MODE_INFO[m].cta, isEnabled: m === "ALL" || m === "NORMAL" || picked.has(m) || kits.has(m), added: kits.has(m) } });
     await db.shareLink.create({ data: { profileId: p.id, mode: m, token: randomBytes(6).toString("hex") } });
   }
   redirect("/app");

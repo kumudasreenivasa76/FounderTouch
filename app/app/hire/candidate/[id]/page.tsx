@@ -7,7 +7,6 @@ import { STATUSES, PIPELINE, statusLabel, skillMatch, nextStage } from "@/lib/hi
 import { listItems } from "@/lib/modes";
 import PageHead from "@/components/page-head";
 import { moveCandidate, rateCandidate, saveCandidateNotes, scheduleInterview } from "../../actions";
-import BackLink from "@/components/back-link";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Candidate" };
 
@@ -29,7 +28,6 @@ export default async function Candidate({ params, searchParams }: { params: Prom
 
   return (
     <>
-      <BackLink href={`/app/hire/${a.jobId}`} label={`Back to ${a.job.title}`} />
       <PageHead title={a.name} sub={`Applied for ${a.job.title}`} back={`/app/hire/${a.jobId}`} saved={!!sp.saved} />
 
       <div className="card" style={{ textAlign: "center" }}>
@@ -51,7 +49,7 @@ export default async function Candidate({ params, searchParams }: { params: Prom
         <h2 id="stg" style={{ fontSize: 15, margin: "0 0 8px" }}>Stage: {statusLabel(a.status)}</h2>
         <ol style={{ display: "flex", listStyle: "none", padding: 0, margin: "0 0 10px", gap: 4 }} aria-label="Hiring pipeline">
           {PIPELINE.map((k, i) => { const done = stepIdx >= 0 && i <= stepIdx; const c = STATUSES.find((s) => s.key === k)!.color; return (
-            <li key={k} style={{ flex: 1, textAlign: "center", fontSize: 12 }} aria-current={a.status === k ? "step" : undefined}>
+            <li key={k} style={{ flex: 1, minWidth: 0, textAlign: "center", fontSize: 11, letterSpacing: "-.01em", whiteSpace: "nowrap" }} aria-current={a.status === k ? "step" : undefined}>
               <div style={{ height: 6, borderRadius: 3, background: done ? c : "#e0dfdc", marginBottom: 4 }} />
               <span className="muted" style={{ fontWeight: a.status === k ? 700 : 400, color: a.status === k ? "#191919" : undefined }}>{statusLabel(k)}</span>
             </li>); })}

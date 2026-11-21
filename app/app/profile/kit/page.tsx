@@ -324,7 +324,7 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
                     <form action={setTheme} className="kit-swatches">
                       <input type="hidden" name="ret" value={"kit:" + m} />
                       {Object.entries(THEMES).map(([k, th]) => (
-                        <button key={k} name="theme" value={k} aria-label={th.name} title={th.name} aria-pressed={profile.theme === k}
+                        <button key={k} className="d-swatch" name="theme" value={k} aria-label={th.name} title={th.name} aria-pressed={profile.theme === k}
                           style={{ background: `linear-gradient(135deg, ${th.from}, ${th.to})` }} />
                       ))}
                     </form>

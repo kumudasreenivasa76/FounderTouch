@@ -53,7 +53,7 @@ export default async function Opportunities({ searchParams }: { searchParams: Pr
       )}
       {shown.map((x) => (
         <Link key={x.key} href={x.href} className={`menu-row m-${x.mode}`}>
-          <span className="menu-ico" style={{ color: "var(--mode)", background: "color-mix(in srgb, var(--mode) 16%, transparent)", borderColor: "color-mix(in srgb, var(--mode) 35%, transparent)" }}>
+          <span className="menu-ico" aria-hidden="true" style={{ color: "var(--mode)", background: "color-mix(in srgb, var(--mode) 16%, transparent)", borderColor: "color-mix(in srgb, var(--mode) 35%, transparent)" }}>
             <Icon name={x.kind === "deals" ? "coins" : x.kind === "leads" ? "store" : x.kind === "applicants" ? "users" : "briefcase"} size={18} />
           </span>
           <span style={{ flex: 1, minWidth: 0 }}><b>{x.title}</b><span className="muted" style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{LABEL[x.kind]} · {x.sub}</span></span>

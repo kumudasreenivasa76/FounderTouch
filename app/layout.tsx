@@ -8,6 +8,7 @@ import { cookies } from "next/headers";
 import { Geist_Mono, Inter } from "next/font/google";
 import SwRegister from "@/components/sw-register";
 import A11yEnhancer from "@/components/a11y-enhancer";
+import SubmitterFix from "@/components/submitter-fix";
 import EmbedFlag from "@/components/embed-flag";
 const sans = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono", display: "swap" });
@@ -32,6 +33,7 @@ export default async function L({ children }: { children: React.ReactNode }) {
         <div className="phone">{children}</div>
         <SwRegister />
         <A11yEnhancer />
+        <SubmitterFix />
         <EmbedFlag />
         <NativeBridge />
       </body>

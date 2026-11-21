@@ -51,7 +51,7 @@ export default async function Tools() {
       </div>
 
       <h2 style={{ fontSize: 16 }}>Booth mode</h2>
-      <Link href="/app/booth" className="menu-row"><span className="menu-ico"><Icon name="qr" /></span><span style={{ flex: 1 }}><b>Full-screen QR</b><span className="muted" style={{ display: "block" }}>For events: a big QR people can scan from a distance</span></span><span className="muted">›</span></Link>
+      <Link href="/app/booth" className="menu-row"><span className="menu-ico" aria-hidden="true"><Icon name="qr" /></span><span style={{ flex: 1 }}><b>Full-screen QR</b><span className="muted" style={{ display: "block" }}>For events: a big QR people can scan from a distance</span></span><span className="muted">›</span></Link>
 
       <h2 style={{ fontSize: 16 }}>Contacts</h2>
       <div className="card">
