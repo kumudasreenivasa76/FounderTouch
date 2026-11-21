@@ -26,6 +26,7 @@ import CopyButton from "@/components/copy-button";
 import { peekTap, saveTapCard } from "../../tap-actions";
 import { addTag, saveTag, resetTag, deleteTag } from "../../nfc/actions";
 import { addResource, delResource, saveKitText, setResourceModes, setResourceExpiry } from "../actions";
+import BackLink from "@/components/back-link";
 export const dynamic = "force-dynamic";
 const ic = (_m: Mode) => "";
 
@@ -46,7 +47,7 @@ const CTA_IDEAS = ["Let's connect", "Book a call", "Book a meeting", "Request a 
 const KIND_ICON: Record<string, string> = { DECK: "file", DEMO: "play", DOC: "file", SUPPORT: "folder" };
 // Resume and Portfolio live under "Hire me", so they are not repeated here.
 const KIT_KINDS = ["DECK", "DEMO", "DOC", "SUPPORT"] as const;
-const PAGES = MODES.filter((m) => m !== "ALL" && m !== "HIRE");
+const PAGES = MODES.filter((m) => m !== "ALL" && m !== "NORMAL");
 
 export default async function Kits({ searchParams }: { searchParams: Promise<{ err?: string; saved?: string; kind?: string; mode?: string; tab?: string }> }) {
   const sp = await searchParams;
@@ -82,7 +83,7 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
   return (
     <>
       <div className="shell-head" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <Link href="/app" className="muted">← Back</Link>
+        <BackLink href="/app" />
         <h1 style={{ fontSize: 17, margin: 0 }}>Kits</h1>
         <span className="muted" style={{ marginLeft: "auto" }}>Swipe to switch</span>
       </div>
@@ -105,7 +106,7 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
                 <h1>{ic(m)}{info.kit}</h1>
                 <p>{info.intro ?? `${info.blurb}. Fill in only what applies to you.`}</p>
               </header>
-              {active && sp.saved && <div className="ok">Saved ✓</div>}
+              {active && sp.saved && <div className="ok">Saved</div>}
               {active && sp.err && <div className="err">{ERR[sp.err] ?? "Something went wrong."}</div>}
 
               <KitPanels mode={m} handle={profile.handle} initial={(sp.tab === "actions" || sp.tab === "share" || sp.tab === "brand") && active ? sp.tab : active && sp.kind ? "docs" : "details"}
@@ -118,7 +119,7 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
                 <div className="kit-bar"><i style={{ width: `${needs.length ? ((needs.length - todo.length) / needs.length) * 100 : 100}%` }} /></div>
                 {needs.map((n) => (
                   <Link key={n.label} href={n.href} className={"kit-step" + (n.ok ? " ok" : "")}>
-                    <span className="dot" aria-hidden>{n.ok ? "✓" : "+"}</span><span className="t">{n.label}</span>
+                    <span className="dot" aria-hidden>{n.ok ? "" : "+"}</span><span className="t">{n.label}</span>
                   </Link>
                 ))}
               </div>
@@ -323,7 +324,7 @@ export default async function Kits({ searchParams }: { searchParams: Promise<{ e
                     <form action={setTheme} className="kit-swatches">
                       <input type="hidden" name="ret" value={"kit:" + m} />
                       {Object.entries(THEMES).map(([k, th]) => (
-                        <button key={k} name="theme" value={k} aria-label={th.name} title={th.name} aria-pressed={profile.theme === k}
+                        <button key={k} className="d-swatch" name="theme" value={k} aria-label={th.name} title={th.name} aria-pressed={profile.theme === k}
                           style={{ background: `linear-gradient(135deg, ${th.from}, ${th.to})` }} />
                       ))}
                     </form>

@@ -43,7 +43,7 @@ export default function OfflineSync({ peek, save }: { peek: (raw: string) => Pro
 
   if (online && !note) return null;
   return (
-    <div role="region" aria-label="Connection status" style={{ position: "sticky", top: 0, zIndex: 40, padding: "8px 14px", fontSize: 13, background: online ? "#e6f9ef" : "#fff4e0", color: "#1c2330", textAlign: "center" }}>
+    <div role="region" aria-label="Connection status" style={{ position: "sticky", top: 0, zIndex: 40, padding: "8px 14px", fontSize: 13, background: online ? "rgba(74,222,128,.12)" : "rgba(251,191,36,.12)", color: "var(--ink)", textAlign: "center" }}>
       <span role="status">{online ? note : `You are offline. Your card is still available${waiting ? `, and ${waiting} scan${waiting === 1 ? "" : "s"} will sync when you are back online` : ""}. `}</span>
       {!online && <a href="/offline" style={{ textDecoration: "underline" }}>Open offline card</a>}
     </div>

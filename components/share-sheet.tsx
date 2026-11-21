@@ -58,7 +58,7 @@ export default function ShareSheet({ name, handle, url, qr, vcf, imageUrl, openS
   const copy = async () => { try { await navigator.clipboard.writeText(url); say("Link copied."); } catch { prompt("Copy this link", url); } };
 
   const rows: Row[] = [
-    { icon: "▦", label: "QR code", run: () => { setOpen(false); setShowQr(true); } },
+    { icon: "", label: "QR code", run: () => { setOpen(false); setShowQr(true); } },
     { icon: "chat", label: "Text message", online: true, href: `sms:?&body=${encodeURIComponent(text)}` },
     { icon: "mail", label: "Email", online: true, href: `mailto:?subject=${encodeURIComponent(`${name}'s digital card`)}&body=${encodeURIComponent(text)}` },
     { icon: "copy", label: "Copy link", run: copy },
@@ -76,8 +76,8 @@ export default function ShareSheet({ name, handle, url, qr, vcf, imageUrl, openS
       {open && (
         <div onClick={() => { setOpen(false); opener.current?.focus(); }} style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(17,24,39,.5)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
           <div role="dialog" aria-modal="true" aria-label="Share my card" onClick={(e) => e.stopPropagation()}
-            style={{ background: "#fff", width: "min(100%, 420px)", maxHeight: "80vh", overflowY: "auto", borderRadius: "22px 22px 0 0", padding: "8px 12px 18px" }}>
-            <div aria-hidden style={{ width: 40, height: 4, borderRadius: 4, background: "#cfd4dd", margin: "4px auto 10px" }} />
+            style={{ background: "var(--surface)", width: "min(100%, 420px)", maxHeight: "80vh", overflowY: "auto", borderRadius: "22px 22px 0 0", padding: "8px 12px 18px" }}>
+            <div aria-hidden style={{ width: 40, height: 4, borderRadius: 4, background: "var(--surface-3)", margin: "4px auto 10px" }} />
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 6px 6px" }}>
               <h2 style={{ margin: 0, fontSize: 18 }}>Share card</h2>
               <button type="button" className="ghost sm" onClick={() => { setOpen(false); opener.current?.focus(); }}>Close</button>
@@ -91,13 +91,13 @@ export default function ShareSheet({ name, handle, url, qr, vcf, imageUrl, openS
               {rows.map((r, n) => {
                 const off = !online && r.online;
                 const inner = (<><span aria-hidden style={{ width: 36, textAlign: "center", fontSize: 20 }}><Icon name={r.icon} size={22} /></span><span style={{ flex: 1, textAlign: "left" }}><b style={{ fontWeight: 600 }}>{r.label}</b>{r.hint && <span className="muted" style={{ display: "block" }}>{r.hint}</span>}{off && <span className="muted" style={{ display: "block" }}>Needs internet</span>}</span></>);
-                const style: React.CSSProperties = { display: "flex", alignItems: "center", gap: 6, width: "100%", minHeight: 52, padding: "6px 8px", background: "none", color: "#1c2330", border: 0, borderTop: n ? "1px solid #eceff4" : 0, borderRadius: 0, font: "inherit", opacity: off ? 0.5 : 1 };
+                const style: React.CSSProperties = { display: "flex", alignItems: "center", gap: 6, width: "100%", minHeight: 52, padding: "6px 8px", background: "none", color: "var(--ink)", border: 0, borderTop: n ? "1px solid #eceff4" : 0, borderRadius: 0, font: "inherit", opacity: off ? 0.5 : 1 };
                 const setFirst = n === 0 ? (el: HTMLElement | null) => { first.current = el; } : undefined;
                 return (
                   <li key={r.label}>
                     {r.href && !off
-                      ? <a href={r.href} style={style} ref={setFirst}>{inner}</a>
-                      : <button type="button" disabled={off} style={style} ref={setFirst} onClick={() => { r.run?.(); }}>{inner}</button>}
+                      ? <a href={r.href} className="d-optrow" style={style} ref={setFirst}>{inner}</a>
+                      : <button type="button" className="d-optrow" disabled={off} style={style} ref={setFirst} onClick={() => { r.run?.(); }}>{inner}</button>}
                   </li>
                 );
               })}
@@ -108,9 +108,9 @@ export default function ShareSheet({ name, handle, url, qr, vcf, imageUrl, openS
 
       {showQr && (
         <div onClick={() => { setShowQr(false); opener.current?.focus(); }} role="dialog" aria-modal="true" aria-label="My QR code"
-          style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(17,24,39,.94)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, color: "#fff", padding: 24 }}>
+          style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(17,24,39,.94)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, color: "#ffffff", padding: 24 }}>
           <b style={{ fontSize: 22 }}>{name}</b>
-          <img src={qr} alt="QR code for my card" style={{ width: "min(80vw, 60vh)", background: "#fff", borderRadius: 20, padding: 14 }} />
+          <img src={qr} alt="QR code for my card" style={{ width: "min(80vw, 60vh)", background: "#ffffff", borderRadius: 20, padding: 14 }} />
           <button type="button" className="ghost" onClick={() => { setShowQr(false); opener.current?.focus(); }} style={{ width: "auto", padding: "10px 28px" }}>Done</button>
         </div>
       )}

@@ -12,7 +12,7 @@ export const metadata = { title: "Find talent" };
 
 const initials = (n: string) => n.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("");
 
-/** People with a Hire me profile. Search by skill or name, see who matches a role, and invite them to apply. */
+/** People open to work or with skills on their profile. Search by skill or name, see who matches a role, and invite them to apply. */
 export default async function Talent({ searchParams }: { searchParams: Promise<{ q?: string; job?: string; open?: string }> }) {
   const sp = await searchParams;
   const { profile } = await requireOwner();
@@ -35,7 +35,7 @@ export default async function Talent({ searchParams }: { searchParams: Promise<{
 
   return (
     <>
-      <PageHead title="Find talent" sub="People who have a Hire me profile." back="/app/hire" />
+      <PageHead title="Find talent" sub="People who are open to work or list their skills." back="/app/hire" />
       <form method="get" role="search" className="card">
         <label className="f" htmlFor="t-q">Skill, name or role</label>
         <input id="t-q" name="q" defaultValue={q} placeholder="e.g. Figma, product designer" />
@@ -53,7 +53,7 @@ export default async function Talent({ searchParams }: { searchParams: Promise<{
             <div style={{ display: "flex", gap: 10 }}>
               <span className="av" style={{ background: avatarBg(p.handle) }} aria-hidden>{initials(p.name)}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <Link href={`/${p.handle}?mode=HIRE`} style={{ color: "inherit" }} target="_blank"><b>{p.name}</b></Link>
+                <Link href={`/${p.handle}?mode=ALL`} style={{ color: "inherit" }} target="_blank"><b>{p.name}</b></Link>
                 <div className="muted">{byline(p.headline, p.company) || `@${p.handle}`}</div>
                 <div style={{ marginTop: 4 }}>
                   {p.openTo && p.openTo !== "Not looking" && <span className="pill" style={{ margin: "0 4px 4px 0" }}>{p.openTo}</span>}
@@ -63,7 +63,7 @@ export default async function Talent({ searchParams }: { searchParams: Promise<{
               </div>
             </div>
             {job && (done
-              ? <div className="muted" style={{ marginTop: 6 }}>✓ Invited to apply for {job.title}</div>
+              ? <div className="muted" style={{ marginTop: 6 }}>Invited to apply for {job.title}</div>
               : <form action={inviteTalent} style={{ marginTop: 8 }}><input type="hidden" name="jobId" value={job.id} /><input type="hidden" name="profileId" value={p.id} /><input type="hidden" name="back" value={back} /><button aria-label={`Invite to apply: ${p.name}, ${job.title}`}>Invite to apply</button></form>)}
           </article>
         );

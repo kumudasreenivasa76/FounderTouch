@@ -2,7 +2,7 @@
  * The modes (who you are when you share). Each mode asks for only what it needs:
  * its own fields and only the kinds of files that make sense for it.
  */
-export const MODES = ["FOUNDER", "INVESTOR", "SERVICES", "HIRE", "RECRUITER", "OTHER", "ALL"] as const;
+export const MODES = ["NORMAL", "FOUNDER", "INVESTOR", "SERVICES", "RECRUITER", "OTHER", "ALL"] as const;
 export type Mode = (typeof MODES)[number];
 
 export type Kind = "DECK" | "DEMO" | "RESUME" | "PORTFOLIO" | "DOC" | "SUPPORT";
@@ -30,6 +30,12 @@ export const MODE_INFO: Record<Mode, Info> = {
       { key: "stage", label: "Stage", type: "select", options: ["Idea", "Pre-seed", "Seed", "Series A", "Series B+", "Bootstrapped", "Profitable"] },
       { key: "traction", label: "Traction", type: "textarea", hint: "Revenue, users, growth, notable customers" },
       { key: "lookingFor", label: "Looking for", type: "list", hint: "e.g. investors, hires, customers, partners" },
+      { key: "raising", label: "Raising", type: "text", hint: "e.g. $1.2M to $3M" },
+      { key: "round", label: "Round", type: "select", options: ["Pre-seed", "Seed", "Series A", "Series B", "Bridge", "Not raising"] },
+      { key: "useOfFunds", label: "Use of funds", type: "textarea", hint: "Where the money goes" },
+      { key: "users", label: "Users or customers", type: "text", hint: "e.g. 12,000 users or 14 paying plants" },
+      { key: "revenue", label: "Revenue", type: "text", hint: "e.g. $38k MRR" },
+      { key: "milestones", label: "Milestones", type: "list", hint: "One per line, e.g. MVP launched" },
     ],
   },
   INVESTOR: {
@@ -49,8 +55,8 @@ export const MODE_INFO: Record<Mode, Info> = {
     ],
   },
   SERVICES: {
-    label: "Business", icon: "", blurb: "I sell products or services", cta: "Get a quote",
-    kit: "Business kit", about: "What we offer", aboutHint: "Your products or services and who they are for", pane: "Offerings",
+    label: "Seller", icon: "", blurb: "I sell products or services", cta: "Get a quote",
+    kit: "Seller kit", about: "What we offer", aboutHint: "Your products or services and who they are for", pane: "Offerings",
     kinds: { RESUME: "Resume / CV", PORTFOLIO: "Portfolio & clients", DECK: "Company profile", DEMO: "Product or work video", DOC: "Catalog, rate card or brochure", SUPPORT: "Case studies & other documents" },
     fields: [
       { key: "industry", label: "Industry", type: "text" },
@@ -64,10 +70,11 @@ export const MODE_INFO: Record<Mode, Info> = {
       { key: "partnerships", label: "Partnerships we want", type: "textarea" },
     ],
   },
-  HIRE: {
-    label: "Hire me", icon: "", blurb: "I am looking for work", cta: "Contact me",
-    kit: "Hire me page", about: "About", aboutHint: "A short summary of who you are and what you are good at", pane: "Profile",
-    kinds: { RESUME: "Resume / CV", PORTFOLIO: "Portfolio files", SUPPORT: "Certificates & documents" },
+  NORMAL: {
+    label: "Normal", icon: "", blurb: "Just me, a personal profile", cta: "Get in touch",
+    intro: "A simple personal card: your photo, a few words about you, and how to reach you.",
+    kit: "Normal profile", about: "About me", aboutHint: "A few lines about you", pane: "Profile",
+    kinds: {},
     fields: [],
   },
   RECRUITER: {
@@ -136,7 +143,7 @@ export function cleanLink(v: string): string {
 }
 
 /** The word each page uses in its short address: /handle/founder, /handle/business, /handle/card (the full profile). */
-const MODE_SLUGS: Record<Mode, string> = { FOUNDER: "founder", INVESTOR: "investor", SERVICES: "business", HIRE: "hire", RECRUITER: "recruiter", OTHER: "other", ALL: "card" };
+const MODE_SLUGS: Record<Mode, string> = { FOUNDER: "founder", INVESTOR: "investor", SERVICES: "business", NORMAL: "me", RECRUITER: "recruiter", OTHER: "other", ALL: "card" };
 export const modeSlug = (m: string) => MODE_SLUGS[m as Mode] ?? m.toLowerCase();
-export const modeFromSlug = (slug: string): Mode | null => (Object.keys(MODE_SLUGS) as Mode[]).find((m) => MODE_SLUGS[m] === slug.toLowerCase()) ?? null;
+export const modeFromSlug = (slug: string): Mode | null => slug.toLowerCase() === "hire" ? "NORMAL" : (Object.keys(MODE_SLUGS) as Mode[]).find((m) => MODE_SLUGS[m] === slug.toLowerCase()) ?? null; // old Hire me links open the Normal page
 export const modePath = (handle: string, m: string) => `/${handle}/${modeSlug(m)}`;

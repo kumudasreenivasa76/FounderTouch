@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Icon from "@/components/icon";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
@@ -40,61 +41,63 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
 
   return (
     <>
-      <PageHead title={c.name} back="/app/contacts" saved={!!sp.saved} />
+      <PageHead title="Connection" back="/app/contacts" saved={!!sp.saved} />
 
-      <div className="card" style={{ textAlign: "center" }}>
-        <span className="av lg" style={{ background: avatarBg(c.email), margin: "0 auto 8px" }} aria-hidden>{initials(c.name)}</span>
-        <div style={{ fontSize: 18, fontWeight: 600 }}>{c.name}</div>
-        <div className="muted">{[c.jobTitle, c.company].filter(Boolean).join(" at ") || c.email}</div>
-        <div className="muted">{SOURCE[c.source] ?? c.source}{c.mode !== "ALL" && MODE_INFO[c.mode as Mode] ? ` · saw your ${MODE_INFO[c.mode as Mode].label} page` : ""}{c.interactions > 1 ? ` · ${c.interactions} visits` : ""}</div>
-        <div className="row" style={{ marginTop: 12, flexWrap: "wrap" }}>
-          <a className="btn" href={`mailto:${c.email}?subject=${encodeURIComponent("Good to meet you")}&body=${encodeURIComponent(intro)}`}>Email</a>
-          {c.phone && <a className="btn ghost" href={`tel:${c.phone.replace(/\s+/g, "")}`}>Call</a>}
-          {c.phone && <a className="btn ghost" href={`https://wa.me/${c.phone.replace(/[^\d]/g, "")}?text=${encodeURIComponent(intro)}`} target="_blank" rel="noopener noreferrer">WhatsApp</a>}
-          <a className="btn ghost" href={c.linkedin || `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent((c.name + " " + c.company).trim())}`} target="_blank" rel="noopener noreferrer">{c.linkedin ? "LinkedIn" : "Find on LinkedIn"}</a>
-        </div>
-        <div className="row" style={{ marginTop: 8, flexWrap: "wrap" }}>
-          <a className="btn ghost" href={`/app/contacts/${c.id}/vcard`}>Save to phone</a>
-          {theirCard && <a className="btn ghost" href={`/${theirCard.handle}`} target="_blank" rel="noopener noreferrer">View their card</a>}
-          <form action={toggleStar}><input type="hidden" name="id" value={c.id} /><input type="hidden" name="back" value={here} /><button className="ghost" aria-pressed={c.starred}>{c.starred ? "★ Starred" : "☆ Star"}</button></form>
-        </div>
+      <div className="d-center">
+        <span className="av lg d-av lg" style={{ background: avatarBg(c.email) }} aria-hidden>{initials(c.name)}</span>
+        <h2>{c.name}</h2>
+        <p>{[c.jobTitle, c.company].filter(Boolean).join(" • ") || c.email}</p>
+        <span className="d-chip" style={{ marginTop: 8 }}>{c.metAt ? `Met at ${c.metAt}` : SOURCE[c.source] ?? c.source}{c.mode !== "ALL" && MODE_INFO[c.mode as Mode] ? ` · ${MODE_INFO[c.mode as Mode].label}` : ""}</span>
       </div>
+      <div className="d-acts">
+        <a className="d-act" href={`mailto:${c.email}?subject=${encodeURIComponent("Good to meet you")}&body=${encodeURIComponent(intro)}`}><i><Icon name="mail" size={22} /></i>Email</a>
+        {c.phone && <a className="d-act" href={`tel:${c.phone.replace(/\s+/g, "")}`}><i><Icon name="phone" size={22} /></i>Call</a>}
+        {c.phone && <a className="d-act" href={`https://wa.me/${c.phone.replace(/[^\d]/g, "")}?text=${encodeURIComponent(intro)}`} target="_blank" rel="noopener noreferrer"><i><Icon name="chat" size={22} /></i>WhatsApp</a>}
+        {theirCard && <a className="d-act" href={`/app/messages/new?to=${theirCard.handle}`}><i><Icon name="message" size={22} /></i>Message</a>}
+        <a className="d-act" href={`/app/contacts/${c.id}/vcard`}><i><Icon name="download" size={22} /></i>Save</a>
+        <form action={toggleStar}><input type="hidden" name="id" value={c.id} /><input type="hidden" name="back" value={here} /><button className="d-act" aria-pressed={c.starred}><i style={c.starred ? { color: "#F59E0B" } : undefined}><Icon name="star" size={22} /></i>{c.starred ? "Starred" : "Star"}</button></form>
+      </div>
+      <div className="d-tiles two">
+        <a className="d-tile d-tile-l" href={c.linkedin || `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent((c.name + " " + c.company).trim())}`} target="_blank" rel="noopener noreferrer"><Icon name="link" /><span>{c.linkedin ? "LinkedIn" : "Find on LinkedIn"}</span></a>
+        {theirCard ? <a className="d-tile d-tile-l" href={`/${theirCard.handle}`} target="_blank" rel="noopener noreferrer"><Icon name="card" /><span>View their card</span></a> : <span className="d-tile d-tile-l" style={{ opacity: .6 }}><Icon name="card" /><span>No TapNodd card</span></span>}
+      </div>
+      <p className="d-t2" style={{ textAlign: "center", margin: "0 0 12px" }}>{SOURCE[c.source] ?? c.source}{c.interactions > 1 ? ` · ${c.interactions} visits` : ""}</p>
 
-      <section aria-labelledby="fu" className="card" style={due ? { borderColor: "#f5c26b", background: "#fffaf0" } : undefined}>
-        <h2 id="fu" style={{ fontSize: 15, margin: "0 0 6px" }}>Follow-up</h2>
+      <section aria-labelledby="fu" className="d-card" style={due ? { borderColor: "#f5c26b", background: "var(--surface)" } : undefined}>
+        <h2 id="fu" className="d-row" style={{ padding: "0 0 8px", margin: 0, fontSize: 15 }}><span className="d-ico" aria-hidden><Icon name="bell" /></span><span className="d-grow"><span className="d-t1">Follow up</span><span className="d-t2" style={{ fontWeight: 400 }}>{c.followUpAt ? c.followUpAt.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }) : "No reminder set"}</span></span></h2>
         {c.followUpAt
-          ? <p style={{ margin: "0 0 8px" }}><b>{c.followUpAt.toLocaleDateString("en-IN", { dateStyle: "full" })}</b>{c.followUpAt.getTime() < Date.now() - 86400_000 ? <span className="muted"> · overdue</span> : due ? <span className="muted"> · due today</span> : null}</p>
+          ? (c.followUpAt.getTime() < Date.now() - 86400_000 ? <p style={{ margin: "0 0 8px" }}><span className="d-chip r">Overdue</span></p> : due ? <p style={{ margin: "0 0 8px" }}><span className="d-chip o">Due today</span></p> : null)
           : <p className="muted" style={{ margin: "0 0 8px" }}>No reminder set. Pick one so this person does not go cold.</p>}
-        <div className="row" style={{ flexWrap: "wrap", marginBottom: 8 }}>
+        <div className="d-chips" style={{ margin: "0 0 10px", flexWrap: "wrap", overflow: "visible" }}>
           {[[1, "Tomorrow"], [3, "In 3 days"], [7, "Next week"], [30, "In a month"]].map(([d, l]) => (
-            <form key={d} action={setFollowUp}><input type="hidden" name="id" value={c.id} /><input type="hidden" name="days" value={d} /><button className="ghost sm">{l}</button></form>
+            <form key={d} action={setFollowUp} style={{ display: "contents" }}><input type="hidden" name="id" value={c.id} /><input type="hidden" name="days" value={d} /><button className="d-pill">{l}</button></form>
           ))}
         </div>
         <form action={setFollowUp} className="row" style={{ alignItems: "center" }}>
           <input type="hidden" name="id" value={c.id} />
           <input type="date" name="date" aria-label="Pick a follow-up date" defaultValue={c.followUpAt ? c.followUpAt.toISOString().slice(0, 10) : ""} />
-          <button className="ghost" style={{ width: "auto" }}>Set date</button>
+          <button className="ghost sm">Set date</button>
         </form>
         {c.followUpAt && (
           <div className="row" style={{ marginTop: 8 }}>
-            <form action={markFollowedUp}><input type="hidden" name="id" value={c.id} /><button>✓ I followed up</button></form>
-            <form action={setFollowUp}><input type="hidden" name="id" value={c.id} /><button className="ghost">Clear reminder</button></form>
+            <form action={markFollowedUp}><input type="hidden" name="id" value={c.id} /><button className="sm">I followed up</button></form>
+            <form action={setFollowUp}><input type="hidden" name="id" value={c.id} /><button className="ghost sm">Clear reminder</button></form>
           </div>
         )}
       </section>
 
-      <section aria-labelledby="tl" className="card">
-        <h2 id="tl" style={{ fontSize: 15, margin: "0 0 8px" }}>Activity</h2>
+      <section aria-labelledby="tl" className="d-card">
+        <h2 id="tl" className="d-sec" style={{ margin: "0 0 8px" }}>Activity</h2>
         <form action={addNote} className="row" style={{ marginBottom: 8 }}>
           <input type="hidden" name="id" value={c.id} />
           <input name="text" maxLength={300} placeholder="Add a note, e.g. wants a demo next month" aria-label="Add a note" />
-          <button style={{ width: "auto" }}>Add</button>
+          <button className="sm" style={{ flex: "none" }}>Add</button>
         </form>
         {[...feed.map((a) => ({ k: a.id, icon: ICON[a.kind] ?? "•", text: a.text || a.kind, at: a.createdAt })), { k: "first", icon: "✦", text: SOURCE[c.source] ?? "Connected", at: c.createdAt }]
           .filter((x, i, arr) => !(x.k === "first" && arr.some((y) => y.icon === "✦" && y.k !== "first")))
           .sort((a, b) => b.at.getTime() - a.at.getTime()).map((x) => (
-            <div key={x.k} style={{ display: "flex", gap: 10, padding: "6px 0", borderTop: "1px solid var(--line)" }}>
-              <span aria-hidden style={{ width: 24, textAlign: "center" }}>{x.icon}</span>
+            <div key={x.k} style={{ display: "flex", gap: 10, padding: "10px 0", borderTop: "1px solid var(--line)", fontSize: 14 }}>
+              <span aria-hidden style={{ width: 24, textAlign: "center", color: "#7C3AED" }}>{x.icon}</span>
               <span style={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" }}>{x.text}</span>
               <span className="muted" style={{ whiteSpace: "nowrap" }}>{when(x.at)}</span>
             </div>
@@ -103,16 +106,16 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
 
       {(files.length > 0 || pages.length > 0) && (
         <section aria-labelledby="sh" className="card">
-          <h2 id="sh" style={{ fontSize: 15, margin: "0 0 6px" }}>Access you have given</h2>
+          <h2 id="sh" className="d-sec" style={{ margin: "0 0 6px" }}>Access you have given</h2>
           {files.map((r) => <div key={r.id} className="muted">{r.resource.title} · {r.status.toLowerCase()}</div>)}
           {pages.map((r) => <div key={r.id} className="muted">{MODE_INFO[r.mode as Mode]?.label ?? r.mode} page · {r.status.toLowerCase()}</div>)}
           <Link href="/app/contacts/inbox" className="muted">Manage in Inbox ›</Link>
         </section>
       )}
 
-      <form action={saveDetails} className="card">
+      <form action={saveDetails} className="d-card">
         <input type="hidden" name="id" value={c.id} />
-        <h2 style={{ fontSize: 15, margin: "0 0 6px" }}>Details</h2>
+        <h2 className="d-sec" style={{ margin: "0 0 6px" }}>Details</h2>
         <label className="f" htmlFor="d-name">Name</label><input id="d-name" name="name" defaultValue={c.name} required />
         <div className="row">
           <div><label className="f" htmlFor="d-title">Job title</label><input id="d-title" name="jobTitle" defaultValue={c.jobTitle} /></div>
@@ -127,7 +130,7 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
         <button>Save details</button>
       </form>
 
-      <form action={removeContact}><input type="hidden" name="id" value={c.id} /><button className="ghost" style={{ color: "#a61b1b", borderColor: "#a61b1b" }}>Remove this connection</button></form>
+      <form action={removeContact}><input type="hidden" name="id" value={c.id} /><button className="ghost d-danger">Remove This Connection</button></form>
     </>
   );
 }

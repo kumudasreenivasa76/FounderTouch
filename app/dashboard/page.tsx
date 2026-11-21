@@ -58,7 +58,7 @@ export default async function Overview({ searchParams }: { searchParams: Promise
   // Views per card and per channel.
   const perMode: Record<string, number> = {}; const perSource: Record<string, number> = {};
   for (const s of scans) { perMode[s.mode] = (perMode[s.mode] ?? 0) + 1; perSource[s.source || "link"] = (perSource[s.source || "link"] ?? 0) + 1; }
-  const cards = ["ALL", ...MODES].map((m) => ({ m, n: perMode[m] ?? 0 })).sort((a, b) => b.n - a.n);
+  const cards = [...new Set(["ALL", ...MODES])].map((m) => ({ m, n: perMode[m] ?? 0 })).sort((a, b) => b.n - a.n);
   const cardMax = Math.max(1, ...cards.map((c) => c.n));
   const sources = Object.entries(perSource).sort((a, b) => b[1] - a[1]);
 

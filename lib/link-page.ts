@@ -4,10 +4,10 @@ import { modeHasContent } from "@/lib/mode-content";
 
 /** Ready-made looks for the link page. Each key matches a `.lt-t-<key>` rule in globals.css. */
 export const LINK_THEMES = [
-  { key: "lilac", name: "Lilac", swatch: "linear-gradient(160deg,#efe6ff,#faf7ff)", dot: "#7c3aed" },
-  { key: "aurora", name: "Aurora", swatch: "linear-gradient(160deg,#7c3aed,#c084fc 55%,#f0abfc)", dot: "#ffffff" },
-  { key: "midnight", name: "Midnight", swatch: "linear-gradient(160deg,#1a1338,#3b2a7a)", dot: "#c4b5fd" },
-  { key: "blush", name: "Blush", swatch: "linear-gradient(160deg,#ffe4ef,#f3e8ff)", dot: "#db2777" },
+  { key: "lilac", name: "Lilac", swatch: "linear-gradient(160deg,#efe6ff,#fafbfc)", dot: "#1f4fd8" },
+  { key: "aurora", name: "Aurora", swatch: "linear-gradient(160deg,#1f4fd8,#3d6bea 55%,#9db4f5)", dot: "#ffffff" },
+  { key: "midnight", name: "Midnight", swatch: "linear-gradient(160deg,#1a1338,#3b2a7a)", dot: "#b9c6ee" },
+  { key: "blush", name: "Blush", swatch: "linear-gradient(160deg,#ffe4ef,#eef2fb)", dot: "#db2777" },
   { key: "mint", name: "Mint", swatch: "linear-gradient(160deg,#dcfce7,#ecfeff)", dot: "#0f766e" },
   { key: "paper", name: "Paper", swatch: "linear-gradient(160deg,#ffffff,#f4f4f5)", dot: "#18181b" },
 ] as const;

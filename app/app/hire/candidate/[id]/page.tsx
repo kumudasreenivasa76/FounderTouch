@@ -41,7 +41,7 @@ export default async function Candidate({ params, searchParams }: { params: Prom
           {a.linkedin && <a className="btn ghost" href={a.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>}
           {a.resumeFile && <a className="btn ghost" href={`/applicant-file/${a.id}`} target="_blank" rel="noopener noreferrer">Resume</a>}
           {!a.resumeFile && a.resumeUrl && <a className="btn ghost" href={a.resumeUrl} target="_blank" rel="noopener noreferrer">Resume link</a>}
-          {cand && <a className="btn ghost" href={`/${cand.handle}?mode=HIRE`} target="_blank" rel="noopener noreferrer">Hire me profile</a>}
+          {cand && <a className="btn ghost" href={`/${cand.handle}?mode=ALL`} target="_blank" rel="noopener noreferrer">Full profile</a>}
         </div>
       </div>
 
@@ -49,7 +49,7 @@ export default async function Candidate({ params, searchParams }: { params: Prom
         <h2 id="stg" style={{ fontSize: 15, margin: "0 0 8px" }}>Stage: {statusLabel(a.status)}</h2>
         <ol style={{ display: "flex", listStyle: "none", padding: 0, margin: "0 0 10px", gap: 4 }} aria-label="Hiring pipeline">
           {PIPELINE.map((k, i) => { const done = stepIdx >= 0 && i <= stepIdx; const c = STATUSES.find((s) => s.key === k)!.color; return (
-            <li key={k} style={{ flex: 1, textAlign: "center", fontSize: 12 }} aria-current={a.status === k ? "step" : undefined}>
+            <li key={k} style={{ flex: 1, minWidth: 0, textAlign: "center", fontSize: 11, letterSpacing: "-.01em", whiteSpace: "nowrap" }} aria-current={a.status === k ? "step" : undefined}>
               <div style={{ height: 6, borderRadius: 3, background: done ? c : "#e0dfdc", marginBottom: 4 }} />
               <span className="muted" style={{ fontWeight: a.status === k ? 700 : 400, color: a.status === k ? "#191919" : undefined }}>{statusLabel(k)}</span>
             </li>); })}
@@ -69,7 +69,7 @@ export default async function Candidate({ params, searchParams }: { params: Prom
         <div style={{ display: "flex", gap: 2 }} role="group" aria-label="Rate this candidate">
           {[1, 2, 3, 4, 5].map((n) => (
             <form key={n} action={rateCandidate}><input type="hidden" name="id" value={a.id} /><input type="hidden" name="rating" value={n} />
-              <button className="ghost" aria-label={`${n} star${n === 1 ? "" : "s"}`} aria-pressed={a.rating >= n} style={{ border: 0, background: "none", fontSize: 28, minWidth: 44, color: a.rating >= n ? "#8a5a00" : "#8c8c8c" }}>{a.rating >= n ? "★" : "☆"}</button></form>
+              <button className="ghost" aria-label={`${n} star${n === 1 ? "" : "s"}`} aria-pressed={a.rating >= n} style={{ border: 0, background: "none", fontSize: 28, minWidth: 44, color: a.rating >= n ? "#fbbf24" : "#5b6470" }}>{a.rating >= n ? "★" : "☆"}</button></form>
           ))}
         </div>
       </section>
@@ -103,7 +103,6 @@ export default async function Candidate({ params, searchParams }: { params: Prom
           {cand.career.length === 0 && !cand.skills && <span className="muted">No experience listed yet.</span>}
         </section>
       )}
-      <Link href={`/app/hire/${a.jobId}`} className="muted">← Back to {a.job.title}</Link>
     </>
   );
 }

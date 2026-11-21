@@ -7,7 +7,11 @@
     "dev": "next dev -p 4400",
     "build": "next build",
     "seed": "tsx prisma/seed.ts",
-    "db": "prisma db push && npm run seed"
+    "db": "prisma db push && npm run seed",
+    "demo": "tsx prisma/migrate-modes.ts && tsx prisma/demo-extras.ts && tsx prisma/demo-data.ts && tsx prisma/demo-messages.ts",
+    "android:sync": "node mobile/prepare.mjs",
+    "android:apk": "node mobile/prepare.mjs && cd android && JAVA_HOME=${JAVA_HOME:-/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home} ANDROID_HOME=${ANDROID_HOME:-/opt/homebrew/share/android-commandlinetools} ./gradlew assembleDebug",
+    "android:apk:local": "APP_URL=http://localhost:4401 npm run android:apk && adb reverse tcp:4401 tcp:4401 || true"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +19,10 @@
   "description": "",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1161.0",
+    "@capacitor/android": "8.6.0",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/core": "8.6.0",
+    "@capacitor/share": "8.0.3",
     "@prisma/client": "^6.19.3",
     "jsqr": "^1.4.0",
     "next": "^15.5.28",
@@ -24,6 +32,7 @@
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "8.6.0",
     "@types/node": "^26.6.6",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.3.0",

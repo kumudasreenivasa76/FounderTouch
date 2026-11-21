@@ -68,10 +68,10 @@ export default function QrScanner({ eventId, initialChecked, total, check }: { e
   useEffect(() => stop, [stop]);
 
   const banner = res && {
-    ok: { bg: "#e6f9ef", fg: "#0b7a4b", text: `${res.name} checked in` },
-    already: { bg: "#fff4e0", fg: "#a35a00", text: `${res.name} was already checked in${res.at ? " at " + new Date(res.at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : ""}` },
-    unknown: { bg: "#fde8e8", fg: "#a61b1b", text: "Not a ticket for this event" },
-    error: { bg: "#fde8e8", fg: "#a61b1b", text: "Something went wrong. Try again." },
+    ok: { bg: "rgba(74,222,128,.14)", fg: "#86efac", text: `${res.name} checked in` },
+    already: { bg: "rgba(251,191,36,.14)", fg: "#fcd34d", text: `${res.name} was already checked in${res.at ? " at " + new Date(res.at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : ""}` },
+    unknown: { bg: "rgba(248,113,113,.14)", fg: "#fca5a5", text: "Not a ticket for this event" },
+    error: { bg: "rgba(248,113,113,.14)", fg: "#fca5a5", text: "Something went wrong. Try again." },
   }[res.status];
 
   return (

@@ -12,7 +12,7 @@ export default function PhotoUpload({ action, size, center, children }: { action
   return (
     <form ref={form} action={action} style={{ position: "relative", display: center ? "block" : "inline-block", width: size, height: size, margin: center ? "0 auto 10px" : 0, flexShrink: 0 }}>
       <input
-        ref={input} type="file" name="photo" accept="image/png,image/jpeg,image/webp" hidden
+        ref={input} type="file" name="photo" aria-label="Photo" accept="image/png,image/jpeg,image/webp" hidden
         onChange={(e) => {
           const f = e.target.files?.[0];
           if (!f) return;
@@ -23,7 +23,7 @@ export default function PhotoUpload({ action, size, center, children }: { action
       <button type="button" aria-label="Upload a profile photo" title="Tap to upload a photo" onClick={() => input.current?.click()}
         style={{ width: size, height: size, padding: 0, background: "none", borderRadius: "50%", display: "block", position: "relative" }}>
         {children}
-        <span aria-hidden style={{ position: "absolute", right: -3, bottom: -3, width: badge, height: badge, borderRadius: "50%", background: "#7c3aed", color: "#fff", fontSize: badge * 0.55, lineHeight: `${badge}px`, border: "2px solid #fff", textAlign: "center" }}></span>
+        <span aria-hidden style={{ position: "absolute", right: -3, bottom: -3, width: badge, height: badge, borderRadius: "50%", background: "#8b5cf6", color: "#ffffff", fontSize: badge * 0.55, lineHeight: `${badge}px`, border: "2px solid var(--line-2)", textAlign: "center" }}></span>
       </button>
     </form>
   );

@@ -1,8 +1,8 @@
 /** Video-call background designs. Each is drawn at 1920x1080 by /card/<handle>/background. */
 export const BG_STYLES = [
   { key: "brand", name: "Brand", hint: "Your card colours", swatch: "" },
-  { key: "aurora", name: "Aurora", hint: "Violet to pink", swatch: "linear-gradient(135deg,#7c3aed,#a855f7 50%,#f0abfc)" },
-  { key: "midnight", name: "Midnight", hint: "Deep and calm", swatch: "linear-gradient(160deg,#120d2b,#2a1b5e)" },
+  { key: "aurora", name: "Aurora", hint: "Violet to pink", swatch: "linear-gradient(135deg,#1f4fd8,#3d6bea 50%,#9db4f5)" },
+  { key: "midnight", name: "Midnight", hint: "Deep and calm", swatch: "linear-gradient(160deg,#0e1116,#2a1b5e)" },
   { key: "studio", name: "Studio", hint: "Charcoal with an accent line", swatch: "linear-gradient(180deg,#1b1e25,#0f1115)" },
   { key: "paper", name: "Paper", hint: "Light and airy", swatch: "linear-gradient(160deg,#ffffff,#ece5fb)" },
   { key: "split", name: "Split", hint: "A colour band at the side", swatch: "" },

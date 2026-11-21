@@ -24,8 +24,8 @@ export default async function Brand({ searchParams }: { searchParams: Promise<{ 
         <label className="f" htmlFor="b-co">Company shown on cards</label>
         <input id="b-co" name="company" defaultValue={o.company} maxLength={80} />
         <div className="row">
-          <div><label className="f" htmlFor="b-c1">Colour 1</label><input id="b-c1" name="color1" type="color" defaultValue={o.color1 || "#7c3aed"} style={{ height: 44, padding: 4 }} /></div>
-          <div><label className="f" htmlFor="b-c2">Colour 2</label><input id="b-c2" name="color2" type="color" defaultValue={o.color2 || "#a855f7"} style={{ height: 44, padding: 4 }} /></div>
+          <div><label className="f" htmlFor="b-c1">Colour 1</label><input id="b-c1" name="color1" type="color" defaultValue={o.color1 || "#1f4fd8"} style={{ height: 44, padding: 4 }} /></div>
+          <div><label className="f" htmlFor="b-c2">Colour 2</label><input id="b-c2" name="color2" type="color" defaultValue={o.color2 || "#3d6bea"} style={{ height: 44, padding: 4 }} /></div>
         </div>
         <label className="f" htmlFor="b-logo">Logo (PNG, JPG or WebP, under 2 MB)</label>
         <input id="b-logo" name="logo" type="file" accept="image/png,image/jpeg,image/webp" />

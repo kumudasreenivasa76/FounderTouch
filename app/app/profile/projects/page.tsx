@@ -18,7 +18,7 @@ export default async function Projects({ searchParams }: { searchParams: Promise
   const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`;
   return (
     <>
-      <PageHead title="Projects" sub="Show what you have built, with a link to try it. Each project appears on the modes you choose, such as Hire me, Hackathon or Founder." saved={!!sp.saved} error={sp.err ? "Give the project a name." : undefined} />
+      <PageHead title="Projects" sub="Show what you have built, with a link to try it. Each project appears on the modes you choose, such as Founder, Seller or Founder." saved={!!sp.saved} error={sp.err ? "Give the project a name." : undefined} />
 
       {projects.length === 0 && <div className="card muted">No projects yet. Add your first one below.</div>}
       {projects.map((p) => (
@@ -51,7 +51,7 @@ export default async function Projects({ searchParams }: { searchParams: Promise
         <label className="f">Show on</label>
         <div className="chips">
           {PAGES.map((m) => (
-            <label key={m} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={m} defaultChecked={m === "HIRE"} />{MODE_INFO[m as Mode].label}</label>
+            <label key={m} className="pill" style={{ cursor: "pointer" }}><input type="checkbox" name="modes" value={m}  />{MODE_INFO[m as Mode].label}</label>
           ))}
         </div>
         <button>Add project</button>

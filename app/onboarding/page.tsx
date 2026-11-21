@@ -16,16 +16,22 @@ async function finish(fd: FormData) {
   const firstName = String(fd.get("firstName")).trim() || u.firstName, lastName = String(fd.get("lastName")).trim() || u.lastName;
   const name = `${firstName} ${lastName}`.trim() || u.name;
   let handle = slug(name) || "me";
-  const RESERVED = ["app", "e", "s", "t", "files", "photo", "login", "signup", "onboarding", "api", "demo"];
+  const RESERVED = ["app", "e", "s", "t", "a", "n", "files", "photo", "logo", "login", "signup", "onboarding", "welcome", "verify", "api", "demo", "dashboard", "company", "auth", "admin", "offline", "event-img", "applicant-file"];
   while (RESERVED.includes(handle) || (await db.profile.findUnique({ where: { handle } }))) handle = `${handle.slice(0, 24)}-${randomBytes(2).toString("hex")}`;
-  const headline = String(fd.get("headline")).trim(), company = String(fd.get("company")).trim(), bio = String(fd.get("bio")).trim();
-  const url = String(fd.get("url")).trim();
+  const str = (k: string) => String(fd.get(k) ?? "").trim();
+  const headline = str("headline"), company = str("company"), bio = str("bio");
+  const url = str("url");
   const picked = new Set(fd.getAll("modes").map(String));
+  const kits = new Set(fd.getAll("kits").map(String));
+  const web = (v: string) => (v && !/^https?:\/\//i.test(v) ? `https://${v}` : v);
 
-  const p = await db.profile.create({ data: { userId: u.id, handle, name, firstName, lastName, headline, company, bio, phone: String(fd.get("phone")).trim(), socials: socialsFromForm(fd) } });
+  const p = await db.profile.create({ data: {
+    userId: u.id, handle, name, firstName, lastName, headline, company, bio, phone: str("phone"), socials: socialsFromForm(fd),
+    email: str("email"), website: web(str("website") || str("companyWebsite")), industry: str("industry"), companySize: str("companySize"),
+  } });
   const ids: string[] = [];
   for (const m of MODES) {
-    await db.modeConfig.create({ data: { profileId: p.id, mode: m, sectionIds: JSON.stringify(ids), bookingUrl: url, ctaLabel: MODE_INFO[m].cta, isEnabled: m === "ALL" || picked.has(m) } });
+    await db.modeConfig.create({ data: { profileId: p.id, mode: m, sectionIds: JSON.stringify(ids), bookingUrl: web(url), ctaLabel: MODE_INFO[m].cta, isEnabled: m === "ALL" || m === "NORMAL" || picked.has(m) || kits.has(m), added: kits.has(m) } });
     await db.shareLink.create({ data: { profileId: p.id, mode: m, token: randomBytes(6).toString("hex") } });
   }
   redirect("/app");
@@ -34,6 +40,7 @@ async function finish(fd: FormData) {
 export default async function Onboarding() {
   const u = await currentUser();
   if (!u) redirect("/login");
+  if (!u.emailVerified) redirect("/verify");
   if (u.profile) redirect("/app");
-  return <Wizard firstName={u.firstName} lastName={u.lastName} finish={finish} modes={MODES.filter((m) => m !== "ALL")} />;
+  return <Wizard firstName={u.firstName} lastName={u.lastName} email={u.email} finish={finish} modes={MODES.filter((m) => m !== "ALL")} />;
 }
