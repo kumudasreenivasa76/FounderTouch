@@ -114,21 +114,20 @@ export default async function MyCard({ searchParams }: { searchParams: Promise<{
   ];
   return (
     <>
-      <div className="shell-head" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <PhotoUpload action={uploadPhoto} size={46}><Avatar name={profile.name} handle={profile.handle} hasPhoto={!!profile.photo} avatar={profile.avatar} size={46} /></PhotoUpload>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <h1 style={{ fontSize: 17, margin: 0 }}>Hi, {profile.firstName || profile.name.split(" ")[0]}</h1>
-          <div className="muted">{total} scans · {taps} taps · {contactCount} contacts</div>
+      <div className="shell-head mc-head">
+        <div className="mc-head-t">
+          <h1>My card</h1>
+          <p><span className="num">{total}</span> scans · <span className="num">{taps}</span> taps · <span className="num">{contactCount}</span> contacts</p>
         </div>
-        <Link href="/app/nfc" className="gear" aria-label="NFC tags" title="NFC tags" style={{ marginRight: 8 }}><Icon name="nfc" size={19} /></Link>
-        <Link href="/app/settings" className="gear" aria-label="Card settings" title="Card colour, logo and settings"><Icon name="settings" size={19} /></Link>
+        <Link href="/app/nfc" className="d-ibtn d-ibtn-o" aria-label="NFC tags" title="NFC tags"><Icon name="nfc" size={19} /></Link>
+        <Link href="/app/settings" className="d-ibtn d-ibtn-o" aria-label="Card settings" title="Card colour, logo and settings"><Icon name="settings" size={19} /></Link>
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", padding: "0 18px 18px", minHeight: 0 }}>
-        <nav className="seg" aria-label="Card, tap or scan">
-          <Link href="/app/card" aria-current={via === "qr" ? "page" : undefined}><span aria-hidden style={{ display: "inline-flex", verticalAlign: "-3px", marginRight: 5 }}><Icon name="qr" size={15} /></span>My card</Link>
-          <Link href="/app/card?via=tap" aria-current={via === "tap" ? "page" : undefined}><span aria-hidden style={{ display: "inline-flex", verticalAlign: "-3px", marginRight: 5 }}><Icon name="nfc" size={15} /></span>Tap</Link>
-          <Link href="/app/card?via=scan" aria-current={via === "scan" ? "page" : undefined}><span aria-hidden style={{ display: "inline-flex", verticalAlign: "-3px", marginRight: 5 }}><Icon name="search" size={15} /></span>Scan</Link>
+      <div className="mc" style={{ flex: 1, overflowY: "auto", padding: "0 18px 18px", minHeight: 0 }}>
+        <nav className="d-tabs mc-tabs" aria-label="Card, tap or scan">
+          <Link href="/app/card" aria-current={via === "qr" ? "page" : undefined}><Icon name="qr" size={15} />My card</Link>
+          <Link href="/app/card?via=tap" aria-current={via === "tap" ? "page" : undefined}><Icon name="nfc" size={15} />Tap</Link>
+          <Link href="/app/card?via=scan" aria-current={via === "scan" ? "page" : undefined}><Icon name="scan" size={15} />Scan</Link>
         </nav>
 
         {via === "tap" ? (
@@ -142,7 +141,7 @@ export default async function MyCard({ searchParams }: { searchParams: Promise<{
         ) : via === "scan" ? (
           <>
             <ScanOthers peek={peekTap} save={saveTapCard} />
-            <Link className="btn ghost" style={{ marginTop: 12 }} href="/app/card?pane=wallet">Saved cards</Link>
+            <Link className="btn ghost mc-soft" style={{ marginTop: 12 }} href="/app/card?pane=wallet"><Icon name="wallet" size={18} />Saved cards</Link>
           </>
         ) : (
           <>
@@ -189,7 +188,7 @@ export default async function MyCard({ searchParams }: { searchParams: Promise<{
                     <div className="bars-l">{days.map((d, n) => <span key={n}>{"SMTWTFS"[d.getDay()]}</span>)}</div>
                   </div>
                   </details>
-                  {mode !== "ALL" && <form action={removeMode} className="cs-remove"><input type="hidden" name="mode" value={mode} /><button>Remove this mode</button></form>}
+                  {mode !== "ALL" && <form action={removeMode} className="cs-remove"><input type="hidden" name="mode" value={mode} /><button className="d-rm">Remove this mode</button></form>}
                 </div>
               );
             })}

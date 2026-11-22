@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import jsQR from "jsqr";
 import type { Found } from "@/app/app/tap-actions";
 import { queueScan } from "./offline-sync";
+import Icon from "@/components/icon";
 
 /** Scan someone else's QR code with the camera. A TapNodd card shows who it is and can be saved. */
 export default function ScanOthers({ peek, save }: { peek: (raw: string) => Promise<Found>; save: (handle: string, mode: string) => Promise<{ ok: boolean; own?: boolean }> }) {
@@ -70,17 +71,17 @@ export default function ScanOthers({ peek, save }: { peek: (raw: string) => Prom
   const isUrl = /^https?:\/\//i.test(other);
 
   return (
-    <div>
-      <h2 style={{ marginTop: 0 }}>Scan a QR code</h2>
-      <p className="muted" style={{ marginTop: 0 }}>Point your camera at someone&apos;s TapNodd QR code to see their card and save it.</p>
+    <div className="scan-pane">
+      <h2>Scan a QR code</h2>
+      <p className="muted">Point your camera at someone&apos;s TapNodd QR code to see their card and save it.</p>
 
-      <div className="viewfinder">
+      <div className={"viewfinder" + (on ? " live" : "")}>
         <video ref={video} playsInline muted style={{ display: on ? "block" : "none" }} />
-        {on && <div className="vf-frame" />}
-        {!on && <div className="vf-empty"></div>}
+        <div className="vf-corners" aria-hidden><i /><i /><i /><i /></div>
+        {!on && <div className="vf-empty"><span><Icon name="qr" size={34} /></span><small>Camera is off</small></div>}
       </div>
       <canvas ref={canvas} style={{ display: "none" }} />
-      <div style={{ marginTop: 10 }}>{on ? <button type="button" className="ghost" onClick={stop}>Stop camera</button> : <button type="button" onClick={start}>Start scanning</button>}</div>
+      <div className="scan-go">{on ? <button type="button" className="ghost mc-soft" onClick={stop}>Stop camera</button> : <button type="button" onClick={start}><Icon name="scan" size={18} />Start scanning</button>}</div>
       {err && <div className="err" style={{ marginTop: 10 }}>{err}</div>}
 
       {found && (
@@ -105,11 +106,13 @@ export default function ScanOthers({ peek, save }: { peek: (raw: string) => Prom
         </div>
       )}
 
-      <div className="card" style={{ marginTop: 12 }}>
+      <div className="scan-paste">
         <b>No camera?</b>
-        <form onSubmit={(e) => { e.preventDefault(); if (paste.trim()) { void handle(paste.trim()); setPaste(""); } }}>
-          <input value={paste} onChange={(e) => setPaste(e.target.value)} placeholder="Paste a card link" autoCapitalize="none" autoCorrect="off" />
-          <button className="ghost">Look it up</button>
+        <span>Paste a card link instead.</span>
+        <form className="d-field" onSubmit={(e) => { e.preventDefault(); if (paste.trim()) { void handle(paste.trim()); setPaste(""); } }}>
+          <Icon name="link" size={18} />
+          <input value={paste} onChange={(e) => setPaste(e.target.value)} placeholder="Paste a card link" aria-label="Paste a card link" autoCapitalize="none" autoCorrect="off" />
+          <button className="d-pill" disabled={!paste.trim()}>Look up</button>
         </form>
       </div>
     </div>

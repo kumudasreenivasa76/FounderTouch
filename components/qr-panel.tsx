@@ -36,7 +36,7 @@ export default function QrPanel({ qrSrc, url, name, modeLabel, modeIcon, frame, 
       <div className="share-via" role="group" aria-label="Send my card">
         {via.map((v) => v.href
           ? <a key={v.k} className="via" href={v.href} {...(v.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}><span><Icon name={v.icon} size={22} /></span>{v.label}</a>
-          : <button key={v.k} type="button" className="via" onClick={v.onClick}><span><Icon name={v.icon} size={22} /></span>{v.label}</button>)}
+          : <button key={v.k} type="button" className="via d-via" onClick={v.onClick}><span><Icon name={v.icon} size={22} /></span>{v.label}</button>)}
       </div>
       <div className="muted" style={{ textAlign: "center", minHeight: 18, marginTop: -4 }}>{note || "Anyone who scans this QR code opens this page."}</div>
       <a className="btn ghost" style={{ marginTop: 10 }} href={qrSrc} download={downloadName}>Save QR image</a>
