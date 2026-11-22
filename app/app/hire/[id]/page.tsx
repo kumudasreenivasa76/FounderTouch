@@ -37,7 +37,7 @@ export default async function Role({ params, searchParams }: { params: Promise<{
 
       <div className="row" style={{ marginBottom: 10 }}>
         <Link className="btn ghost" href={`/app/hire/talent?job=${job.id}`}>Talent</Link>
-        <a className="btn ghost" href={`/${profile.handle}/apply/${job.id}`} target="_blank" rel="noopener noreferrer">Posting ↗</a>
+        <a className="btn ghost" href={`/${profile.handle}/apply/${job.id}`} target="_blank" rel="noopener noreferrer">Posting</a>
       </div>
 
       <nav className="chips" aria-label="Pipeline stage" style={{ overflowX: "auto", flexWrap: "nowrap", margin: "0 0 10px" }}>
@@ -57,7 +57,7 @@ export default async function Role({ params, searchParams }: { params: Promise<{
               <span style={{ flex: 1, minWidth: 0 }}>
                 <b>{a.name}</b>
                 <span className="muted" style={{ display: "block" }}>{p?.headline || a.email}</span>
-                <span className="muted" style={{ display: "block" }}>Applied {ago(a.createdAt)} ago · {a.candidateHandle ? "Hire me profile" : a.eventId ? "From an event" : "Application form"}</span>
+                <span className="muted" style={{ display: "block" }}>Applied {ago(a.createdAt)} ago · {a.candidateHandle ? "TapNodd profile" : a.eventId ? "From an event" : "Application form"}</span>
                 <span style={{ display: "block", marginTop: 4 }}>
                   <span className="pill" style={{ margin: "0 4px 0 0" }}>{statusLabel(a.status)}</span>
                   {m && m.total > 0 && <span className="pill" style={{ margin: "0 4px 0 0" }}>{m.hit}/{m.total} skills</span>}
@@ -83,7 +83,7 @@ export default async function Role({ params, searchParams }: { params: Promise<{
         <div style={{ marginTop: 8 }}><RoleForm action={saveJob} job={{ ...job, eventId: job.eventId }} events={events} submit="Save changes" /></div>
         <div className="row">
           <form action={setJobOpen}><input type="hidden" name="id" value={job.id} /><input type="hidden" name="open" value={job.open ? "0" : "1"} /><button className="ghost">{job.open ? "Close this role" : "Reopen this role"}</button></form>
-          <form action={removeJob}><input type="hidden" name="id" value={job.id} /><button className="ghost" style={{ color: "#a61b1b", borderColor: "#a61b1b" }}>Delete role</button></form>
+          <form action={removeJob}><input type="hidden" name="id" value={job.id} /><button className="ghost" style={{ color: "#f87171", borderColor: "rgba(248,113,113,.45)" }}>Delete role</button></form>
         </div>
       </details>
       <span className="sr-only">{PIPELINE.length} stages</span>

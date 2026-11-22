@@ -19,7 +19,7 @@ export async function addOwnProject(fd: FormData) {
   await db.project.create({
     data: {
       profileId: profile.id, name: name.slice(0, 80), tagline: String(fd.get("tagline")).trim().slice(0, 140), description: String(fd.get("description")).trim().slice(0, 1200),
-      demoUrl: url(fd.get("demoUrl")), repoUrl: url(fd.get("repoUrl")), team: String(fd.get("team")).trim().slice(0, 200), modes: (modes.length ? modes : ["HIRE"]).join(","),
+      demoUrl: url(fd.get("demoUrl")), repoUrl: url(fd.get("repoUrl")), team: String(fd.get("team")).trim().slice(0, 200), modes: modes.join(","),
     },
   });
   done();

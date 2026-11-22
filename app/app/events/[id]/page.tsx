@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { requireOwner } from "@/lib/auth";
 import { themeOf } from "@/lib/look";
 import PageHead from "@/components/page-head";
+import Icon from "@/components/icon";
 import ShareButtons from "@/components/share-buttons";
 import { setAttendeeStatus, addTicketClass, removeTicketClass } from "../actions";
 import { sendAnnouncement, duplicateEvent } from "../actions";
@@ -48,9 +49,22 @@ export default async function ManageEvent({ params, searchParams }: { params: Pr
 
   return (
     <>
-      <PageHead title={e.name} back="/app/events" saved={!!sp.saved} error={sp.err ? ERR[sp.err] : undefined} />
+      <PageHead title="Manage Event" back="/app/events" saved={!!sp.saved} error={sp.err ? ERR[sp.err] : undefined} />
+      <div className="d-evcover" style={{ background: e.cover ? `linear-gradient(180deg,rgba(27,19,64,0) 30%,rgba(27,19,64,.85)), url(/event-img/${e.slug}/cover) center/cover` : `linear-gradient(180deg,rgba(27,19,64,0) 30%,rgba(27,19,64,.6)), linear-gradient(135deg, ${c1}, ${c2})` }}>
+        <span className={"d-chip " + (e.published && e.open ? "g" : "n")}>{!e.published ? "Draft" : e.open ? "Registration open" : "Registration closed"}</span>
+        <span><b>{e.name}</b><small>{[e.startsAt ? e.startsAt.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) + " • " + time(e.startsAt) : "", e.location].filter(Boolean).join(" • ") || "No date yet"}</small></span>
+      </div>
+      <div className="d-tiles">
+        <div className="d-tile"><b>{seats}</b><span>Registered</span></div>
+        <div className="d-tile"><b>{checked}</b><span>Checked in</span></div>
+        <div className="d-tile"><b>{e.capacity || "∞"}</b><span>Capacity</span></div>
+      </div>
+      <div className="d-btns" style={{ margin: "0 0 12px" }}>
+        <Link href={`/app/events/${e.id}/scan`} className="btn sm d-ib"><Icon name="scan" size={18} />Scan Tickets</Link>
+        <a href={`/e/${e.slug}`} target="_blank" className="btn ghost sm d-ib"><Icon name="globe" size={18} />Event Page</a>
+      </div>
 
-      <div className="card">
+      <div className="d-card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
           <b style={{ fontSize: 22 }}>{seats}{e.capacity ? <span className="muted"> / {e.capacity}</span> : null}</b>
           <span className="muted">{e.capacity ? `${Math.max(0, e.capacity - seats)} places left` : "places taken (no limit)"}</span>
@@ -60,14 +74,13 @@ export default async function ManageEvent({ params, searchParams }: { params: Pr
         <div className="bars" role="img" aria-label={`Registrations over the last 14 days: ${regs.reduce((n, x) => n + x, 0)}`}>{regs.map((c, n) => <div key={n} className={n === 13 ? "hi" : ""} style={{ height: `${(c / regMax) * 100}%` }} />)}</div>
         <div className="bars-l"><span>14 days ago</span><span style={{ textAlign: "right" }}>today</span></div>
       </div>
-      <div className="stat">
-        <div className="card"><b>{checked}</b><span className="muted">checked in</span></div>
-        <div className="card"><b>{confirmed ? Math.round((checked / confirmed) * 100) : 0}%</b><span className="muted">turned up</span></div>
-        <div className="card"><b>{e.projects.length}</b><span className="muted">projects</span></div>
+      <div className="d-tiles">
+        <div className="d-tile"><b>{confirmed ? Math.round((checked / confirmed) * 100) : 0}%</b><span>Turned up</span></div>
+        <div className="d-tile"><b>{guestTotal}</b><span>Guests</span></div>
+        <div className="d-tile"><b>{e.projects.length}</b><span>Projects</span></div>
       </div>
-      <Link href={`/app/events/${e.id}/scan`} className="btn" style={{ marginBottom: 12 }}>Scan tickets to check in</Link>
 
-      <div className="card" style={{ textAlign: "center" }}>
+      <div className="d-card" style={{ textAlign: "center" }}>
         <img className="qr" src={qr} alt={`QR for ${e.name}`} />
         <div className="muted">Scan to open the event page and register</div>
         <ShareButtons url={`${origin}/e/${e.slug}`} title={e.name} />
@@ -77,8 +90,8 @@ export default async function ManageEvent({ params, searchParams }: { params: Pr
         </div>
       </div>
 
-      <form action={duplicateEvent}><input type="hidden" name="id" value={e.id} /><button className="ghost" style={{ marginBottom: 12 }}>⧉ Duplicate this event</button></form>
-      <div className="card" style={{ borderColor: e.published ? "#b2f2bb" : "#ffd8a8", background: e.published ? "#f3fcf5" : "#fff9f0" }}>
+      <form action={duplicateEvent}><input type="hidden" name="id" value={e.id} /><button className="ghost sm" style={{ marginBottom: 12, width: "100%" }}>Duplicate This Event</button></form>
+      <div className="d-card" style={{ borderColor: e.published ? "rgba(74,222,128,.35)" : "rgba(251,191,36,.35)", background: e.published ? "rgba(74,222,128,.08)" : "rgba(251,191,36,.08)" }}>
         <b>{e.published ? "Published" : "Draft: not visible to the public yet"}</b>
         <form action={setPublished} style={{ marginTop: 8 }}>
           <input type="hidden" name="id" value={e.id} /><input type="hidden" name="on" value={e.published ? "0" : "1"} />
@@ -86,9 +99,9 @@ export default async function ManageEvent({ params, searchParams }: { params: Pr
         </form>
       </div>
 
-      <form action={updateEvent} className="card">
+      <form action={updateEvent} className="d-card">
         <input type="hidden" name="id" value={e.id} />
-        <h2 style={{ fontSize: 15 }}>Event info</h2>
+        <h2 className="d-sec" style={{ marginTop: 0 }}>Event info</h2>
         <label className="f">Name</label><input name="name" defaultValue={e.name} required />
         <label className="f">About the event</label><textarea name="description" rows={4} defaultValue={e.description} placeholder="Theme, who it is for, prizes, rules…" />
         <label className="f">Agenda</label><textarea name="agenda" rows={4} defaultValue={e.agenda} placeholder={"10:00  Doors open\n11:00  Kick-off\n…"} />
@@ -126,11 +139,11 @@ export default async function ManageEvent({ params, searchParams }: { params: Pr
         <button>Save event info</button>
       </form>
 
-      <form action={saveBranding} className="card">
+      <form action={saveBranding} className="d-card">
         <input type="hidden" name="id" value={e.id} />
-        <h2 style={{ fontSize: 15 }}>Look &amp; feel</h2>
-        <div style={{ height: 70, borderRadius: 14, marginBottom: 10, background: e.cover ? `linear-gradient(rgba(0,0,0,.25), rgba(0,0,0,.5)), url(/event-img/${e.slug}/cover) center/cover` : `linear-gradient(135deg, ${c1}, ${c2})`, display: "flex", alignItems: "center", padding: 12, gap: 10, color: "#fff" }}>
-          {e.logo && <img src={`/event-img/${e.slug}/logo`} alt="" style={{ height: 44, width: 44, objectFit: "contain", background: "#fff", borderRadius: 10, padding: 3 }} />}
+        <h2 className="d-sec" style={{ marginTop: 0 }}>Look &amp; feel</h2>
+        <div style={{ height: 70, borderRadius: 14, marginBottom: 10, background: e.cover ? `linear-gradient(rgba(0,0,0,.25), rgba(0,0,0,.5)), url(/event-img/${e.slug}/cover) center/cover` : `linear-gradient(135deg, ${c1}, ${c2})`, display: "flex", alignItems: "center", padding: 12, gap: 10, color: "#ffffff" }}>
+          {e.logo && <img src={`/event-img/${e.slug}/logo`} alt="" style={{ height: 44, width: 44, objectFit: "contain", background: "var(--surface)", borderRadius: 10, padding: 3 }} />}
           <b>{e.name}</b>
         </div>
         <div className="row">
@@ -148,7 +161,7 @@ export default async function ManageEvent({ params, searchParams }: { params: Pr
       </form>
 
       <h2>Ticket types</h2>
-      <div className="card">
+      <div className="d-card">
         {e.tickets.map((t) => (
           <form key={t.id} action={removeTicketClass} className="row" style={{ marginBottom: 6 }}>
             <input type="hidden" name="eventId" value={e.id} /><input type="hidden" name="id" value={t.id} />
@@ -166,7 +179,7 @@ export default async function ManageEvent({ params, searchParams }: { params: Pr
       </div>
 
       <h2>Staff &amp; roles ({e.staff.length})</h2>
-      <div className="card">
+      <div className="d-card">
         <p className="muted" style={{ marginTop: 0 }}>Staff need a TapNodd account. Check-in staff can scan tickets; vendors can only redeem meals.</p>
         {e.staff.map((st) => (
           <form key={st.id} action={removeStaff} className="row" style={{ marginBottom: 6 }}>
@@ -184,7 +197,7 @@ export default async function ManageEvent({ params, searchParams }: { params: Pr
       </div>
 
       {mods.includes("vouchers") && <><h2>Meal vouchers</h2>
-      <div className="card">
+      <div className="d-card">
         {e.voucherPlans.map((p) => (
           <form key={p.id} action={removePlan} className="row" style={{ marginBottom: 6 }}>
             <input type="hidden" name="eventId" value={e.id} /><input type="hidden" name="id" value={p.id} />
@@ -201,7 +214,7 @@ export default async function ManageEvent({ params, searchParams }: { params: Pr
       </div></>}
 
       <h2>Links</h2>
-      <div className="card">
+      <div className="d-card">
         {e.links.map((l) => (
           <form key={l.id} action={removeLink} className="row" style={{ marginBottom: 6 }}>
             <input type="hidden" name="eventId" value={e.id} /><input type="hidden" name="id" value={l.id} />
@@ -221,7 +234,7 @@ export default async function ManageEvent({ params, searchParams }: { params: Pr
       {e.scans.length > 0 && <p className="muted">Recent scans: {e.scans.map((x) => `${x.scanType.toLowerCase()} ${x.result}`).join(" · ")}</p>}
 
       <h2>Message your guests</h2>
-      <form action={sendAnnouncement} className="card">
+      <form action={sendAnnouncement} className="d-card">
         <input type="hidden" name="eventId" value={e.id} />
         <label className="f" htmlFor="an-sub">Subject</label>
         <input id="an-sub" name="subject" maxLength={120} placeholder="Reminder: doors open at 6" />
@@ -239,9 +252,9 @@ export default async function ManageEvent({ params, searchParams }: { params: Pr
       </form>
       {e.attendees.length === 0 && <div className="card muted">Nobody has registered yet. Share the QR above.</div>}
       {shown.map((a) => (
-        <div className="card" key={a.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div className="d-card" key={a.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <b>{a.name}</b> {a.status !== "CONFIRMED" && <span className="pill" style={{ margin: 0 }}>{a.status.toLowerCase()}</span>} {a.checkedInAt && <span className="pill" style={{ background: "#e6f9ef", margin: 0 }}>in at {time(a.checkedInAt)}</span>}
+            <b>{a.name}</b> {a.status !== "CONFIRMED" && <span className="pill" style={{ margin: 0 }}>{a.status.toLowerCase()}</span>} {a.checkedInAt && <span className="pill" style={{ background: "var(--surface-2)", margin: 0 }}>in at {time(a.checkedInAt)}</span>}
             <div className="muted">{a.email}{a.company ? ` · ${a.company}` : ""}{a.guests ? ` · +${a.guests} guest${a.guests === 1 ? "" : "s"}` : ""}</div>
             {a.answers !== "{}" && (() => { try { return Object.entries(JSON.parse(a.answers) as Record<string, string>).filter(([, v]) => v).map(([k, v]) => <div key={k} className="muted">{k}: {v}</div>); } catch { return null; } })()}
             {a.interested && <div>{a.interested.split(",").map((jid) => e.jobs.find((j) => j.id === jid)).filter(Boolean).map((j) => <span key={j!.id} className="pill">{j!.title}</span>)}</div>}
@@ -273,7 +286,7 @@ export default async function ManageEvent({ params, searchParams }: { params: Pr
       <h2>Projects ({e.projects.length})</h2>
       {e.projects.length === 0 && <div className="card muted">No projects submitted yet.</div>}
       {e.projects.map((p) => (
-        <div className="card" key={p.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div className="d-card" key={p.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ flex: 1, minWidth: 0 }}><b>{p.name}</b><div className="muted">{p.submitter}{p.email ? ` · ${p.email}` : ""}</div></div>
           <form action={removeProject}><input type="hidden" name="eventId" value={e.id} /><input type="hidden" name="id" value={p.id} /><button className="ghost sm">Remove</button></form>
         </div>

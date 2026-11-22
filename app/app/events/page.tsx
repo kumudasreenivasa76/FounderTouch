@@ -21,21 +21,37 @@ export default async function Events({ searchParams }: { searchParams: Promise<{
   const t = themeOf(profile.theme);
   return (
     <>
-      <PageHead title="Events" sub="Run a meetup or hackathon: registration, tickets, check-in at the door and a branded event page." back="/app" error={sp.err ? "Give the event a name." : undefined} />
+      <PageHead title="Events" back="/app/discover" error={sp.err ? "Give the event a name." : undefined} />
 
-      {events.length === 0 && <div className="card muted">No events yet. Create your first one below.</div>}
-      {events.map((e) => (
-        <Link key={e.id} href={`/app/events/${e.id}`} className="menu-row" style={{ alignItems: "stretch", padding: 0, overflow: "hidden" }}>
-          <span style={{ width: 8, background: e.color1 ? `linear-gradient(${e.color1}, ${e.color2 || e.color1})` : gradient(profile.theme) }} />
-          <span style={{ flex: 1, minWidth: 0, padding: "12px 4px 12px 12px" }}>
-            <b>{e.name}</b>
-            <span className="muted" style={{ display: "block" }}>{[fmt(e.startsAt), e.location].filter(Boolean).join(" · ") || "No date yet"}</span>
-            <span className="muted" style={{ display: "block" }}>{e._count.attendees} registered · {e.attendees.length} checked in · {e._count.projects} projects</span>
-          </span>
-          <span style={{ padding: 12 }}><span className={"pill" + (e.published && e.open ? " on" : "")} style={{ margin: 0 }}>{!e.published ? "Draft" : e.open ? "Open" : "Closed"}</span></span>
-        </Link>
-      ))}
-
+      <nav className="d-tabs" aria-label="Events">
+        <Link href="/app/events" aria-current="page">My Events ({events.length})</Link>
+        <Link href="/app/discover?t=events">All Events</Link>
+      </nav>
+      {events.length === 0 && <div className="d-empty"><b>No events yet</b>Create your first one below.</div>}
+      {events.map((e, i) => {
+        const status = !e.published ? "Draft" : e.open ? "Open" : "Closed";
+        const stats = `${e._count.attendees} registered · ${e.attendees.length} checked in`;
+        const when = [fmt(e.startsAt), e.location].filter(Boolean).join(" • ") || "No date yet";
+        const bg = e.cover ? `url(/event-img/${e.slug}/cover) center/cover` : e.color1 ? `linear-gradient(135deg, ${e.color1}, ${e.color2 || e.color1})` : gradient(profile.theme);
+        return i === 0 ? (
+          <Link key={e.id} href={`/app/events/${e.id}`} className="d-card d-evhero">
+            <span className="d-evimg" style={{ background: bg }} aria-hidden><span className={"d-chip " + (status === "Open" ? "g" : "n")}>{status}</span></span>
+            <span className="d-evbody">
+              <b>{e.name}</b>
+              <span className="d-t2">{when}</span>
+              <span className="d-chips" style={{ margin: "4px 0 0" }}><span className="d-chip">{e._count.attendees} registered</span><span className="d-chip">{e.attendees.length} checked in</span>{e._count.projects > 0 && <span className="d-chip">{e._count.projects} projects</span>}</span>
+              <span className="btn sm" style={{ marginTop: 6 }}>Manage Event</span>
+            </span>
+          </Link>
+        ) : (
+          <Link key={e.id} href={`/app/events/${e.id}`} className="d-li" style={{ padding: 8 }}>
+            <span className="d-evthumb" style={{ background: bg }} aria-hidden />
+            <span><b>{e.name}</b><span>{when}</span><span>{stats}</span></span>
+            <span className={"d-chip " + (status === "Open" ? "g" : "n")}>{status}</span>
+          </Link>
+        );
+      })}
+      <h2 className="d-sec">Create an Event</h2>
       <EventWizard action={createEvent} />
       <span style={{ display: "none" }}>{t.from}</span>
     </>

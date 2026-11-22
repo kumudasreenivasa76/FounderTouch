@@ -7,5 +7,5 @@ export default function CopyButton({ text, label = "Copy" }: { text: string; lab
     try { await navigator.clipboard.writeText(text); } catch { prompt("Copy this", text); }
     setDone(true); setTimeout(() => setDone(false), 1600);
   };
-  return <button type="button" className="ghost" onClick={copy}>{done ? "Copied ✓" : label}</button>;
+  return <button type="button" className="ghost" onClick={copy}>{done ? "Copied" : label}</button>;
 }

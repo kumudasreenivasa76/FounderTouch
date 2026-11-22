@@ -6,6 +6,7 @@ import Icon from "@/components/icon";
 import { addMember, delMember, saveBrand, saveCompany } from "../actions";
 import BrandForm from "@/components/brand-form";
 import { themeOf } from "@/lib/look";
+import BackLink from "@/components/back-link";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Company" };
 
@@ -25,7 +26,7 @@ export default async function Company({ searchParams }: { searchParams: Promise<
   const linked = await db.profile.findMany({ where: { handle: { in: team.map((t) => t.memberHandle).filter(Boolean) } } });
   return (
     <div className="co">
-      <Link href="/app" className="muted">← Back</Link>
+      <BackLink href="/app" />
       <div className="kit-lux-top share-top" style={{ marginTop: 10 }}>
         <i className="kit-lux-ic" aria-hidden><Icon name="building" size={24} /></i>
         <div>

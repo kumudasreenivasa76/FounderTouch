@@ -36,8 +36,9 @@ export default function A11yEnhancer() {
   useEffect(() => {
     let t: ReturnType<typeof setTimeout> | undefined;
     const run = () => { nameControls(document); fixRoles(document); };
-    const queue = () => { clearTimeout(t); t = setTimeout(run, 60); };
-    run();
+    // Wait until React has hydrated streamed content: changing server HTML first causes hydration mismatches.
+    const queue = () => { clearTimeout(t); t = setTimeout(run, 500); };
+    queue();
     const mo = new MutationObserver(queue);
     mo.observe(document.body, { childList: true, subtree: true });
     return () => { mo.disconnect(); clearTimeout(t); };

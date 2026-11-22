@@ -19,7 +19,7 @@ export async function saveContactNote(fd: FormData) {
     where: { id: String(fd.get("id")), profileId: profile.id },
     data: { notes: String(fd.get("notes") ?? "").trim().slice(0, 500), tags: cleanTags(String(fd.get("tags") ?? "")), followUpAt: when && !isNaN(when.getTime()) ? when : null },
   });
-  revalidatePath("/app/contacts");
+  revalidatePath("/app/contacts", "layout");
 }
 
 /** Accept, decline or block a connection request. Declined requests are removed; blocked ones stay so they cannot return. */
@@ -36,7 +36,7 @@ export async function decideConnection(fd: FormData) {
   }
   else if (choice === "BLOCK") await db.contact.updateMany({ where, data: { status: "BLOCKED" } });
   else if (choice === "DECLINE") await db.contact.deleteMany({ where: { ...where, status: "PENDING" } });
-  revalidatePath("/app/contacts");
+  revalidatePath("/app/contacts", "layout");
 }
 
 /** Takes back access you approved: the link stops working on its next use. */
@@ -45,7 +45,7 @@ export async function revokeAccess(fd: FormData) {
   const id = String(fd.get("id"));
   if (fd.get("kind") === "mode") await db.modeRequest.updateMany({ where: { id, profileId: profile.id, status: "APPROVED" }, data: { status: "REVOKED" } });
   else await db.deckRequest.updateMany({ where: { id, profileId: profile.id, status: "APPROVED" }, data: { status: "REVOKED" } });
-  revalidatePath("/app/contacts");
+  revalidatePath("/app/contacts", "layout");
 }
 
 /** Add someone you met without a scan (for example from a paper business card). */
@@ -61,7 +61,7 @@ export async function addContact(fd: FormData) {
     create: { profileId: profile.id, email, name, company: String(fd.get("company") ?? "").trim().slice(0, 80), mode: "ALL", source: "manual", status: "CONNECTED", notes: String(fd.get("notes") ?? "").trim().slice(0, 500), tags: cleanTags(String(fd.get("tags") ?? "")) },
   });
   await logActivity(saved.id, had ? "visit" : "created", had ? "Added again" : "Added by hand");
-  revalidatePath("/app/contacts");
+  revalidatePath("/app/contacts", "layout");
 }
 
 
@@ -73,7 +73,7 @@ async function mine(id: FormDataEntryValue | null) {
   return c;
 }
 const back = (id: string) => `/app/contacts/${id}`;
-const touch = (id: string) => { revalidatePath("/app/contacts"); revalidatePath(back(id)); };
+const touch = (id: string) => { revalidatePath("/app/contacts", "layout"); revalidatePath(back(id)); };
 
 export async function toggleStar(fd: FormData) {
   const c = await mine(fd.get("id"));
@@ -125,7 +125,7 @@ export async function markFollowedUp(fd: FormData) {
 export async function removeContact(fd: FormData) {
   const c = await mine(fd.get("id"));
   await db.contact.delete({ where: { id: c.id } });
-  revalidatePath("/app/contacts");
+  revalidatePath("/app/contacts", "layout");
   redirect("/app/contacts");
 }
 
@@ -152,7 +152,7 @@ export async function importContacts(fd: FormData) {
     await logActivity(c.id, had ? "edited" : "created", had ? "Updated by import" : "Imported from a file");
     if (had) updated++; else added++;
   }
-  revalidatePath("/app/contacts");
+  revalidatePath("/app/contacts", "layout");
   redirect(`/app/contacts/import?done=1&added=${added}&updated=${updated}&skipped=${skipped}`);
 }
 
@@ -167,6 +167,6 @@ export async function addContactFull(fd: FormData) {
   const had = await db.contact.findUnique({ where: { profileId_email: { profileId: profile.id, email } } });
   const c = await db.contact.upsert({ where: { profileId_email: { profileId: profile.id, email } }, update: { ...data, lastInteractionAt: new Date() }, create: { profileId: profile.id, email, mode: "ALL", source: "manual", status: "CONNECTED", ...data } });
   await logActivity(c.id, had ? "edited" : "created", had ? "Updated" : `Added${data.metAt ? ", met at " + data.metAt : " by hand"}`);
-  revalidatePath("/app/contacts");
+  revalidatePath("/app/contacts", "layout");
   redirect(`/app/contacts/${c.id}`);
 }

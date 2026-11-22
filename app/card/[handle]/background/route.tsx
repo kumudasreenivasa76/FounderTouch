@@ -30,11 +30,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ hand
 
   const LOOKS: Record<string, Look> = {
     brand: { bg: brand, ink: "#ffffff", sub: "rgba(255,255,255,.92)", blob: "#ffffff", blobOpacity: 0.09 },
-    aurora: { bg: "linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #f0abfc 100%)", ink: "#ffffff", sub: "rgba(255,255,255,.92)", blob: "#ffffff", blobOpacity: 0.1 },
-    midnight: { bg: "linear-gradient(160deg, #120d2b 0%, #2a1b5e 100%)", ink: "#ffffff", sub: "#c4b5fd", blob: "#8b5cf6", blobOpacity: 0.22 },
+    aurora: { bg: "linear-gradient(135deg, #1f4fd8 0%, #3d6bea 50%, #9db4f5 100%)", ink: "#ffffff", sub: "rgba(255,255,255,.92)", blob: "#ffffff", blobOpacity: 0.1 },
+    midnight: { bg: "linear-gradient(160deg, #0e1116 0%, #2a1b5e 100%)", ink: "#ffffff", sub: "#b9c6ee", blob: "#2f5fe3", blobOpacity: 0.22 },
     studio: { bg: "linear-gradient(180deg, #1b1e25 0%, #0f1115 100%)", ink: "#ffffff", sub: "#a8b0c0", blob: "#ffffff", blobOpacity: 0.03, line: brand },
     paper: { bg: "linear-gradient(160deg, #ffffff 0%, #ece5fb 100%)", ink: "#1c2330", sub: "#566074", blob: t.from, blobOpacity: 0.09, line: brand },
-    split: { bg: "linear-gradient(160deg, #faf8ff 0%, #efeaf8 100%)", ink: "#ffffff", sub: "rgba(255,255,255,.92)", blob: t.from, blobOpacity: 0.06 },
+    split: { bg: "linear-gradient(160deg, #fafbfc 0%, #e9ebef 100%)", ink: "#ffffff", sub: "rgba(255,255,255,.92)", blob: t.from, blobOpacity: 0.06 },
   };
   const L = LOOKS[o.style] ?? LOOKS.brand;
   const left = o.side === "left";
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ hand
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={qr} width={250} height={250} alt="" />
       </div>
-      {o.label && <div style={{ display: "flex", marginTop: 16, fontSize: 26, fontWeight: 600, color: o.style === "split" ? "#3d3270" : L.ink }}>{o.label}</div>}
+      {o.label && <div style={{ display: "flex", marginTop: 16, fontSize: 26, fontWeight: 600, color: o.style === "split" ? "#2a3140" : L.ink }}>{o.label}</div>}
     </div>
   ) : <div style={{ display: "flex" }} />;
   const logo = o.logo && p.logo ? (

@@ -7,7 +7,10 @@ import { membership } from "@/lib/org";
 import Avatar from "@/components/avatar";
 import Logo from "@/components/logo";
 import DashNav, { type NavGroup } from "@/components/dash-nav";
+import ThemeSwitch from "@/components/theme-switch";
+import { cookies } from "next/headers";
 import "./dashboard.css";
+import "./dashboard-light.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Dashboard" };
@@ -18,6 +21,8 @@ const w = (path: string) => `/dashboard/w${path}`;
 /** Desktop dashboard: every part of TapNodd in one place, with analytics and a CRM view per card. */
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, profile } = await requireOwner();
+  const t = (await cookies()).get("theme")?.value;
+  const themePref = t === "dark" || t === "system" ? t : "light";
   const [counts, inbox, team] = await Promise.all([
     db.contact.groupBy({ by: ["mode"], where: { profileId: profile.id, status: { not: "BLOCKED" } }, _count: true }),
     db.contact.count({ where: { profileId: profile.id, status: "PENDING" } }),
@@ -45,6 +50,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
     ] },
     { title: "CRM by card", items: MODES.filter((m) => m !== "ALL").map((m) => ({ href: `/dashboard/${m.toLowerCase()}`, label: MODE_INFO[m].label, mode: m, n: per[m] ?? 0 })) },
     { title: "Grow", items: [
+      { href: w("/app/opportunities"), label: "Opportunities", icon: "spark" },
+      { href: w("/app/deals"), label: "Deal flow", icon: "coins" },
+      { href: w("/app/catalog"), label: "Catalog", icon: "store" },
       { href: w("/app/events"), label: "Events", icon: "calendar" },
       { href: w("/app/hire"), label: "Recruiting", icon: "target" },
       { href: w("/app/org"), label: team ? team.org.name : "Team", icon: "building" },
@@ -59,7 +67,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       { href: w("/app/profile/details"), label: "About you", icon: "user" },
       { href: w("/app/profile/contact"), label: "Contact and socials", icon: "phone" },
       { href: w("/app/profile/company"), label: "Company and brand", icon: "building" },
-      { href: w("/app/profile/work"), label: "Hire me profile", icon: "briefcase" },
+      { href: w("/app/profile/work"), label: "Experience & skills", icon: "briefcase" },
     ] },
   ];
 
@@ -72,6 +80,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <Avatar name={profile.name} handle={profile.handle} hasPhoto={!!profile.photo} avatar={profile.avatar} size={38} />
           <div><b>{profile.name}</b><span>/{profile.handle}</span></div>
         </div>
+        <div className="dash-theme"><ThemeSwitch initial={themePref} /></div>
         <div className="dash-foot">
           <a href={`/${profile.handle}`} target="_blank" rel="noopener noreferrer">View my page</a>
           <a href="/app" target="_blank" rel="noopener noreferrer">Phone app</a>

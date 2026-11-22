@@ -15,11 +15,11 @@ export default async function Booth() {
   const link = await db.shareLink.findFirst({ where: { profileId: profile.id, mode: "ALL" } });
   const qr = await QRCode.toDataURL(link ? `${origin}/s/${link.token}?src=qr` : `${origin}/${profile.handle}`, { errorCorrectionLevel: "H", margin: 1, width: 900 });
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 50, background: gradient(profile.theme), color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18, padding: 24, textAlign: "center" }}>
+    <div style={{ position: "fixed", inset: 0, zIndex: 50, background: gradient(profile.theme), color: "#ffffff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18, padding: 24, textAlign: "center" }}>
       <div style={{ fontSize: 28, fontWeight: 700 }}>{profile.name}</div>
-      <div style={{ background: "#fff", borderRadius: 24, padding: 16 }}><img src={qr} alt="QR code to open my card" style={{ width: "min(78vw, 60vh)", height: "auto", display: "block" }} /></div>
+      <div style={{ background: "#ffffff", borderRadius: 24, padding: 16 }}><img src={qr} alt="QR code to open my card" style={{ width: "min(78vw, 60vh)", height: "auto", display: "block" }} /></div>
       <div style={{ fontSize: 20 }}>Scan to connect</div>
-      <Link href="/app/tools" style={{ color: "#fff", textDecoration: "underline", opacity: 0.85 }}>Exit booth mode</Link>
+      <Link href="/app/tools" style={{ color: "#ffffff", textDecoration: "underline", opacity: 0.85 }}>Exit booth mode</Link>
     </div>
   );
 }

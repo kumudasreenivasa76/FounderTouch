@@ -9,16 +9,15 @@ import Avatar from "@/components/avatar";
 import QRCode from "qrcode";
 import { headers } from "next/headers";
 import { SaveOfflineCard } from "@/components/offline-card";
-import ToggleSwitch from "@/components/toggle-switch";
-import { toggleHire } from "./modes/actions";
-import ModeDropdown from "@/components/mode-dropdown";
 import PhotoUpload from "@/components/photo-upload";
 import { CardLine } from "@/components/digital-card";
 import CardWithShare from "@/components/card-with-share";
 import { SocialIcon } from "@/components/social-icon";
-import { uploadPhoto, logout } from "./profile/actions";
+import { uploadPhoto } from "./profile/actions";
 import Icon from "@/components/icon";
 import PreviewLink from "@/components/preview-link";
+import Logo from "@/components/logo";
+import { unreadCount } from "@/lib/messages";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Home" };
 
@@ -40,8 +39,8 @@ export default async function Home() {
   const extra = { projects: projectRows.length, events: eventCount, jobs: jobCount, career: hireBits, projectModes };
   const visible = MODES.filter((m) => cfgs.find((c) => c.mode === m)?.isEnabled && modeHasContent(m, cfgs.find((c) => c.mode === m), resources, extra));
 
-  const hireOn = visible.includes("HIRE");
   const endOfToday = new Date(); endOfToday.setHours(23, 59, 59, 999);
+  const unreadMsgs = await unreadCount(profile.id);
   const [dueCount, pendingCount] = await Promise.all([
     db.contact.count({ where: { profileId: profile.id, status: "CONNECTED", followUpAt: { lte: endOfToday } } }),
     db.contact.count({ where: { profileId: profile.id, status: "PENDING" } }),
@@ -65,7 +64,7 @@ export default async function Home() {
     { href: "/app/profile/details", icon: "user", title: "About you", sub: [profile.name, profile.headline].filter(Boolean).join(" · ") || "Name, headline, bio and photo" },
     { href: "/app/profile/contact", icon: "phone", title: "Contact & socials", sub: `${profile.phone || profile.email ? "Phone/email set" : "No phone or email"} · ${socialCount} social link${socialCount === 1 ? "" : "s"}` },
     { href: "/app/profile/company", icon: "building", title: "Company", sub: `${profile.company || "No company name"} · ${team} team member${team === 1 ? "" : "s"}` },
-    { href: "/app/profile/work", icon: "briefcase", title: "Hire me", sub: "Resume, portfolio, experience, education" },
+    { href: "/app/profile/work", icon: "briefcase", title: "Experience & skills", sub: "Resume, experience, education, for job applications" },
     { href: "/app/profile/kit", icon: "folder", title: "Kits", sub: `Founder, Investor, Seller… · ${resources.length} item${resources.length === 1 ? "" : "s"}` },
     { href: "/app/profile/projects", icon: "spark", title: "Projects", sub: projectRows.length ? `${projectRows.length} project${projectRows.length === 1 ? "" : "s"} you have built` : "Show what you have built" },
   ];
@@ -85,79 +84,153 @@ export default async function Home() {
   if (profile.website) lines.push({ icon: "globe", text: profile.website.replace(/^https?:\/\//, ""), href: profile.website });
   const icons = SOCIALS.filter((s) => socials[s.key]).map((s) => (
     <a key={s.key} href={socials[s.key]} target="_blank" rel="noopener noreferrer" title={s.label} aria-label={s.label}
-      style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(255,255,255,.22)", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center" }}><SocialIcon k={s.key} size={16} /></a>
+      style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(255,255,255,.22)", color: "#ffffff", display: "inline-flex", alignItems: "center", justifyContent: "center" }}><SocialIcon k={s.key} size={16} /></a>
   ));
   const avatar = <PhotoUpload action={uploadPhoto} size={56}><Avatar name={profile.name} handle={profile.handle} hasPhoto={!!profile.photo} avatar={profile.avatar} size={56} /></PhotoUpload>;
   const logo = profile.logo ? `/logo/${profile.handle}?v=${encodeURIComponent(profile.logo)}` : undefined;
   const fmt = (d: Date | null) => (d ? d.toLocaleDateString("en-IN", { dateStyle: "medium" }) : "No date yet");
 
+  // The last 30 days, for the numbers on Home.
+  const since = new Date(Date.now() - 30 * 86400_000);
+  const myLinks = await db.shareLink.findMany({ where: { profileId: profile.id }, select: { id: true, mode: true } });
+  const [scans, connections, openDeals, leads, applicants, invites, pending, due] = await Promise.all([
+    db.scanEvent.findMany({ where: { shareLinkId: { in: myLinks.map((l) => l.id) }, createdAt: { gte: since } }, select: { mode: true } }),
+    db.contact.count({ where: { profileId: profile.id, status: "CONNECTED" } }),
+    db.deal.count({ where: { profileId: profile.id, stage: { in: ["NEW", "REVIEW", "TERM_SHEET"] } } }),
+    db.contact.count({ where: { profileId: profile.id, mode: "SERVICES", tags: { contains: "lead" } } }),
+    db.application.count({ where: { profileId: profile.id, status: { in: ["NEW", "SHORTLISTED", "INTERVIEW"] } } }),
+    db.invite.count({ where: { candidateProfileId: profile.id } }),
+    db.contact.findMany({ where: { profileId: profile.id, status: "PENDING" }, orderBy: { lastInteractionAt: "desc" }, take: 2 }),
+    db.contact.findMany({ where: { profileId: profile.id, status: "CONNECTED", followUpAt: { lte: endOfToday } }, orderBy: { followUpAt: "asc" }, take: 2 }),
+  ]);
+  // People to meet: others on TapNodd with a photo who are not in your contacts yet.
+  const known = new Set((await db.contact.findMany({ where: { profileId: profile.id }, select: { email: true } })).map((c) => c.email.toLowerCase()));
+  const people = (await db.profile.findMany({ where: { id: { not: profile.id }, photo: { not: "" } }, include: { user: { select: { email: true } } }, orderBy: { id: "desc" }, take: 12 }))
+    .filter((x) => !known.has((x.user?.email ?? "").toLowerCase())).slice(0, 6);
+  const nextEvent = upcoming.find((e) => e.startsAt) ?? upcoming[0];
+  const opens = (m: string) => scans.filter((x) => x.mode === m).length;
+  const opportunities = openDeals + leads + applicants + invites;
+  const ini = (n: string) => n.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
+  const modeCards = MODES.filter((m) => m !== "ALL" && m !== "OTHER" && cfgs.find((c) => c.mode === m)?.isEnabled);
+  const missing = (["FOUNDER", "INVESTOR", "SERVICES", "RECRUITER"] as const).find((m) => !modeCards.includes(m));
+
   return (
     <>
       <SaveOfflineCard data={offline} />
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <h1 style={{ fontSize: 20, margin: 0 }}>Hi, {profile.firstName || profile.name.split(" ")[0]}</h1>
-          <div className="muted">{pct}% of your profile is complete{next ? ` · next: ${next.label.toLowerCase()}` : ""}</div>
+      <header className="dz-top">
+        <span className="dz-brand"><Logo size={26} />TapNodd</span>
+        <span style={{ display: "flex", gap: 4 }}>
+          <Link href="/app/messages" className="dz-ibtn" aria-label={unreadMsgs ? `Messages, ${unreadMsgs} unread` : "Messages"}>
+            <Icon name="chat" size={22} />
+            {unreadMsgs > 0 && <span className="dz-dot" aria-hidden />}
+          </Link>
+        <Link href="/app/contacts/inbox" className="dz-ibtn" aria-label={pendingCount ? `Inbox, ${pendingCount} waiting` : "Inbox"}>
+          <Icon name="bell" size={22} />
+          {pendingCount > 0 && <span className="dz-dot" aria-hidden />}
+        </Link>
+        </span>
+      </header>
+
+      <div className="dz-hello">
+        {profile.photo
+          ? <img src={`/photo/${profile.handle}?v=${encodeURIComponent(profile.photo)}`} alt="" width={56} height={56} />
+          : <span className="avatar" style={{ width: 56, height: 56, fontSize: 18, border: 0 }} aria-hidden>{ini(profile.name)}</span>}
+        <div>
+          <h1>Hi {profile.firstName || profile.name.split(" ")[0]}</h1>
+          <p>{modeCards.filter((m) => m !== "NORMAL").map((m) => MODE_INFO[m as Mode].label).join(" · ") || byline(profile.headline, profile.company)}</p>
         </div>
-        <Link href="/app/settings" className="gear" aria-label="Card settings"><Icon name="settings" size={19} /></Link>
       </div>
-      <div style={{ height: 8, borderRadius: 8, background: "#e8ebf2", overflow: "hidden", marginBottom: 14 }} role="progressbar" aria-label="Profile completion" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-        <div style={{ width: `${pct}%`, height: "100%", background: gradient(profile.theme) }} />
+
+      <form action="/app/contacts" className="dz-search" role="search">
+        <label className="sr-only" htmlFor="home-q">Search</label>
+        <Icon name="search" size={18} />
+        <input id="home-q" name="q" placeholder="Search your connections" />
+      </form>
+
+      {next && (
+        <Link href={next.href} className="dz-next">
+          <span className="num">{pct}%</span>
+          <span style={{ flex: 1, minWidth: 0 }}><b>{next.label}</b><span>Your profile is {pct}% complete</span></span>
+          <span aria-hidden>›</span>
+        </Link>
+      )}
+
+      <div className="dz-h"><h2>My modes</h2><Link href="/app/card?pane=add">Manage</Link></div>
+      <div className="dz-modes">
+        {modeCards.map((m, i) => (
+          <Link key={m} href={`/app/card?mode=${m}`} className={`dz-mode m-${m}${i === 0 ? " on" : ""}`} title={visible.includes(m) ? `${opens(m)} ${opens(m) === 1 ? "open" : "opens"}` : "Add details"}>
+            <Icon mode={m} size={22} />
+            <span>{MODE_INFO[m as Mode].label}</span>
+          </Link>
+        ))}
+        {missing && <Link href="/app/card?pane=add" className="dz-add" aria-label={`Add ${MODE_INFO[missing].label} mode`}><Icon name="plus" size={18} /></Link>}
       </div>
-      {next && <Link href={next.href} className="menu-row" style={{ borderColor: "rgba(124,58,237,.35)", background: "linear-gradient(135deg,rgba(124,58,237,.06),rgba(168,85,247,.06))" }}><span className="menu-ico"><Icon name="check" /></span><span style={{ flex: 1 }}><b>{next.label}</b><span className="muted" style={{ display: "block" }}>Finish your profile</span></span><span className="muted">›</span></Link>}
 
       <CardWithShare key={profile.theme}
         card={{ background: gradient(profile.theme), back: `linear-gradient(135deg, ${t.to}, ${t.from})`, avatar, name: profile.name, sub: byline(profile.headline, profile.company), logo, lines, social: icons }}
         share={{ name: profile.name, handle: profile.handle, url: hubUrl, qr: offline.qr, vcf, imageUrl: `/card/${profile.handle}/image?mode=ALL` }} />
 
-      <div className="row" style={{ margin: "12px 0" }}>
-        <a className="btn ghost" href="#profile">Edit profile</a>
-        <PreviewLink className="btn ghost" href={`/${profile.handle}`} title="My public page">View my page</PreviewLink>
+      <div className="dz-tiles">
+        <Link href="/app/nfc"><Icon name="nfc" size={22} /><span>Tap to share</span></Link>
+        <Link href="/app/share"><Icon name="qr" size={22} /><span>QR code</span></Link>
+        <PreviewLink href={`/${profile.handle}`} title="My public page"><Icon name="link" size={22} /><span>View my page</span></PreviewLink>
       </div>
 
-      <Link href="/app/links" className="menu-row">
-        <span className="menu-ico" aria-hidden><Icon name="link" /></span>
-        <span style={{ flex: 1, minWidth: 0 }}><b>Your link page</b><span className="muted" style={{ display: "block" }}>/{profile.handle} · add links, pick a look, see clicks</span></span>
-        <span className="muted" aria-hidden>›</span>
-      </Link>
+      <div className="dz-stats" aria-label="Your network">
+        <Link href="/app/contacts"><Icon name="users" size={20} /><b>{connections}</b><span>Connections</span></Link>
+        <Link href="/app/contacts/inbox">{pendingCount > 0 && <i className="dz-badge">{pendingCount}</i>}<Icon name="user" size={20} /><b>{pendingCount}</b><span>Requests</span></Link>
+        <Link href="/app/opportunities"><Icon name="spark" size={20} /><b>{opportunities}</b><span>Opportunities</span></Link>
+      </div>
 
-      <h2 style={{ fontSize: 15, margin: "16px 0 8px" }}>Your modes</h2>
-      {visible.length === 0
-        ? <div className="card muted">No mode is set up yet. <Link href="/app/card?pane=add">Add one</Link>.</div>
-        : <ModeDropdown options={visible.map((m) => ({ value: m, label: MODE_INFO[m as Mode].label }))} />}
-
-      {dueCount + pendingCount > 0 && (
-        <Link href="/app/contacts" className="menu-row" style={{ marginTop: 14, borderColor: "#f5c26b", background: "#fffaf0" }}>
-          <span className="menu-ico" aria-hidden style={{ color: "#b87b1f", background: "#fdf1dc" }}><Icon name="chat" /></span>
-          <span style={{ flex: 1 }}><b>{dueCount ? `Follow up with ${dueCount} ${dueCount === 1 ? "person" : "people"} today` : `${pendingCount} connection ${pendingCount === 1 ? "request" : "requests"}`}</b><span className="muted" style={{ display: "block" }}>{dueCount && pendingCount ? `Plus ${pendingCount} connection request${pendingCount === 1 ? "" : "s"}` : "Open Connections"}</span></span>
-          <span className="muted" aria-hidden>›</span>
-        </Link>
+      {nextEvent && (
+        <>
+          <div className="dz-h"><h2>Upcoming event</h2><Link href="/app/events">All events</Link></div>
+          <Link href={`/app/events/${nextEvent.id}`} className="dz-li">
+            {nextEvent.cover ? <img src={`/event-img/${nextEvent.slug}/cover`} alt="" className="dz-thumb" /> : <span className="dz-thumb"><Icon name="calendar" size={22} /></span>}
+            <span style={{ flex: 1, minWidth: 0 }}><b>{nextEvent.name}</b><span>{[fmt(nextEvent.startsAt), nextEvent.location].filter(Boolean).join(" · ")}</span></span>
+            <span aria-hidden className="dz-chev">›</span>
+          </Link>
+        </>
       )}
 
-      <h2 style={{ fontSize: 15, margin: "18px 0 8px" }}>Hire me</h2>
-      <ToggleSwitch action={toggleHire} on={hireOn} label="Show Hire me on my card" hint="Experience, skills and resume for recruiters" />
+      {(pending.length > 0 || due.length > 0) && (
+        <>
+          <div className="dz-h"><h2>Needs you</h2><Link href="/app/contacts/inbox">See all</Link></div>
+          <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+            {pending.map((c) => (
+              <Link key={c.id} href="/app/contacts/inbox" style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 14px", color: "inherit", borderBottom: "1px solid var(--line)" }}>
+                <span className="avatar" style={{ width: 36, height: 36, fontSize: 12, border: 0 }}>{ini(c.name)}</span>
+                <span style={{ flex: 1, minWidth: 0 }}><b style={{ fontWeight: 500 }}>{c.name}</b><span className="muted" style={{ display: "block", fontSize: 12.5 }}>{c.message || `Wants to connect from your ${MODE_INFO[c.mode as Mode]?.label ?? ""} page`}</span></span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--brand-hi)" }}>Review</span>
+              </Link>
+            ))}
+            {due.map((c) => (
+              <Link key={c.id} href={`/app/contacts/${c.id}`} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 14px", color: "inherit", borderBottom: "1px solid var(--line)" }}>
+                <span className="avatar" style={{ width: 36, height: 36, fontSize: 12, border: 0 }}>{ini(c.name)}</span>
+                <span style={{ flex: 1, minWidth: 0 }}><b style={{ fontWeight: 500 }}>Follow up with {c.name}</b><span className="muted" style={{ display: "block", fontSize: 12.5 }}>{c.company || c.email}</span></span>
+                <span style={{ fontSize: 12, color: "var(--warn)" }}>Today</span>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
 
-      <h2 id="profile" style={{ fontSize: 15, margin: "18px 0 8px" }}>My profile</h2>
-      {rows.map((r) => (
-        <Link key={r.href} href={r.href} className="menu-row">
-          <span className="menu-ico"><Icon name={r.icon} /></span>
-          <span style={{ flex: 1, minWidth: 0 }}><b>{r.title}</b><span className="muted" style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.sub}</span></span>
-          <span className="muted">›</span>
-        </Link>
-      ))}
-      {visible.includes("RECRUITER") && <Link href="/app/hire" className="menu-row"><span className="menu-ico"><Icon name="search" /></span><span style={{ flex: 1 }}><b>Recruiting</b><span className="muted" style={{ display: "block" }}>{jobCount} open {jobCount === 1 ? "role" : "roles"}</span></span><span className="muted">›</span></Link>}
+      {people.length > 0 && (
+        <>
+          <div className="dz-h"><h2>People you may know</h2><Link href="/app/contacts">Connections</Link></div>
+          <div className="tn-people">
+            {people.map((x) => (
+              <div key={x.id} className="tn-person">
+                <img src={`/photo/${x.handle}?v=${encodeURIComponent(x.photo)}`} alt="" width={56} height={56} />
+                <b>{x.name}</b>
+                <span>{byline(x.headline, x.company)}</span>
+                <Link href={`/${x.handle}`} className="tn-connect">Connect</Link>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
-      <h2 style={{ fontSize: 15, margin: "18px 0 8px" }}>Upcoming events</h2>
-      {upcoming.length === 0 && <div className="card muted">No events planned. <Link href="/app/events">Create one</Link>.</div>}
-      {upcoming.map((e) => (
-        <Link key={e.id} href={`/app/events/${e.id}`} className="menu-row">
-          <span className="menu-ico"><Icon name="calendar" /></span>
-          <span style={{ flex: 1, minWidth: 0 }}><b>{e.name}</b><span className="muted" style={{ display: "block" }}>{fmt(e.startsAt)} · {e._count.attendees} registered</span></span>
-          <span className="muted">›</span>
-        </Link>
-      ))}
-
-      <form action={logout} style={{ marginTop: 16 }}><button className="ghost">Log out</button></form>
     </>
   );
 }

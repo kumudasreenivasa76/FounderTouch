@@ -30,7 +30,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
         <h2 style={{ fontSize: 15 }}>Card colour</h2>
         <form action={setTheme} style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {Object.entries(THEMES).map(([k, th]) => (
-            <button key={k} name="theme" value={k} aria-label={th.name} title={th.name}
+            <button key={k} className="d-swatch" name="theme" value={k} aria-label={th.name} title={th.name}
               style={{ width: 42, height: 42, padding: 0, borderRadius: "50%", background: `linear-gradient(135deg, ${th.from}, ${th.to})`, border: profile.theme === k ? "3px solid #111827" : "3px solid #fff", boxShadow: "0 0 0 1px #cfd4dd" }} />
           ))}
         </form>

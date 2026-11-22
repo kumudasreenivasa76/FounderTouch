@@ -31,7 +31,15 @@ export async function currentUser() {
 }
 /** Older profiles are missing modes added later (e.g. Seller, Services). Create them, copying the "All" mode's sections. */
 async function ensureModes(profileId: string) {
-  const have = new Set((await db.modeConfig.findMany({ where: { profileId }, select: { mode: true } })).map((m) => m.mode));
+  // Hire me became Normal: carry the old row (and its share link) across so nothing is lost.
+  const rows = await db.modeConfig.findMany({ where: { profileId }, select: { mode: true } });
+  if (rows.some((m) => m.mode === "HIRE") && !rows.some((m) => m.mode === "NORMAL")) {
+    await db.modeConfig.updateMany({ where: { profileId, mode: "HIRE" }, data: { mode: "NORMAL", ctaLabel: MODE_INFO.NORMAL.cta } });
+    await db.shareLink.updateMany({ where: { profileId, mode: "HIRE" }, data: { mode: "NORMAL" } });
+    await db.nfcTag.updateMany({ where: { profileId, mode: "HIRE" }, data: { mode: "NORMAL" } });
+    rows.forEach((m) => { if (m.mode === "HIRE") m.mode = "NORMAL"; });
+  }
+  const have = new Set(rows.map((m) => m.mode));
   const missing = MODES.filter((m) => !have.has(m));
   if (!missing.length) return;
   const all = await db.modeConfig.findFirst({ where: { profileId, mode: "ALL" } });
@@ -45,6 +53,7 @@ async function ensureModes(profileId: string) {
 export async function requireOwner() {
   const u = await currentUser();
   if (!u) redirect("/login");
+  if (!u.emailVerified) redirect("/verify");
   if (!u.profile) redirect("/onboarding");
   await ensureModes(u.profile.id);
   return { user: u, profile: u.profile };

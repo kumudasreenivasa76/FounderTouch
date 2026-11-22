@@ -42,7 +42,7 @@ export default async function ModeCrm({ params, searchParams }: { params: Promis
       db.contact.count({ where: { ...base, starred: true } }),
     ]),
     db.contact.findMany({ where, orderBy: [{ starred: "desc" }, { lastInteractionAt: "desc" }], take: 200 }),
-    mode === "RECRUITER" || mode === "HIRE" ? db.application.findMany({ where: { profileId: pid }, orderBy: { createdAt: "desc" }, include: { job: { select: { title: true } } }, take: 300 }) : Promise.resolve([]),
+    mode === "RECRUITER" ? db.application.findMany({ where: { profileId: pid }, orderBy: { createdAt: "desc" }, include: { job: { select: { title: true } } }, take: 300 }) : Promise.resolve([]),
   ]);
   const href = (s: string) => `/dashboard/${raw}?stage=${s}${sp.q ? `&q=${encodeURIComponent(sp.q)}` : ""}`;
   const d = (x: Date | null) => (x ? x.toLocaleDateString("en-IN", { dateStyle: "medium" }) : "—");

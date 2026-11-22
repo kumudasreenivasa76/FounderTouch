@@ -1,17 +1,12 @@
-/** The TapNodd logo mark: two business cards meeting at the exchange moment, on the brand gradient. */
+/** The TapNodd mark from the design: two signal arcs over a person, the moment of a tap. */
 export default function Logo({ size = 72, className, style }: { size?: number; className?: string; style?: React.CSSProperties }) {
+  const ink = { fill: "var(--logo-ink, #3B0F8C)" };
   return (
     <svg viewBox="0 0 64 64" width={size} height={size} role="img" aria-label="TapNodd" className={className} style={style}>
-      <defs>
-        <linearGradient id="tn-lg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#7c3aed" />
-          <stop offset="1" stopColor="#a855f7" />
-        </linearGradient>
-      </defs>
-      <rect width="64" height="64" rx="17" fill="url(#tn-lg)" />
-      <rect x="12" y="19" width="27" height="18" rx="5" fill="#fff" opacity="0.45" transform="rotate(-9 25.5 28)" />
-      <rect x="25" y="27" width="27" height="18" rx="5" fill="#fff" transform="rotate(7 38.5 36)" />
-      <path d="M22 14 l2.4 4.6 M30 11.5 l.6 5.1 M15 20 l4.4 2.6" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" opacity="0.85" />
+      <path d="M13.8 19.5A21 21 0 0 1 50.2 19.5" fill="none" stroke="#A78BFA" strokeWidth="4.6" strokeLinecap="round" />
+      <path d="M21.6 24A12 12 0 0 1 42.4 24" fill="none" stroke="#7C3AED" strokeWidth="4.6" strokeLinecap="round" />
+      <circle cx="32" cy="30.5" r="5.6" style={ink} />
+      <rect x="28" y="39.5" width="8" height="17" rx="4" style={ink} />
     </svg>
   );
 }

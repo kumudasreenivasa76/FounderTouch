@@ -81,7 +81,7 @@ export default async function Cards() {
         <Link href="/dashboard/w/app/card?pane=add" className="dc-tile dc-new">
           <span className="dc-plus" aria-hidden><Icon name="plus" size={24} /></span>
           <b>Add a card</b>
-          <span className="muted2">Founder, Investor, Business, Hire me, Recruiter…</span>
+          <span className="muted2">Normal, Founder, Investor, Seller, Recruiter…</span>
         </Link>
       </div>
     </>

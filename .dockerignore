@@ -6,3 +6,9 @@ uploads
 dev.log
 dev.err
 .git
+mobile
+*.db-journal
+.env*
+android
+capacitor.config.ts
+dist

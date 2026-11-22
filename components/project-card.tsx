@@ -6,7 +6,7 @@ export type ProjectView = { id: string; name: string; tagline: string; descripti
 export default function ProjectCard({ p, origin, action }: { p: ProjectView; origin: string; action?: React.ReactNode }) {
   const direct = p.demoUrl && isDirectVideo(p.demoUrl);
   const embed = p.demoUrl && !direct ? embedFor({ id: p.id, url: p.demoUrl, filePath: "" }, origin) : null;
-  const frame = { width: "100%", borderRadius: 12, margin: "8px 0", background: "#000" } as const;
+  const frame = { width: "100%", borderRadius: 12, margin: "8px 0", background: "#000000" } as const;
   return (
     <div className="card">
       <b style={{ fontSize: 16 }}>{p.name}</b>

@@ -5,6 +5,7 @@ import Icon from "@/components/icon";
 import SocialList from "@/components/social-list";
 import PhoneField from "@/components/phone-field";
 import { saveContact } from "../actions";
+import BackLink from "@/components/back-link";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Contact & socials" };
 
@@ -14,7 +15,7 @@ export default async function Contact({ searchParams }: { searchParams: Promise<
   const { profile } = await requireOwner();
   return (
     <div className="ct">
-      <Link href="/app" className="muted">← Back</Link>
+      <BackLink href="/app" />
       <div className="kit-lux-top share-top" style={{ marginTop: 10 }}>
         <i className="kit-lux-ic" aria-hidden><Icon name="phone" size={24} /></i>
         <div>

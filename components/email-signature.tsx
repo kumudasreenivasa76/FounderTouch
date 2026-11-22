@@ -10,11 +10,11 @@ export default function EmailSignature({ html }: { html: string }) {
       if (navigator.clipboard && "ClipboardItem" in window) {
         await navigator.clipboard.write([new ClipboardItem({ "text/html": new Blob([html], { type: "text/html" }), "text/plain": new Blob([box.current?.innerText ?? ""], { type: "text/plain" }) })]);
       } else throw new Error("fallback");
-      setDone("Copied ✓");
+      setDone("Copied");
     } catch {
       const r = document.createRange(); r.selectNodeContents(box.current!);
       const s = window.getSelection(); s?.removeAllRanges(); s?.addRange(r);
-      setDone(document.execCommand("copy") ? "Copied ✓" : "Select and copy it");
+      setDone(document.execCommand("copy") ? "Copied" : "Select and copy it");
     }
     setTimeout(() => setDone(""), 2000);
   };

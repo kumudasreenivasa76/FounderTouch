@@ -20,7 +20,7 @@ export default async function Ticket({ params }: { params: Promise<{ slug: strin
   return (
     <div role="main" id="main" className="screen" style={{ ["--accent" as string]: readable(c1) }}>
       <div className="card hero hero-themed" style={{ background: bg, border: 0 }}>
-        {ev.logo && <img src={`/event-img/${ev.slug}/logo`} alt="" style={{ height: 60, maxWidth: 140, objectFit: "contain", background: "#fff", borderRadius: 14, padding: 5, margin: "0 auto 8px", display: "block" }} />}
+        {ev.logo && <img src={`/event-img/${ev.slug}/logo`} alt="" style={{ height: 60, maxWidth: 140, objectFit: "contain", background: "var(--surface)", borderRadius: 14, padding: 5, margin: "0 auto 8px", display: "block" }} />}
         <span className="pill">Your ticket</span>
         <h1 style={{ marginTop: 8 }}>{ev.name}</h1>
         {ev.startsAt && <div>{ev.startsAt.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</div>}
@@ -37,7 +37,7 @@ export default async function Ticket({ params }: { params: Promise<{ slug: strin
           : <div className="muted">Show this QR at the entrance. Take a screenshot so you have it offline.</div>}
       </div>
       <a href={`/e/${ev.slug}/ics`} className="btn ghost">Add to calendar</a>
-      <Link href={`/e/${ev.slug}`} className="btn ghost">← Event page</Link>
+      <Link href={`/e/${ev.slug}`} className="btn ghost">Event page</Link>
     </div>
   );
 }
